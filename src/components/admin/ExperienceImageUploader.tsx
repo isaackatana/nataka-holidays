@@ -112,12 +112,12 @@ export function ExperienceImageUploader({ experienceId, images }: ExperienceImag
             <div key={image.id} className="group relative overflow-hidden rounded-lg bg-sand-200">
               <img
                 src={getPublicImageUrl('experience-images', image.storage_path)}
-                alt=""
+                alt={`Experience photo ${index + 1}${index === 0 ? ' (cover)' : ''}`}
                 className="aspect-square w-full object-cover"
               />
 
               {index === 0 && (
-                <span className="absolute left-1.5 top-1.5 rounded-pill bg-gold-500 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wide text-sand-50">
+                <span className="absolute left-1.5 top-1.5 rounded-pill bg-gold-600 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wide text-sand-50">
                   Cover
                 </span>
               )}

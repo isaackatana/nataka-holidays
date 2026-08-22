@@ -48,7 +48,7 @@ export function PropertyCard({ property, isFavorited, onToggleFavorite }: Proper
         )}
 
         {property.is_featured && (
-          <span className="absolute left-3 top-3 rounded-pill bg-gold-500 px-3 py-1 font-mono text-[10px] uppercase tracking-wide text-sand-50">
+          <span className="absolute left-3 top-3 rounded-pill bg-gold-600 px-3 py-1 font-mono text-[10px] uppercase tracking-wide text-sand-50">
             Featured
           </span>
         )}

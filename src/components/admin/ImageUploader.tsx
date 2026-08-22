@@ -117,12 +117,12 @@ export function ImageUploader({ propertyId, images }: ImageUploaderProps) {
             <div key={image.id} className="group relative overflow-hidden rounded-lg bg-sand-200">
               <img
                 src={getPublicImageUrl('property-images', image.storage_path)}
-                alt=""
+                alt={`Property photo ${index + 1}${image.is_primary ? ' (primary)' : ''}`}
                 className="aspect-square w-full object-cover"
               />
 
               {image.is_primary && (
-                <span className="absolute left-1.5 top-1.5 rounded-pill bg-gold-500 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wide text-sand-50">
+                <span className="absolute left-1.5 top-1.5 rounded-pill bg-gold-600 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wide text-sand-50">
                   Primary
                 </span>
               )}
@@ -134,7 +134,7 @@ export function ImageUploader({ propertyId, images }: ImageUploaderProps) {
                       type="button"
                       onClick={() => setPrimary.mutate(image.id)}
                       aria-label="Set as primary"
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-sand-50 text-charcoal-700 hover:bg-gold-500 hover:text-sand-50"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-sand-50 text-charcoal-700 hover:bg-gold-600 hover:text-sand-50"
                     >
                       <Star className="h-3.5 w-3.5" />
                     </button>

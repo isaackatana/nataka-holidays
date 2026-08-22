@@ -13,6 +13,7 @@ import {
   Mail,
   Menu,
   X,
+  ListChecks,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
@@ -21,6 +22,7 @@ import { useDialogA11y } from '@/hooks/useDialogA11y'
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
   { label: 'Properties', to: '/admin/properties', icon: Home },
+  { label: 'Amenities', to: '/admin/amenities', icon: ListChecks },
   { label: 'Bookings', to: '/admin/bookings', icon: CalendarCheck },
   { label: 'Messages', to: '/admin/messages', icon: Mail },
   { label: 'Customers', to: '/admin/customers', icon: Users },
@@ -69,7 +71,7 @@ export function AdminLayout() {
           <Icon className="h-4 w-4" />
           {label}
           {to === '/admin/messages' && (unreadMessages?.length ?? 0) > 0 && (
-            <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-pill bg-gold-500 px-1.5 font-mono text-[10px] text-sand-50">
+            <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-pill bg-gold-600 px-1.5 font-mono text-[10px] text-sand-50">
               {unreadMessages!.length}
             </span>
           )}

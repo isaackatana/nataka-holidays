@@ -146,7 +146,7 @@ export default function PropertyDetails() {
       <JsonLd data={structuredData} />
 
       <div className="mx-auto max-w-7xl px-6 pt-8">
-        <Gallery images={property.property_images ?? []} title={property.title} />
+        <Gallery images={property.property_images ?? []} title={property.title} bucket="property-images" />
 
         <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_380px]">
           {/* ---------------- MAIN COLUMN ---------------- */}

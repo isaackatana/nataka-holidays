@@ -1,13 +1,25 @@
 import { useState } from 'react'
 import { X, ChevronLeft, ChevronRight, Expand } from 'lucide-react'
-import type { PropertyImage } from '@/types/domain'
 import { getPublicImageUrl } from '@/utils/storage'
 
-export function Gallery({ images, title }: { images: PropertyImage[]; title: string }) {
+interface GalleryImage {
+  storage_path: string
+  sort_order: number
+}
+
+interface GalleryProps {
+  images: GalleryImage[]
+  title: string
+  /** Which Storage bucket these images live in — properties and
+   * experiences use separate buckets (see supabase/migrations/0004_storage.sql). */
+  bucket: 'property-images' | 'experience-images'
+}
+
+export function Gallery({ images, title, bucket }: GalleryProps) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
 
   const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order)
-  const urls = sorted.map((img) => getPublicImageUrl('property-images', img.storage_path))
+  const urls = sorted.map((img) => getPublicImageUrl(bucket, img.storage_path))
 
   if (urls.length === 0) {
     return (

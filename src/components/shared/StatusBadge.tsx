@@ -5,8 +5,9 @@ const STATUS_STYLES: Record<BookingStatus, string> = {
   pending: 'bg-gold-500/15 text-gold-600',
   // In progress — we've reached out.
   contacted: 'bg-teal-600/15 text-teal-700',
-  // Locked in — the strongest, most "done" treatment.
-  confirmed: 'bg-teal-900 text-sand-50',
+  // Locked in — solid palm-green reads as a genuine "confirmed/success"
+  // signal, which the previous palette didn't have a color for.
+  confirmed: 'bg-palm-green text-sand-50',
   // Needs attention / didn't happen.
   cancelled: 'bg-coral-500/15 text-coral-500',
   // Neutral — in the past, no action needed.

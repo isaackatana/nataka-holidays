@@ -104,6 +104,10 @@ export const router = createBrowserRouter([
             path: 'properties/:id/edit',
             element: withSuspense(lazyPage(() => import('@/pages/admin/PropertyEditor'))),
           },
+          {
+            path: 'amenities',
+            element: withSuspense(lazyPage(() => import('@/pages/admin/Amenities'))),
+          },
           { path: 'bookings', element: withSuspense(lazyPage(() => import('@/pages/admin/Bookings'))) },
           { path: 'messages', element: withSuspense(lazyPage(() => import('@/pages/admin/Messages'))) },
           {

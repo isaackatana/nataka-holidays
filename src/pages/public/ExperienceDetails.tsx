@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Clock, MapPin, MessageCircle } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { JsonLd } from '@/components/shared/JsonLd'
+import { Gallery } from '@/components/property/Gallery'
 import { useExperienceBySlug } from '@/features/experiences/queries'
 import { getPublicImageUrl } from '@/utils/storage'
 import { formatKES } from '@/utils/currency'
@@ -65,14 +66,12 @@ export default function ExperienceDetails() {
         Back to experiences
       </Link>
 
-      <div className="mt-4 aspect-video w-full overflow-hidden rounded-card bg-teal-900">
-        {imageUrl ? (
-          <img src={imageUrl} alt={experience.title} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-800 to-teal-950">
-            <span className="font-display text-2xl text-sand-200">{experience.title}</span>
-          </div>
-        )}
+      <div className="mt-4">
+        <Gallery
+          images={experience.experience_images ?? []}
+          title={experience.title}
+          bucket="experience-images"
+        />
       </div>
 
       <h1 className="mt-6 font-display text-3xl font-medium text-teal-900 md:text-4xl">
