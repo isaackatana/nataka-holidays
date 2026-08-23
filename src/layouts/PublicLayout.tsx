@@ -9,7 +9,9 @@ import { useDialogA11y } from '@/hooks/useDialogA11y'
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Holiday Homes', to: '/holiday-homes' },
+  { label: 'Packages', to: '/packages' },
   { label: 'Experiences', to: '/experiences' },
+  { label: 'Transport', to: '/transport' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
 ]
@@ -42,12 +44,8 @@ export function PublicLayout() {
     <div className="flex min-h-screen flex-col bg-sand-50">
       <header className="sticky top-0 z-40 border-b border-sand-200 bg-sand-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center">
-            <img
-              src="/logo.svg"
-              alt="Nataka Holidays"
-              className="h-10 w-auto"
-            />
+          <Link to="/" className="font-display text-xl font-medium text-teal-900">
+            Nataka Holidays
           </Link>
           <nav className="hidden gap-8 md:flex">
             {NAV_LINKS.map((link) => (

@@ -32,6 +32,14 @@ export const router = createBrowserRouter([
         element: withSuspense(lazyPage(() => import('@/pages/public/HolidayHomes'))),
       },
       {
+        path: '/packages',
+        element: withSuspense(lazyPage(() => import('@/pages/public/Packages'))),
+      },
+      {
+        path: '/transport',
+        element: withSuspense(lazyPage(() => import('@/pages/public/Transport'))),
+      },
+      {
         path: '/stays/:slug',
         element: withSuspense(lazyPage(() => import('@/pages/public/PropertyDetails'))),
       },
