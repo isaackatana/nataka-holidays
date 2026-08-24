@@ -5,6 +5,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { useBusinessSettings } from '@/features/settings/queries'
 import { buildWhatsAppLink } from '@/utils/whatsapp'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
+import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -28,6 +29,12 @@ export function PublicLayout() {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuRef = useDialogA11y<HTMLElement>(mobileMenuOpen, () => setMobileMenuOpen(false))
+  useSwipeToToggle({
+    edge: 'right',
+    isOpen: mobileMenuOpen,
+    onOpen: () => setMobileMenuOpen(true),
+    onClose: () => setMobileMenuOpen(false),
+  })
 
   // Close the mobile menu automatically on navigation — otherwise it'd
   // stay open over the new page after tapping a link inside it.
@@ -47,7 +54,7 @@ export function PublicLayout() {
           <Link to="/" className="font-display text-xl font-medium text-teal-900">
             Nataka Holidays
           </Link>
-          <nav className="hidden gap-8 md:flex">
+          <nav className="hidden gap-6 lg:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.to}
@@ -60,7 +67,7 @@ export function PublicLayout() {
           </nav>
 
           {user ? (
-            <div className="hidden items-center gap-4 md:flex">
+            <div className="hidden items-center gap-4 lg:flex">
               <Link
                 to="/favorites"
                 aria-label="Favorites"
@@ -93,7 +100,7 @@ export function PublicLayout() {
           ) : (
             <Link
               to="/login"
-              className="hidden rounded-full border border-teal-900 px-5 py-2 text-sm font-medium text-teal-900 transition-colors hover:bg-teal-900 hover:text-sand-50 md:inline-block"
+              className="hidden rounded-full border border-teal-900 px-5 py-2 text-sm font-medium text-teal-900 transition-colors hover:bg-teal-900 hover:text-sand-50 lg:inline-block"
             >
               Sign in
             </Link>
@@ -102,7 +109,7 @@ export function PublicLayout() {
           <button
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open menu"
-            className="text-charcoal-700 md:hidden"
+            className="text-charcoal-700 lg:hidden"
           >
             <Menu className="h-6 w-6" />
           </button>
@@ -111,11 +118,14 @@ export function PublicLayout() {
 
       {/* Mobile menu — overlay + slide-over panel, same pattern as
           FilterPanel's mobile drawer for visual/interaction consistency
-          across the app. md:hidden throughout since desktop uses the
-          inline header nav/account cluster above instead. */}
+          across the app. lg:hidden throughout — bumped from md since 7
+          nav items (Home/Holiday Homes/Experiences/Packages/Transport/
+          About/Contact) plus the logo and account cluster don't fit
+          comfortably at the md (768px) breakpoint the header was
+          originally spaced for when it only had 4 links. */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-[60] bg-charcoal-900/40 md:hidden"
+          className="fixed inset-0 z-[60] bg-charcoal-900/40 lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
@@ -124,7 +134,7 @@ export function PublicLayout() {
         role="dialog"
         aria-modal="true"
         aria-label="Menu"
-        className={`fixed inset-y-0 right-0 z-[60] w-72 overflow-y-auto bg-sand-50 p-6 shadow-card-hover transition-transform duration-300 md:hidden ${
+        className={`fixed inset-y-0 right-0 z-[60] w-72 overflow-y-auto bg-sand-50 p-6 shadow-card-hover transition-transform duration-300 lg:hidden ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

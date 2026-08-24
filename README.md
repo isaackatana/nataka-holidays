@@ -25,10 +25,16 @@ npm run dev
 - `npm run build` — regenerates `public/sitemap.xml`, then type-checks (`tsc -b`) and builds
 - `npm run sitemap` — regenerate `public/sitemap.xml` on its own
 - `npm run lint` — oxlint
-- `npm run test` — Vitest (currently covers `useDialogA11y`, the shared
-  Escape-to-close/focus-management hook behind the mobile nav menus and
-  the filter drawer — the kind of subtle re-render/stale-closure bug that
-  looks fine on manual inspection and only shows up under a real test)
+- `npm run test` — Vitest, currently covering:
+  - `useDialogA11y` — Escape-to-close/focus-management behind the mobile
+    nav menus and the filter drawer
+  - `useSwipeToToggle` — swipe-to-open/swipe-to-close gesture behind
+    those same drawers (edge-zone detection, direction, and the
+    horizontal-vs-vertical scroll distinction)
+  
+  Both hooks look simple but hide real re-render/stale-closure traps that
+  pass on casual inspection and only surface under a real test — worth
+  running (`npm run test`) after touching either file.
 - `npm run preview` — preview the production build locally
 
 ## SEO

@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
+import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
 
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
@@ -43,6 +44,12 @@ export function AdminLayout() {
   const { data: unreadMessages } = useAdminContactMessages({ unreadOnly: true })
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const mobileNavRef = useDialogA11y<HTMLElement>(mobileNavOpen, () => setMobileNavOpen(false))
+  useSwipeToToggle({
+    edge: 'left',
+    isOpen: mobileNavOpen,
+    onOpen: () => setMobileNavOpen(true),
+    onClose: () => setMobileNavOpen(false),
+  })
 
   useEffect(() => {
     setMobileNavOpen(false)
