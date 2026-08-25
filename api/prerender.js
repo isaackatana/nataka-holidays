@@ -24,7 +24,7 @@ import { createClient } from '@supabase/supabase-js'
 // of self-detecting like the browser-side src/utils/siteUrl.ts does —
 // this runs in Node with no window.location. Set SITE_URL in Vercel's
 // project settings once the real domain is live.
-const SITE_URL = process.env.SITE_URL || 'https://natakaholidayhomes.com'
+const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.com'
 const SITE_NAME = 'Nataka Holidays'
 const DEFAULT_DESCRIPTION =
   'Premium villas, apartments and beach houses in Diani Beach, Kenya.'

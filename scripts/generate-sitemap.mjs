@@ -22,7 +22,7 @@ const OUTPUT_PATH = join(__dirname, '..', 'public', 'sitemap.xml')
 // alongside the Supabase vars) and falls back to a placeholder if unset,
 // so a local build without it configured still produces a valid sitemap
 // rather than failing outright.
-const SITE_URL = process.env.SITE_URL || 'https://natakaholidayhomes.com'
+const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.com'
 if (!process.env.SITE_URL) {
   console.warn(
     `[sitemap] SITE_URL env var not set — using placeholder "${SITE_URL}". ` +

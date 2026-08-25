@@ -1,5 +1,5 @@
 /**
- * The site's own origin (e.g. "https://natakaholidayhomes.com"), used to
+ * The site's own origin (e.g. "https://natakaholidays.com"), used to
  * build absolute canonical/OG URLs and JSON-LD `url` fields.
  *
  * Deliberately reads window.location.origin rather than a hardcoded
