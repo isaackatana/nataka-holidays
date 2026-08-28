@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
-import { MessageCircle, Heart, CalendarCheck, User, LogOut, Menu, X } from 'lucide-react'
+import { MessageCircle, Heart, CalendarCheck, User, LogOut, Menu, X, Briefcase } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useBusinessSettings } from '@/features/settings/queries'
+import { useTripCart } from '@/features/tripCart/TripCartContext'
 import { buildWhatsAppLink } from '@/utils/whatsapp'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
@@ -10,7 +11,6 @@ import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Holiday Homes', to: '/holiday-homes' },
-  { label: 'Packages', to: '/packages' },
   { label: 'Experiences', to: '/experiences' },
   { label: 'Transport', to: '/transport' },
   { label: 'About', to: '/about' },
@@ -24,6 +24,7 @@ const NAV_LINKS = [
  */
 export function PublicLayout() {
   const { user, profile, signOut } = useAuth()
+  const { totalCount: tripCount } = useTripCart()
   const { data: settings } = useBusinessSettings()
   const navigate = useNavigate()
   const location = useLocation()
@@ -66,60 +67,75 @@ export function PublicLayout() {
             ))}
           </nav>
 
-          {user ? (
-            <div className="hidden items-center gap-4 lg:flex">
-              <Link
-                to="/favorites"
-                aria-label="Favorites"
-                className="text-charcoal-700 transition-colors hover:text-teal-800"
-              >
-                <Heart className="h-5 w-5" />
-              </Link>
-              <Link
-                to="/my-bookings"
-                aria-label="My bookings"
-                className="text-charcoal-700 transition-colors hover:text-teal-800"
-              >
-                <CalendarCheck className="h-5 w-5" />
-              </Link>
-              <Link
-                to="/profile"
-                className="flex items-center gap-2 text-sm font-medium text-charcoal-700 transition-colors hover:text-teal-800"
-              >
-                <User className="h-5 w-5" />
-                {profile?.full_name?.split(' ')[0] ?? 'Account'}
-              </Link>
-              <button
-                onClick={handleSignOut}
-                aria-label="Sign out"
-                className="text-charcoal-500 transition-colors hover:text-coral-500"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            </div>
-          ) : (
+          <div className="flex items-center gap-4">
             <Link
-              to="/login"
-              className="hidden rounded-full border border-teal-900 px-5 py-2 text-sm font-medium text-teal-900 transition-colors hover:bg-teal-900 hover:text-sand-50 lg:inline-block"
+              to="/trip"
+              aria-label={`Trip cart, ${tripCount} item${tripCount === 1 ? '' : 's'}`}
+              className="relative text-charcoal-700 transition-colors hover:text-teal-800"
             >
-              Sign in
+              <Briefcase className="h-5 w-5" />
+              {tripCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-pill bg-gold-600 px-1 font-mono text-[10px] text-sand-50">
+                  {tripCount}
+                </span>
+              )}
             </Link>
-          )}
 
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open menu"
-            className="text-charcoal-700 lg:hidden"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+            {user ? (
+              <div className="hidden items-center gap-4 lg:flex">
+                <Link
+                  to="/favorites"
+                  aria-label="Favorites"
+                  className="text-charcoal-700 transition-colors hover:text-teal-800"
+                >
+                  <Heart className="h-5 w-5" />
+                </Link>
+                <Link
+                  to="/my-bookings"
+                  aria-label="My bookings"
+                  className="text-charcoal-700 transition-colors hover:text-teal-800"
+                >
+                  <CalendarCheck className="h-5 w-5" />
+                </Link>
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 text-sm font-medium text-charcoal-700 transition-colors hover:text-teal-800"
+                >
+                  <User className="h-5 w-5" />
+                  {profile?.full_name?.split(' ')[0] ?? 'Account'}
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  aria-label="Sign out"
+                  className="text-charcoal-500 transition-colors hover:text-coral-500"
+                >
+                  <LogOut className="h-5 w-5" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="hidden rounded-full border border-teal-900 px-5 py-2 text-sm font-medium text-teal-900 transition-colors hover:bg-teal-900 hover:text-sand-50 lg:inline-block"
+              >
+                Sign in
+              </Link>
+            )}
+
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
+              className="text-charcoal-700 lg:hidden"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Mobile menu — overlay + slide-over panel, same pattern as
           FilterPanel's mobile drawer for visual/interaction consistency
           across the app. lg:hidden throughout — bumped from md since 7
-          nav items (Home/Holiday Homes/Experiences/Packages/Transport/
+          nav items (Home/Holiday Homes/Experiences/Transport/
           About/Contact) plus the logo and account cluster don't fit
           comfortably at the md (768px) breakpoint the header was
           originally spaced for when it only had 4 links. */}

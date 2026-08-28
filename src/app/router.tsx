@@ -32,10 +32,6 @@ export const router = createBrowserRouter([
         element: withSuspense(lazyPage(() => import('@/pages/public/HolidayHomes'))),
       },
       {
-        path: '/packages',
-        element: withSuspense(lazyPage(() => import('@/pages/public/Packages'))),
-      },
-      {
         path: '/transport',
         element: withSuspense(lazyPage(() => import('@/pages/public/Transport'))),
       },
@@ -53,6 +49,7 @@ export const router = createBrowserRouter([
       },
       { path: '/about', element: withSuspense(lazyPage(() => import('@/pages/public/About'))) },
       { path: '/contact', element: withSuspense(lazyPage(() => import('@/pages/public/Contact'))) },
+      { path: '/trip', element: withSuspense(lazyPage(() => import('@/pages/public/Trip'))) },
       {
         // Customer-only pages — redirect to /login (with a return path) if
         // there's no session at all. Role isn't checked here since any

@@ -1,8 +1,10 @@
+import { type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, BedDouble, Users, MapPin } from 'lucide-react'
+import { Heart, BedDouble, Users, MapPin, Briefcase, Check } from 'lucide-react'
 import type { Property } from '@/types/domain'
 import { getPrimaryPropertyImageUrl } from '@/utils/storage'
 import { formatKES } from '@/utils/currency'
+import { useTripCart } from '@/features/tripCart/TripCartContext'
 
 interface PropertyCardProps {
   property: Property
@@ -12,6 +14,22 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, isFavorited, onToggleFavorite }: PropertyCardProps) {
   const imageUrl = getPrimaryPropertyImageUrl(property.property_images)
+  const { addProperty, removeProperty, isPropertyInCart } = useTripCart()
+  const inTrip = isPropertyInCart(property.id)
+
+  function handleToggleTrip(e: MouseEvent) {
+    e.preventDefault()
+    if (inTrip) {
+      removeProperty(property.id)
+    } else {
+      addProperty({
+        id: property.id,
+        title: property.title,
+        slug: property.slug,
+        price_per_night: property.price_per_night,
+      })
+    }
+  }
 
   return (
     <Link
@@ -32,20 +50,33 @@ export function PropertyCard({ property, isFavorited, onToggleFavorite }: Proper
           </div>
         )}
 
-        {onToggleFavorite && (
+        <div className="absolute right-3 top-3 flex gap-2">
           <button
-            onClick={(e) => {
-              e.preventDefault()
-              onToggleFavorite(property.id)
-            }}
-            aria-label={isFavorited ? 'Remove from favorites' : 'Save to favorites'}
-            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-sand-50/90 backdrop-blur transition-transform hover:scale-110"
+            onClick={handleToggleTrip}
+            aria-label={inTrip ? 'Remove from trip' : 'Add to trip'}
+            aria-pressed={inTrip}
+            className={`flex h-9 w-9 items-center justify-center rounded-full backdrop-blur transition-transform hover:scale-110 ${
+              inTrip ? 'bg-teal-800 text-sand-50' : 'bg-sand-50/90 text-charcoal-700'
+            }`}
           >
-            <Heart
-              className={`h-4 w-4 ${isFavorited ? 'fill-coral-500 text-coral-500' : 'text-charcoal-700'}`}
-            />
+            {inTrip ? <Check className="h-4 w-4" /> : <Briefcase className="h-4 w-4" />}
           </button>
-        )}
+
+          {onToggleFavorite && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                onToggleFavorite(property.id)
+              }}
+              aria-label={isFavorited ? 'Remove from favorites' : 'Save to favorites'}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-sand-50/90 backdrop-blur transition-transform hover:scale-110"
+            >
+              <Heart
+                className={`h-4 w-4 ${isFavorited ? 'fill-coral-500 text-coral-500' : 'text-charcoal-700'}`}
+              />
+            </button>
+          )}
+        </div>
 
         {property.is_featured && (
           <span className="absolute left-3 top-3 rounded-pill bg-gold-600 px-3 py-1 font-mono text-[10px] uppercase tracking-wide text-sand-50">

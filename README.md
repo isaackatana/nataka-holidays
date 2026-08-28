@@ -6,10 +6,28 @@ React + TypeScript + Vite + Tailwind CSS v4 + Supabase, deployed on Vercel.
 ## Status
 
 The full application is built: public site (home, listings with filters,
-property details, experiences, about, contact), customer accounts
-(favorites, bookings, profile), and the complete admin dashboard
-(properties + image upload, bookings, customers, reviews, experiences +
-image upload, settings). `npm run build` and `npm run lint` both pass.
+property details, experiences, transport, about, contact), a trip cart
+(add stays and experiences while browsing, then send one combined
+request — see "Trip cart" below), customer accounts (favorites,
+bookings, profile), and the complete admin dashboard (properties + image
+upload, bookings, messages, customers, reviews, experiences + image
+upload, amenities, settings). `npm run build`, `npm run lint`, and
+`npm run test` all pass.
+
+## Trip cart
+
+Rather than fixed "packages," visitors browse Holiday Homes and
+Experiences and add whichever combination they want to a persistent trip
+cart (`src/features/tripCart/`, backed by `localStorage` — no login
+required, no new database table). The `/trip` page lists everything
+they've added and lets them send it as **one** request: this writes a
+single row to `contact_messages` (so it shows up in Admin → Messages,
+reusing infrastructure already built for the Contact page rather than a
+new table) and opens WhatsApp with the same combined summary. A staff
+member confirms availability and quotes one total price manually —
+nothing here computes pricing across multiple properties/experiences
+with different date ranges, which the message deliberately asks a human
+to do instead.
 
 ## Getting started
 

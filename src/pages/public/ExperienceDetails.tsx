@@ -1,9 +1,10 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock, MapPin, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Clock, MapPin, MessageCircle, Briefcase, Check } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { JsonLd } from '@/components/shared/JsonLd'
 import { Gallery } from '@/components/property/Gallery'
 import { useExperienceBySlug } from '@/features/experiences/queries'
+import { useTripCart } from '@/features/tripCart/TripCartContext'
 import { getPublicImageUrl } from '@/utils/storage'
 import { formatKES } from '@/utils/currency'
 import { buildWhatsAppLink, buildExperienceEnquiryMessage } from '@/utils/whatsapp'
@@ -11,6 +12,11 @@ import { buildWhatsAppLink, buildExperienceEnquiryMessage } from '@/utils/whatsa
 export default function ExperienceDetails() {
   const { slug } = useParams()
   const { data: experience, isLoading, isError } = useExperienceBySlug(slug)
+  const { addExperience, removeExperience, isExperienceInCart } = useTripCart()
+  // Called unconditionally (before the early returns below) per Rules of
+  // Hooks — safe even while `experience` is still undefined, since
+  // isExperienceInCart just checks membership in a local array.
+  const inTrip = isExperienceInCart(experience?.id ?? '')
 
   if (isLoading) {
     return <div className="mx-auto max-w-4xl px-6 py-24 text-charcoal-500">Loading...</div>
@@ -98,15 +104,38 @@ export default function ExperienceDetails() {
 
       <p className="mt-6 whitespace-pre-line text-charcoal-700">{experience.description}</p>
 
-      <a
-        href={buildWhatsAppLink(buildExperienceEnquiryMessage(experience.title, pageUrl))}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-8 flex w-fit items-center gap-2 rounded-full bg-teal-900 px-6 py-3 text-sm font-medium text-sand-50 transition-transform hover:scale-105"
-      >
-        <MessageCircle className="h-4 w-4" />
-        Ask about this on WhatsApp
-      </a>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <a
+          href={buildWhatsAppLink(buildExperienceEnquiryMessage(experience.title, pageUrl))}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-fit items-center gap-2 rounded-full bg-teal-900 px-6 py-3 text-sm font-medium text-sand-50 transition-transform hover:scale-105"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Ask about this on WhatsApp
+        </a>
+
+        <button
+          onClick={() =>
+            inTrip
+              ? removeExperience(experience.id)
+              : addExperience({
+                  id: experience.id,
+                  title: experience.title,
+                  slug: experience.slug,
+                  price: experience.price,
+                })
+          }
+          className={`flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors ${
+            inTrip
+              ? 'border-teal-800 bg-teal-800 text-sand-50'
+              : 'border-teal-900 text-teal-900 hover:bg-teal-900 hover:text-sand-50'
+          }`}
+        >
+          {inTrip ? <Check className="h-4 w-4" /> : <Briefcase className="h-4 w-4" />}
+          {inTrip ? 'Added to trip' : 'Add to trip'}
+        </button>
+      </div>
     </div>
   )
 }

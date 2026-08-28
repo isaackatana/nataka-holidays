@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Phone,
   Clock,
+  Briefcase,
 } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { JsonLd } from '@/components/shared/JsonLd'
@@ -23,6 +24,7 @@ import { PropertyCard } from '@/components/property/PropertyCard'
 import { PropertyCardSkeleton } from '@/components/property/PropertyCardSkeleton'
 import { usePropertyBySlug, useRelatedProperties } from '@/features/properties/queries'
 import { useApprovedReviews } from '@/features/reviews/queries'
+import { useTripCart } from '@/features/tripCart/TripCartContext'
 import { useFavoriteActions } from '@/features/favorites/useFavoriteActions'
 import { useBusinessSettings } from '@/features/settings/queries'
 import { getPublicImageUrl } from '@/utils/storage'
@@ -34,6 +36,10 @@ export default function PropertyDetails() {
   const { data: property, isLoading, isError } = usePropertyBySlug(slug)
   const { data: related, isLoading: relatedLoading } = useRelatedProperties(property)
   const { isFavorited, handleToggle } = useFavoriteActions()
+  const { addProperty, removeProperty, isPropertyInCart } = useTripCart()
+  // Called unconditionally (before the early returns below), same
+  // reasoning as useApprovedReviews just above.
+  const isPropertyInTrip = isPropertyInCart(property?.id ?? '')
   const { data: businessSettings } = useBusinessSettings()
   // Called unconditionally (Rules of Hooks) even though property may still
   // be loading — `enabled: !!propertyId` inside the hook itself handles
@@ -266,6 +272,26 @@ export default function PropertyDetails() {
                     Call
                   </a>
                 )}
+                <button
+                  onClick={() =>
+                    isPropertyInTrip
+                      ? removeProperty(property.id)
+                      : addProperty({
+                          id: property.id,
+                          title: property.title,
+                          slug: property.slug,
+                          price_per_night: property.price_per_night,
+                        })
+                  }
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors ${
+                    isPropertyInTrip
+                      ? 'border-teal-800 bg-teal-800 text-sand-50'
+                      : 'border-teal-900 text-teal-900 hover:bg-teal-900 hover:text-sand-50'
+                  }`}
+                >
+                  {isPropertyInTrip ? <Check className="h-4 w-4" /> : <Briefcase className="h-4 w-4" />}
+                  {isPropertyInTrip ? 'Added to trip' : 'Add to trip'}
+                </button>
               </div>
             </div>
             {businessPhone && <p className="-mt-6 text-xs text-charcoal-400">{businessPhone}</p>}
