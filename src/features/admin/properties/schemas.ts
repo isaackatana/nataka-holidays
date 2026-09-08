@@ -17,6 +17,7 @@ export const propertySchema = z.object({
   houseRules: z.string().optional(),
   checkInTime: z.string().min(1, 'Required'),
   checkOutTime: z.string().min(1, 'Required'),
+  videoUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   isFeatured: z.boolean(),

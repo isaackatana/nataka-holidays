@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import type { Experience } from '@/types/domain'
 
 const EXPERIENCE_SELECT = `
-  id, title, slug, description, location, price, duration, is_published,
+  id, title, slug, description, location, price, duration, video_url, is_published,
   created_at, updated_at,
   experience_images ( id, storage_path, sort_order )
 `

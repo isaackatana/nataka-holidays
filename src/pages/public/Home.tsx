@@ -44,8 +44,43 @@ export default function Home() {
       />
 
       {/* ---------------- HERO ---------------- */}
-      <section className="relative flex min-h-[85vh] flex-col justify-end overflow-hidden bg-gradient-to-b from-teal-950 via-teal-900 to-teal-800 px-6 pb-16 pt-32 text-sand-50">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <section className="relative flex min-h-[85vh] flex-col justify-end overflow-hidden px-6 pb-16 pt-32 text-sand-50">
+        {businessSettings?.hero_video_url ? (
+          // Always a direct file URL, not a YouTube/Vimeo link (see the
+          // admin Settings guidance) — a background video needs to
+          // autoplay muted and loop seamlessly with no player chrome,
+          // which those platforms' iframe embeds aren't built for.
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={businessSettings.hero_image_url ?? undefined}
+            className="absolute inset-0 h-full w-full object-cover"
+          >
+            <source src={businessSettings.hero_video_url} />
+          </video>
+        ) : businessSettings?.hero_image_url ? (
+          <img
+            src={businessSettings.hero_image_url}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : null}
+
+        {/* Solid gradient when there's no media behind it (the original
+            design, unchanged) — translucent instead when layered over a
+            video/image, so it still keeps the text readable without
+            hiding the media entirely. */}
+        <div
+          className={
+            businessSettings?.hero_video_url || businessSettings?.hero_image_url
+              ? 'absolute inset-0 bg-gradient-to-b from-teal-950/90 via-teal-900/55 to-teal-800/35'
+              : 'absolute inset-0 bg-gradient-to-b from-teal-950 via-teal-900 to-teal-800'
+          }
+        />
+
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6">
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-gold-400">
             Diani Beach &middot; Kenyan Coast
           </span>
@@ -58,7 +93,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="mx-auto mt-10 w-full max-w-5xl">
+        <div className="relative mx-auto mt-10 w-full max-w-5xl">
           <SearchBar />
         </div>
       </section>

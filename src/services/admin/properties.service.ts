@@ -4,7 +4,7 @@ import type { Property, AdminPropertyDetail } from '@/types/domain'
 const PROPERTY_SELECT = `
   id, title, slug, description, location, latitude, longitude,
   property_type, price_per_night, cleaning_fee, max_guests, bedrooms,
-  bathrooms, house_rules, check_in_time, check_out_time, is_featured,
+  bathrooms, house_rules, check_in_time, check_out_time, video_url, is_featured,
   is_published, created_at, updated_at,
   property_images ( id, property_id, storage_path, sort_order, is_primary )
 `
@@ -51,6 +51,7 @@ export interface PropertyFormInput {
   houseRules?: string
   checkInTime: string
   checkOutTime: string
+  videoUrl?: string
   latitude?: number
   longitude?: number
   isFeatured: boolean
@@ -73,6 +74,7 @@ function toRow(input: PropertyFormInput) {
     house_rules: input.houseRules || null,
     check_in_time: input.checkInTime,
     check_out_time: input.checkOutTime,
+    video_url: input.videoUrl || null,
     latitude: input.latitude ?? null,
     longitude: input.longitude ?? null,
     is_featured: input.isFeatured,

@@ -14,6 +14,24 @@ upload, bookings, messages, customers, reviews, experiences + image
 upload, amenities, settings). `npm run build`, `npm run lint`, and
 `npm run test` all pass.
 
+## Video
+
+Admins can add a video to any property (`Admin → Properties → edit`) or
+experience (`Admin → Experiences → edit`), plus a homepage hero
+background video (`Admin → Settings`). Paste a URL — YouTube, Vimeo, or
+a direct video file link — and `src/utils/video.ts` normalizes it into
+an embeddable form: YouTube/Vimeo become an iframe embed
+(`src/components/shared/VideoEmbed.tsx`), anything else is treated as a
+direct file URL and rendered with a native `<video>` element.
+
+The homepage hero background video is the one exception: it must be a
+**direct file URL**, not YouTube/Vimeo — a background video plays
+silently on a loop with no player chrome, which those platforms' iframe
+embeds aren't built for. The admin Settings form says so. If a hero
+image is also set, it's used as the video's poster (shown while the
+video loads) and as the fallback if no video is set at all; with neither
+set, the homepage keeps its original solid-color hero background.
+
 ## Trip cart
 
 Rather than fixed "packages," visitors browse Holiday Homes and

@@ -39,6 +39,7 @@ const DEFAULT_VALUES: PropertyFormValues = {
   houseRules: '',
   checkInTime: '14:00',
   checkOutTime: '10:00',
+  videoUrl: '',
   latitude: undefined,
   longitude: undefined,
   isFeatured: false,
@@ -90,6 +91,7 @@ export default function PropertyEditor() {
       houseRules: existingProperty.house_rules ?? '',
       checkInTime: existingProperty.check_in_time,
       checkOutTime: existingProperty.check_out_time,
+      videoUrl: existingProperty.video_url ?? '',
       latitude: existingProperty.latitude ?? undefined,
       longitude: existingProperty.longitude ?? undefined,
       isFeatured: existingProperty.is_featured,
@@ -269,6 +271,14 @@ export default function PropertyEditor() {
                 placeholder="No parties. Check-in after 2pm. No smoking indoors."
                 error={errors.houseRules?.message}
                 {...register('houseRules')}
+              />
+            </div>
+            <div className="mt-4">
+              <InputField
+                label="Video URL (optional)"
+                placeholder="YouTube, Vimeo, or a direct video file link"
+                error={errors.videoUrl?.message}
+                {...register('videoUrl')}
               />
             </div>
           </div>

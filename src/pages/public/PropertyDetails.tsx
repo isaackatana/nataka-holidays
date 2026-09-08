@@ -17,6 +17,7 @@ import { SEO } from '@/components/shared/SEO'
 import { JsonLd } from '@/components/shared/JsonLd'
 import { Gallery } from '@/components/property/Gallery'
 import { AmenitiesList } from '@/components/property/AmenitiesList'
+import { VideoEmbed } from '@/components/shared/VideoEmbed'
 import { PropertyMap } from '@/components/property/PropertyMap'
 import { BookingEnquiryForm } from '@/components/property/BookingEnquiryForm'
 import { ReviewsSection } from '@/components/property/ReviewsSection'
@@ -206,6 +207,15 @@ export default function PropertyDetails() {
               <h2 className="font-display text-xl font-medium text-teal-900">About this home</h2>
               <p className="mt-3 whitespace-pre-line text-charcoal-700">{property.description}</p>
             </div>
+
+            {property.video_url && (
+              <div>
+                <h2 className="font-display text-xl font-medium text-teal-900">Video tour</h2>
+                <div className="mt-4">
+                  <VideoEmbed url={property.video_url} title={`${property.title} video tour`} />
+                </div>
+              </div>
+            )}
 
             {property.amenities && property.amenities.length > 0 && (
               <div>

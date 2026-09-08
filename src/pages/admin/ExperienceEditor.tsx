@@ -57,6 +57,7 @@ export default function ExperienceEditor() {
         location: existing.location ?? '',
         price: existing.price ?? undefined,
         duration: existing.duration ?? '',
+        video_url: existing.video_url ?? '',
         is_published: existing.is_published,
       })
     }
@@ -70,6 +71,7 @@ export default function ExperienceEditor() {
       location: values.location || null,
       price: values.price ?? null,
       duration: values.duration || null,
+      video_url: values.video_url || null,
       is_published: values.is_published,
     }
 
@@ -122,6 +124,13 @@ export default function ExperienceEditor() {
             {...register('duration')}
           />
         </div>
+
+        <InputField
+          label="Video URL (optional)"
+          placeholder="YouTube, Vimeo, or a direct video file link"
+          error={errors.video_url?.message}
+          {...register('video_url')}
+        />
 
         <Toggle
           label="Published"

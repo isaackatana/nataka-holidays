@@ -8,6 +8,8 @@ export interface BusinessSettings {
   about_blurb: string | null
   instagram_url: string | null
   facebook_url: string | null
+  hero_video_url: string | null
+  hero_image_url: string | null
   updated_at: string
 }
 

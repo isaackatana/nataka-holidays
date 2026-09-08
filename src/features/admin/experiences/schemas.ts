@@ -10,6 +10,7 @@ export const experienceSchema = z.object({
   location: z.string().optional(),
   price: z.number().min(0, 'Price cannot be negative').optional(),
   duration: z.string().optional(),
+  video_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   is_published: z.boolean(),
 })
 

@@ -51,6 +51,7 @@ export interface Property {
   house_rules: string | null
   check_in_time: string
   check_out_time: string
+  video_url: string | null
   is_featured: boolean
   is_published: boolean
   created_at: string
@@ -73,6 +74,7 @@ export interface Experience {
   location: string | null
   price: number | null
   duration: string | null
+  video_url: string | null
   is_published: boolean
   created_at: string
   updated_at: string

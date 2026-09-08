@@ -31,6 +31,8 @@ export default function AdminSettings() {
         about_blurb: settings.about_blurb ?? '',
         instagram_url: settings.instagram_url ?? '',
         facebook_url: settings.facebook_url ?? '',
+        hero_video_url: settings.hero_video_url ?? '',
+        hero_image_url: settings.hero_image_url ?? '',
       })
     }
   }, [settings, reset])
@@ -44,6 +46,8 @@ export default function AdminSettings() {
       about_blurb: values.about_blurb || null,
       instagram_url: values.instagram_url || null,
       facebook_url: values.facebook_url || null,
+      hero_video_url: values.hero_video_url || null,
+      hero_image_url: values.hero_image_url || null,
     })
   }
 
@@ -101,6 +105,35 @@ export default function AdminSettings() {
             error={errors.facebook_url?.message}
             {...register('facebook_url')}
           />
+        </div>
+
+        <div className="border-t border-sand-200 pt-5">
+          <h2 className="font-display text-lg font-medium text-teal-900">Homepage hero</h2>
+          <p className="mt-1 text-xs text-charcoal-500">
+            Shown behind the headline and search bar at the top of the homepage. If both are set,
+            the video plays with the image as its poster (shown while the video loads). If
+            neither is set, the homepage falls back to its default background.
+          </p>
+
+          <div className="mt-4 flex flex-col gap-4">
+            <InputField
+              label="Hero background video URL"
+              placeholder="Direct video file link (.mp4/.webm)"
+              error={errors.hero_video_url?.message}
+              {...register('hero_video_url')}
+            />
+            <p className="-mt-3 text-xs text-charcoal-500">
+              Must be a direct video file link, not a YouTube/Vimeo page — this plays silently and
+              on a loop as a background, which those platforms' embeds aren't built for. Keep the
+              file short and lightweight; it downloads in full for every visitor.
+            </p>
+            <InputField
+              label="Hero background image URL"
+              placeholder="Shown as a fallback / while the video loads"
+              error={errors.hero_image_url?.message}
+              {...register('hero_image_url')}
+            />
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-sand-200 pt-5">

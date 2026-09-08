@@ -8,6 +8,8 @@ export const businessSettingsSchema = z.object({
   about_blurb: z.string().optional(),
   instagram_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   facebook_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  hero_video_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  hero_image_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
 })
 
 export type BusinessSettingsFormValues = z.infer<typeof businessSettingsSchema>

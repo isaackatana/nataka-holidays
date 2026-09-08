@@ -3,6 +3,7 @@ import { ArrowLeft, Clock, MapPin, MessageCircle, Briefcase, Check } from 'lucid
 import { SEO } from '@/components/shared/SEO'
 import { JsonLd } from '@/components/shared/JsonLd'
 import { Gallery } from '@/components/property/Gallery'
+import { VideoEmbed } from '@/components/shared/VideoEmbed'
 import { useExperienceBySlug } from '@/features/experiences/queries'
 import { useTripCart } from '@/features/tripCart/TripCartContext'
 import { getPublicImageUrl } from '@/utils/storage'
@@ -103,6 +104,15 @@ export default function ExperienceDetails() {
       </div>
 
       <p className="mt-6 whitespace-pre-line text-charcoal-700">{experience.description}</p>
+
+      {experience.video_url && (
+        <div className="mt-8">
+          <h2 className="font-display text-xl font-medium text-teal-900">Video</h2>
+          <div className="mt-4">
+            <VideoEmbed url={experience.video_url} title={`${experience.title} video`} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-wrap gap-3">
         <a
