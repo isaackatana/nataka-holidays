@@ -12,6 +12,7 @@ import { useFeaturedProperties } from '@/features/properties/queries'
 import { useExperiences } from '@/features/experiences/queries'
 import { useFavoriteActions } from '@/features/favorites/useFavoriteActions'
 import { useBusinessSettings } from '@/features/settings/queries'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { DESTINATIONS } from '@/data/destinations'
 import { WHY_CHOOSE_US, WHY_CHOOSE_US_ICONS, TESTIMONIALS } from '@/data/content'
 import { buildWhatsAppLink } from '@/utils/whatsapp'
@@ -21,6 +22,7 @@ export default function Home() {
   const { data: experiences, isLoading: experiencesLoading } = useExperiences(3)
   const { isFavorited, handleToggle } = useFavoriteActions()
   const { data: businessSettings } = useBusinessSettings()
+  const prefersReducedMotion = usePrefersReducedMotion()
   const socialLinks = [businessSettings?.instagram_url, businessSettings?.facebook_url].filter(
     (url): url is string => !!url,
   )
@@ -45,11 +47,18 @@ export default function Home() {
 
       {/* ---------------- HERO ---------------- */}
       <section className="relative flex min-h-[85vh] flex-col justify-end overflow-hidden px-6 pb-16 pt-32 text-sand-50">
-        {businessSettings?.hero_video_url ? (
+        {businessSettings?.hero_video_url && !prefersReducedMotion ? (
           // Always a direct file URL, not a YouTube/Vimeo link (see the
           // admin Settings guidance) — a background video needs to
           // autoplay muted and loop seamlessly with no player chrome,
           // which those platforms' iframe embeds aren't built for.
+          //
+          // Gated on !prefersReducedMotion: CSS's own reduced-motion
+          // media query (index.css) only affects animation/transition
+          // properties — it has no effect on a <video autoPlay> element,
+          // so a full-bleed autoplaying background video needs this
+          // explicit check. Falls back to the static poster/hero image
+          // below instead of just not rendering anything.
           <video
             autoPlay
             muted
@@ -68,13 +77,18 @@ export default function Home() {
           />
         ) : null}
 
-        {/* Solid gradient when there's no media behind it (the original
-            design, unchanged) — translucent instead when layered over a
-            video/image, so it still keeps the text readable without
-            hiding the media entirely. */}
+        {/* Solid gradient when there's no media actually rendered behind
+            it (the original design, unchanged) — translucent instead
+            when layered over a real video/image, so it still keeps the
+            text readable without hiding the media entirely. Checks the
+            same condition that decided what rendered above, not just
+            whether hero_video_url is set — a reduced-motion visitor
+            with only a hero video configured (no fallback image) has
+            nothing rendered behind this overlay, and a translucent
+            gradient over nothing would look broken, not just dimmer. */}
         <div
           className={
-            businessSettings?.hero_video_url || businessSettings?.hero_image_url
+            (businessSettings?.hero_video_url && !prefersReducedMotion) || businessSettings?.hero_image_url
               ? 'absolute inset-0 bg-gradient-to-b from-teal-950/90 via-teal-900/55 to-teal-800/35'
               : 'absolute inset-0 bg-gradient-to-b from-teal-950 via-teal-900 to-teal-800'
           }
