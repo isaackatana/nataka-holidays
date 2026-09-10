@@ -81,6 +81,30 @@ Once a real domain is attached in Vercel:
 3. Redeploy so `scripts/generate-sitemap.mjs` (runs in `prebuild`) picks
    up the new `SITE_URL`.
 
+## Troubleshooting
+
+**"Something went wrong loading properties" (or a similar generic error
+card) on a page that used to work.** As of this build, every failed
+query and mutation is logged to the browser console with its query key
+and the real underlying error (`src/lib/queryClient.ts`) — open dev
+tools and check there first; the on-screen message is deliberately
+generic and doesn't show it.
+
+The most common real cause: a **migration that hasn't been applied yet**
+to your Supabase project. Whenever a new column is added to the schema
+in this codebase (check `supabase/migrations/` for the highest-numbered
+file), the code that queries it ships in the same commit — if you pull
+new code before running the matching migration, every query touching
+that column fails with something like `column properties.video_url
+does not exist`, which is exactly what the console will show. Run
+`supabase db push` (or paste the missing migration's SQL into the
+Dashboard's SQL Editor) and reload.
+
+Other causes that produce the same generic message: `VITE_SUPABASE_URL`
+/ `VITE_SUPABASE_ANON_KEY` pointing at the wrong project, an expired or
+revoked anon key, or an RLS policy blocking the read — the console error
+will distinguish between these immediately.
+
 ## Known gaps at time of writing
 
 - No online payment (by design — see the original spec's BOOKING SYSTEM
