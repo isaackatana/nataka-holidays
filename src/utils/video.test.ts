@@ -73,4 +73,26 @@ describe('parseVideoUrl', () => {
     const result = parseVideoUrl('  https://youtu.be/dQw4w9WgXcQ  ')
     expect(result?.kind).toBe('youtube')
   })
+
+  it('rejects javascript: URLs rather than passing them through as a "direct" video src', () => {
+    // new URL() parses this as syntactically valid with no hostname, so
+    // without an explicit protocol check it would fall through to the
+    // 'direct' branch and end up as <video src="javascript:...">.
+    expect(parseVideoUrl('javascript:alert(1)')).toBeNull()
+    expect(parseVideoUrl('JavaScript:alert(1)')).toBeNull() // scheme match is case-insensitive per the URL spec
+  })
+
+  it('rejects data: URLs', () => {
+    expect(parseVideoUrl('data:text/html,<script>alert(1)</script>')).toBeNull()
+  })
+
+  it('rejects vbscript: and file: URLs', () => {
+    expect(parseVideoUrl('vbscript:msgbox(1)')).toBeNull()
+    expect(parseVideoUrl('file:///etc/passwd')).toBeNull()
+  })
+
+  it('still accepts plain http (not just https) for a direct video link', () => {
+    const result = parseVideoUrl('http://example.com/video.mp4')
+    expect(result).toEqual({ kind: 'direct', embedUrl: 'http://example.com/video.mp4' })
+  })
 })

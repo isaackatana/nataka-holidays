@@ -26,6 +26,14 @@ export function parseVideoUrl(url: string): ParsedVideo | null {
     return null
   }
 
+  // new URL() happily parses `javascript:...`, `data:...`, `vbscript:...`,
+  // `file:...` etc. as syntactically valid — none of those should ever
+  // reach a <video src> or iframe src, regardless of how a given browser
+  // currently handles those schemes in a media/iframe context. Reject
+  // anything that isn't a normal web URL before it gets anywhere near
+  // rendering, the same way an unparseable URL is rejected above.
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null
+
   const host = parsed.hostname.replace(/^www\./, '')
 
   // youtube.com/watch?v=ID, youtube.com/embed/ID, youtu.be/ID
