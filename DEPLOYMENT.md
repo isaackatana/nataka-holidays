@@ -19,16 +19,15 @@ half.
 Set these in **Vercel → Project Settings → Environment Variables**. Add
 each to **Production**, **Preview**, and **Development** unless noted —
 Preview deployments (PRs, branches) need real values too or the build
-either fails (missing Supabase vars → the app throws at load, see
-`src/lib/supabase.ts`) or silently degrades (missing `SITE_URL` → sitemap
-and social previews fall back to a placeholder domain).
+fails (missing Supabase vars → the app throws at load, see
+`src/lib/supabase.ts`).
 
 | Variable | Where it's used | Required? |
 |---|---|---|
 | `VITE_SUPABASE_URL` | Browser app, `scripts/generate-sitemap.mjs`, `api/prerender.js` | Yes |
 | `VITE_SUPABASE_ANON_KEY` | Same as above | Yes |
 | `VITE_WHATSAPP_NUMBER` | Browser app (wa.me links) | Yes, or every WhatsApp button links nowhere useful |
-| `SITE_URL` | `scripts/generate-sitemap.mjs`, `api/prerender.js` | Recommended — falls back to a placeholder domain if unset |
+| `SITE_URL` | `scripts/generate-sitemap.mjs`, `api/prerender.js`, `vite.config.ts` | Optional — defaults to `https://natakaholidays.co.ke`, the real registered domain. Set it only to override (e.g. a staging domain). |
 
 Never add `SUPABASE_SERVICE_ROLE_KEY` here or anywhere in this project —
 nothing in this codebase needs it, and it would bypass every RLS policy
@@ -72,14 +71,25 @@ exist in a local dev environment.
 
 ## 5. Custom domain
 
-Once a real domain is attached in Vercel:
+The site's domain — `natakaholidays.co.ke` — is already configured
+throughout the codebase (the `SITE_URL` fallback in
+`scripts/generate-sitemap.mjs`, `api/prerender.js` and `vite.config.ts`,
+plus `public/robots.txt`'s `Sitemap:` line). Nothing in the code needs
+changing; you just need to attach it in Vercel:
 
-1. Update the `SITE_URL` env var to match (all environments that should
-   use it — typically just Production).
-2. Update `public/robots.txt`'s `Sitemap:` line to match — that one file
-   isn't generated dynamically, unlike `sitemap.xml` itself.
-3. Redeploy so `scripts/generate-sitemap.mjs` (runs in `prebuild`) picks
-   up the new `SITE_URL`.
+1. **Vercel → Project Settings → Domains → Add** `natakaholidays.co.ke`
+   (and `www.natakaholidays.co.ke` if you want it, with one redirecting
+   to the other — pick one as canonical so search engines don't treat
+   them as two separate sites).
+2. Add the DNS records Vercel shows you at your `.co.ke` registrar.
+   DNS propagation usually takes minutes but can take up to 48 hours.
+3. Redeploy once the domain resolves, so `sitemap.xml` regenerates and
+   Google sees the final URLs.
+
+**If you ever serve the site from a different domain** (a staging
+environment, say), set the `SITE_URL` env var in that environment to
+override the default — and update `public/robots.txt`'s `Sitemap:` line,
+which is a static file rather than generated.
 
 ## Troubleshooting
 

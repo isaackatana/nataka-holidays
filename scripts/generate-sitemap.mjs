@@ -19,14 +19,15 @@ const OUTPUT_PATH = join(__dirname, '..', 'public', 'sitemap.xml')
 // no `window.location` (unlike the browser-side src/utils/siteUrl.ts), so
 // this can't self-detect the origin — it needs an explicit value. Reads
 // from the SITE_URL env var (set this in Vercel's project settings
-// alongside the Supabase vars) and falls back to a placeholder if unset,
-// so a local build without it configured still produces a valid sitemap
-// rather than failing outright.
-const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.com'
+// alongside the Supabase vars); the fallback below is the real
+// registered domain, so a build without the env var set still produces a
+// correct sitemap rather than failing or emitting a wrong domain.
+const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.co.ke'
 if (!process.env.SITE_URL) {
   console.warn(
-    `[sitemap] SITE_URL env var not set — using placeholder "${SITE_URL}". ` +
-      'Set SITE_URL in Vercel project settings once the real domain is live.',
+    `[sitemap] SITE_URL env var not set — using the default "${SITE_URL}". ` +
+      'Set SITE_URL explicitly in Vercel project settings if the site is ever ' +
+      'served from a different domain (a staging/preview URL, say).',
   )
 }
 

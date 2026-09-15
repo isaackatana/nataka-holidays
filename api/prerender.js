@@ -22,12 +22,22 @@ import { createClient } from '@supabase/supabase-js'
 
 // See scripts/generate-sitemap.mjs for why this reads an env var instead
 // of self-detecting like the browser-side src/utils/siteUrl.ts does —
-// this runs in Node with no window.location. Set SITE_URL in Vercel's
-// project settings once the real domain is live.
-const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.com'
+// this runs in Node with no window.location. The fallback below is the
+// real registered domain; set SITE_URL explicitly in Vercel only if the
+// site is served from a different one (a staging/preview URL, say).
+const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.co.ke'
 const SITE_NAME = 'Nataka Holidays'
 const DEFAULT_DESCRIPTION =
   'Premium villas, apartments and beach houses in Diani Beach, Kenya.'
+// Always available regardless of Supabase/photo state — public/og-default.jpg
+// ships with the app itself, unlike property/experience photos which live
+// in Storage and may not exist yet for a newly-created, still-unphotographed
+// listing. Every renderHtml() call falls back to this so og:image is never
+// simply omitted, which previously happened whenever Supabase was
+// unreachable, an item wasn't found, or a real published item had no
+// photos uploaded yet — all of which are normal, expected states, not
+// edge cases rare enough to leave unhandled.
+const DEFAULT_IMAGE = `${SITE_URL}/og-default.jpg`
 
 function escapeHtml(str) {
   return String(str)
@@ -40,6 +50,7 @@ function escapeHtml(str) {
 function renderHtml({ title, description, image, url }) {
   const fullTitle = `${escapeHtml(title)} | ${SITE_NAME}`
   const desc = escapeHtml(description)
+  const resolvedImage = escapeHtml(image || DEFAULT_IMAGE)
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -51,11 +62,11 @@ function renderHtml({ title, description, image, url }) {
 <meta property="og:description" content="${desc}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${escapeHtml(url)}" />
-${image ? `<meta property="og:image" content="${escapeHtml(image)}" />` : ''}
-<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />
+<meta property="og:image" content="${resolvedImage}" />
+<meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${fullTitle}" />
 <meta name="twitter:description" content="${desc}" />
-${image ? `<meta name="twitter:image" content="${escapeHtml(image)}" />` : ''}
+<meta name="twitter:image" content="${resolvedImage}" />
 <meta http-equiv="refresh" content="0; url=${escapeHtml(url)}" />
 </head>
 <body>
