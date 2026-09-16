@@ -1,6 +1,7 @@
 import { SlidersHorizontal, X } from 'lucide-react'
 import { useAmenities } from '@/features/properties/queries'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
+import { DESTINATIONS, DESTINATION_REGIONS } from '@/data/destinations'
 import type { PropertyFilters } from '@/services/properties.service'
 
 const PROPERTY_TYPES: { value: string; label: string }[] = [
@@ -111,14 +112,26 @@ export function FilterPanel({ filters, onChange, resultCount, isOpen, onClose }:
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-charcoal-700">Location</label>
-            <input
-              type="text"
-              placeholder="Diani, Tiwi, Galu..."
+            <label htmlFor="filter-location" className="text-sm font-medium text-charcoal-700">
+              Location
+            </label>
+            <select
+              id="filter-location"
               value={filters.location ?? ''}
               onChange={(e) => update('location', e.target.value || undefined)}
-              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-300 focus:border-teal-700"
-            />
+              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+            >
+              <option value="">Anywhere on the coast</option>
+              {DESTINATION_REGIONS.map((region) => (
+                <optgroup key={region} label={region}>
+                  {DESTINATIONS.filter((d) => d.region === region).map((d) => (
+                    <option key={d.name} value={d.name}>
+                      {d.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
           </div>
 
           <div className="flex flex-col gap-1.5">

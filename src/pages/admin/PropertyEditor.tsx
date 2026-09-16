@@ -166,7 +166,7 @@ export default function PropertyEditor() {
                 error={errors.description?.message}
                 {...register('description')}
               />
-              <InputField label="Location" placeholder="Diani Beach, Kwale" error={errors.location?.message} {...register('location')} />
+              <InputField label="Location" placeholder="e.g. Diani Beach, Kwale / Shela, Lamu" error={errors.location?.message} {...register('location')} />
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-charcoal-700">Property type</label>

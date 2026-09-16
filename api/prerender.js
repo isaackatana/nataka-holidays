@@ -28,7 +28,7 @@ import { createClient } from '@supabase/supabase-js'
 const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.co.ke'
 const SITE_NAME = 'Nataka Holidays'
 const DEFAULT_DESCRIPTION =
-  'Premium villas, apartments and beach houses in Diani Beach, Kenya.'
+  'Premium villas, apartments and beach houses along the Kenyan Coast, from Diani to Lamu.'
 // Always available regardless of Supabase/photo state — public/og-default.jpg
 // ships with the app itself, unlike property/experience photos which live
 // in Storage and may not exist yet for a newly-created, still-unphotographed

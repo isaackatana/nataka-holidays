@@ -31,14 +31,14 @@ export default function Contact() {
     <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-6 py-12 lg:grid-cols-[1fr_1.2fr]">
       <SEO
         title="Contact Us"
-        description="Get in touch with Nataka Holidays about a stay, a booking enquiry, or general questions about Diani Beach."
+        description="Get in touch with Nataka Holidays about a stay, a booking enquiry, or planning a trip anywhere on the Kenyan Coast."
         path="/contact"
       />
 
       <div>
         <h1 className="font-display text-3xl font-medium text-teal-900 md:text-4xl">Get in touch</h1>
         <p className="mt-3 text-charcoal-600">
-          Questions about a property, a booking, or planning your trip to Diani — we're happy to
+          Questions about a property, a booking, or planning your trip to the coast — we're happy to
           help.
         </p>
 

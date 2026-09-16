@@ -230,7 +230,7 @@ export function PublicLayout() {
             <p className="font-display text-lg">{settings?.business_name ?? 'Nataka Holidays'}</p>
             <p className="mt-2 max-w-md text-sm text-sand-300">
               {settings?.about_blurb ??
-                'Villas, apartments and beach houses along Diani Beach and the Kenyan Coast.'}
+                'Villas, apartments and beach houses along the Kenyan Coast, from Diani to Lamu.'}
             </p>
           </div>
           {(settings?.contact_phone || settings?.contact_email || settings?.address) && (

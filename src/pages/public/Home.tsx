@@ -13,7 +13,7 @@ import { useExperiences } from '@/features/experiences/queries'
 import { useFavoriteActions } from '@/features/favorites/useFavoriteActions'
 import { useBusinessSettings } from '@/features/settings/queries'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
-import { DESTINATIONS } from '@/data/destinations'
+import { DESTINATIONS, DESTINATION_REGIONS } from '@/data/destinations'
 import { WHY_CHOOSE_US, WHY_CHOOSE_US_ICONS, TESTIMONIALS } from '@/data/content'
 import { buildWhatsAppLink } from '@/utils/whatsapp'
 
@@ -30,8 +30,8 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       <SEO
-        title="Villas & Beach Houses in Diani, Kenya"
-        description="Premium villas, apartments and beach houses in Diani Beach, Kenya. Browse holiday homes, check availability and book your Kenyan Coast getaway."
+        title="Villas & Beach Houses on the Kenyan Coast"
+        description="Premium villas, apartments and beach houses along the Kenyan Coast — from Diani and the South Coast to Watamu, Malindi and Lamu. Browse holiday homes, check availability and book your getaway."
         path="/"
       />
       <JsonLd
@@ -40,7 +40,7 @@ export default function Home() {
           '@type': 'Organization',
           name: 'Nataka Holidays',
           url: SITE_ORIGIN,
-          areaServed: 'Diani Beach, Kenya',
+          areaServed: 'Kenyan Coast',
           sameAs: socialLinks,
         }}
       />
@@ -96,13 +96,13 @@ export default function Home() {
 
         <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6">
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-gold-400">
-            Diani Beach &middot; Kenyan Coast
+            Diani &middot; Watamu &middot; Malindi &middot; Lamu
           </span>
           <h1 className="max-w-3xl font-display text-5xl font-medium leading-[1.05] md:text-6xl">
             Holiday homes on Kenya's most celebrated coastline.
           </h1>
           <p className="max-w-xl text-lg text-sand-200">
-            Villas, apartments and beach houses in Diani Beach — verified, locally managed,
+            Villas, apartments and beach houses the length of the coast — verified, locally managed,
             and a real person on WhatsApp when you need one.
           </p>
         </div>
@@ -187,33 +187,53 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------------- DIANI BEACH INTRODUCTION ---------------- */}
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-20 md:flex-row md:items-center">
+      {/* ---------------- THE KENYAN COAST INTRODUCTION ---------------- */}
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-20 md:flex-row md:items-start">
         <div className="flex-1">
-          <SectionHeading eyebrow="The Kenyan Coast" title="Diani Beach" />
+          <SectionHeading eyebrow="Where we operate" title="The Kenyan Coast" />
           <p className="mt-4 text-charcoal-700">
-            Diani stretches for roughly 17 kilometres along the Indian Ocean south of Mombasa —
-            white coral sand, warm water year-round, and a reef that keeps the surf gentle close
-            to shore. It's long been one of East Africa's best-known beach destinations, with a
-            relaxed pace shaped as much by the local Digo and Swahili coastal culture as by the
-            visitors who return year after year.
+            Kenya's coastline runs for some 500 kilometres along the Indian Ocean — white coral
+            sand, warm water year-round, and an offshore reef that keeps the surf gentle for most
+            of its length. It's shaped as much by centuries of Swahili culture, trade and
+            architecture as by the beaches it's best known for.
           </p>
           <p className="mt-4 text-charcoal-700">
-            Beyond the beach itself: the Colobus Conservation forest reserve, dhow trips to
-            Wasini and Kisite Marine Park, kite surfing at Galu when the winds are up, and a
-            growing food scene from beach shacks to fine dining.
+            In the south, Diani and Tiwi offer the classic palm-lined beach, with dhow trips to
+            Wasini and Kisite Marine Park. Further north past Mombasa, Kilifi's creek, Watamu's
+            marine park and Malindi open up quieter stretches and some of the best diving on the
+            coast. And at the far north, the Lamu archipelago — car-free lanes, coral-stone
+            houses and open dune beaches — is a genuinely different pace again.
+          </p>
+          <p className="mt-4 text-charcoal-700">
+            We manage homes and arrange experiences the length of it.
           </p>
         </div>
+
         <div className="flex-1">
-          <div className="grid grid-cols-2 gap-4">
-            {DESTINATIONS.map((destination) => (
-              <div
-                key={destination.name}
-                className="flex aspect-square flex-col justify-end rounded-card bg-gradient-to-br from-teal-700 to-teal-950 p-4 text-sand-50"
-              >
-                <span className="font-display text-base font-medium">{destination.name}</span>
-              </div>
-            ))}
+          <div className="flex flex-col gap-6">
+            {DESTINATION_REGIONS.map((region) => {
+              const inRegion = DESTINATIONS.filter((d) => d.region === region)
+              if (inRegion.length === 0) return null
+              return (
+                <div key={region}>
+                  <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-gold-600">
+                    {region}
+                  </h3>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {inRegion.map((destination) => (
+                      <Link
+                        key={destination.name}
+                        to={`/holiday-homes?location=${encodeURIComponent(destination.name)}`}
+                        title={destination.description}
+                        className="rounded-pill border border-sand-200 bg-sand-50 px-4 py-2 text-sm font-medium text-teal-900 transition-colors hover:border-teal-700 hover:bg-teal-900 hover:text-sand-50"
+                      >
+                        {destination.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>

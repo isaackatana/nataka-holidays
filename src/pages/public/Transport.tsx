@@ -31,26 +31,30 @@ export default function Transport() {
     <div className="mx-auto w-full max-w-4xl px-6 py-12">
       <SEO
         title="Transport"
-        description="Airport transfers and getting around Diani Beach with Nataka Holidays."
+        description="Airport transfers, car hire and getting around the Kenyan Coast — Mombasa, Malindi and Lamu — with Nataka Holidays."
         path="/transport"
       />
 
       <h1 className="font-display text-3xl font-medium text-teal-900 md:text-4xl">Transport</h1>
 
       <p className="mt-4 text-lg text-charcoal-700">
-        Getting to and around Diani is easy to arrange alongside your stay — airport transfers,
-        car hire, and local drivers who know the coast.
+        Getting to and around the coast is easy to arrange alongside your stay — airport
+        transfers, car hire, and local drivers who know the routes.
       </p>
 
       <div className="mt-6 flex flex-col gap-4 text-charcoal-700">
         <p>
-          Moi International Airport (MBA) in Mombasa is around 45–60 minutes from Diani Beach by
-          road, including the Likoni ferry crossing. We can arrange a private transfer timed to
-          your flight, or point you toward a reliable driver for day trips along the coast.
+          Most guests fly into Moi International Airport (MBA) in Mombasa, which is roughly
+          45–60 minutes from Diani by road including the Likoni ferry crossing, and about
+          1.5–2 hours north to Kilifi or Watamu. Malindi (MYD) has its own airport for the
+          north coast. For Lamu, flights go to Manda Airport, and the final leg to Lamu or Shela
+          town is by boat — there are no cars on the island.
         </p>
         <p>
-          Tell us your flight details or where you're headed and we'll sort the rest — message us
-          on WhatsApp and we'll confirm pricing and pickup times directly.
+          Tell us your flight details and where you're headed and we'll sort the rest — private
+          transfers timed to your arrival, inter-town runs along the coast, or a reliable driver
+          for day trips. Message us on WhatsApp and we'll confirm pricing and pickup times
+          directly.
         </p>
       </div>
 

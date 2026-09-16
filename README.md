@@ -1,6 +1,8 @@
 # Nataka Holidays
 
-Full-stack holiday rental platform for Diani Beach & the Kenyan Coast.
+Full-stack holiday rental platform for the Kenyan Coast — from Diani and
+the South Coast through Mombasa, Kilifi, Watamu and Malindi to the Lamu
+archipelago.
 React + TypeScript + Vite + Tailwind CSS v4 + Supabase, deployed on Vercel.
 
 ## Status

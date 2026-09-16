@@ -65,15 +65,15 @@ export default function HolidayHomes() {
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-12">
       <SEO
-        title="Holiday Homes in Diani Beach"
-        description="Browse villas, apartments, cottages and beach houses in Diani Beach and the Kenyan Coast. Filter by price, bedrooms, guests and amenities."
+        title="Holiday Homes on the Kenyan Coast"
+        description="Browse villas, apartments, cottages and beach houses along the Kenyan Coast — Diani, Mombasa, Kilifi, Watamu, Malindi and Lamu. Filter by price, bedrooms, guests and amenities."
         path="/holiday-homes"
       />
 
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-medium text-teal-900 md:text-4xl">
-            Holiday homes in Diani &amp; the Kenyan Coast
+            Holiday homes on the Kenyan Coast
           </h1>
           <p className="mt-2 text-charcoal-500">
             {filters.checkIn && filters.checkOut

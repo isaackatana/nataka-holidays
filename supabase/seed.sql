@@ -116,3 +116,78 @@ insert into experiences (id, title, slug, description, location, price, duration
     'Mombasa & Diani', 3500, '1.5 hours', true
   )
 on conflict (id) do nothing;
+
+-- ---------------------------------------------------------
+-- Coast-wide sample data (added when the business broadened
+-- from Diani-only to the full Kenyan coastline, Lamu included).
+-- ---------------------------------------------------------
+insert into properties (
+  id, title, slug, description, location, latitude, longitude,
+  property_type, price_per_night, cleaning_fee, max_guests, bedrooms,
+  bathrooms, house_rules, is_featured, is_published
+) values
+  (
+    'b0000000-0000-0000-0000-000000000004',
+    'Shela Dune House',
+    'shela-dune-house',
+    'A restored Swahili coral-stone house in Shela village, a few minutes'' walk from twelve kilometres of open dune beach. Rooftop terrace, four-poster beds, and a resident house manager.',
+    'Shela, Lamu',
+    -2.2897, 40.8714,
+    'villa', 38000, 4500, 8, 4, 4,
+    'No shoes indoors. Respect local dress customs in the village.',
+    true, true
+  ),
+  (
+    'b0000000-0000-0000-0000-000000000005',
+    'Watamu Reef Cottage',
+    'watamu-reef-cottage',
+    'A two-bedroom cottage a short walk from Watamu Marine National Park, with a shaded garden and easy access to some of the best snorkelling on the coast.',
+    'Watamu, Kilifi',
+    -3.3556, 40.0197,
+    'cottage', 14000, 2000, 4, 2, 2,
+    'Check-out by 10am. No loud music after 10pm.',
+    false, true
+  ),
+  (
+    'b0000000-0000-0000-0000-000000000006',
+    'Kilifi Creek Apartment',
+    'kilifi-creek-apartment',
+    'A modern one-bedroom apartment overlooking Kilifi Creek, with a shared pool and a dhow jetty a few minutes away.',
+    'Kilifi',
+    -3.6305, 39.8499,
+    'apartment', 9500, 1500, 3, 1, 1,
+    'No smoking indoors.',
+    false, true
+  )
+on conflict (id) do nothing;
+
+insert into experiences (id, title, slug, description, location, price, duration, is_published) values
+  (
+    'c0000000-0000-0000-0000-000000000004',
+    'Lamu Dhow Sunset Sail',
+    'lamu-dhow-sunset-sail',
+    'A traditional dhow sail through the Lamu channel at golden hour, with the option of a fresh seafood dinner on board.',
+    'Lamu Island', 6000, '3 hours', true
+  ),
+  (
+    'c0000000-0000-0000-0000-000000000005',
+    'Watamu Marine Park Snorkelling',
+    'watamu-marine-park-snorkelling',
+    'A guided boat trip out to the coral gardens of Watamu Marine National Park, one of Kenya''s oldest protected reefs.',
+    'Watamu, Kilifi', 5500, 'Half day', true
+  ),
+  (
+    'c0000000-0000-0000-0000-000000000006',
+    'Mombasa Old Town & Fort Jesus Walk',
+    'mombasa-old-town-fort-jesus-walk',
+    'A guided walk through the Swahili lanes of Mombasa Old Town, finishing at the 16th-century Fort Jesus.',
+    'Mombasa', 3500, '3 hours', true
+  ),
+  (
+    'c0000000-0000-0000-0000-000000000007',
+    'Airport Transfer — Manda (LAU) to Lamu or Shela',
+    'airport-transfer-manda-lamu',
+    'Boat transfer from Manda Airport across the channel to Lamu town or Shela, met on arrival.',
+    'Lamu', 2500, '30 minutes', true
+  )
+on conflict (id) do nothing;

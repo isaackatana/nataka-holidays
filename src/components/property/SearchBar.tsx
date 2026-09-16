@@ -28,7 +28,7 @@ export function SearchBar() {
         <span className="text-xs font-medium uppercase tracking-wide text-charcoal-500">Where</span>
         <input
           type="text"
-          placeholder="Diani Beach, Tiwi, Galu..."
+          placeholder="Diani, Watamu, Malindi, Lamu..."
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           className="bg-transparent text-sm text-charcoal-900 outline-none placeholder:text-charcoal-300"
