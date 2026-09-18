@@ -46,7 +46,7 @@ export default function Home() {
       />
 
       {/* ---------------- HERO ---------------- */}
-      <section className="relative flex min-h-[85vh] flex-col justify-end overflow-hidden px-6 pb-16 pt-16 text-sand-50">
+      <section className="relative flex min-h-[85vh] flex-col justify-end overflow-hidden px-6 pb-16 pt-8 sm:pt-16 text-sand-50">
         {businessSettings?.hero_video_url && !prefersReducedMotion ? (
           // Always a direct file URL, not a YouTube/Vimeo link (see the
           // admin Settings guidance) — a background video needs to
