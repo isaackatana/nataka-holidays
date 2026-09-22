@@ -22,7 +22,7 @@ export function SearchBar() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full flex-col gap-3 rounded-card bg-sand-50 p-4 shadow-card-hover md:flex-row md:items-end md:gap-2 md:p-3"
+      className="flex w-full flex-col gap-3 rounded-card bg-sand-50 p-3 shadow-card-hover md:flex-row md:items-end md:gap-2 md:p-3"
     >
       <label className="flex flex-1 flex-col gap-1 px-2">
         <span className="text-xs font-medium uppercase tracking-wide text-charcoal-500">Where</span>

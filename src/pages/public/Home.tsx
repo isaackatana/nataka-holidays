@@ -46,7 +46,7 @@ export default function Home() {
       />
 
       {/* ---------------- HERO ---------------- */}
-      <section className="relative flex min-h-[85vh] flex-col justify-end overflow-hidden px-6 pb-16 pt-8 sm:pt-16 text-sand-50">
+      <section className="relative flex min-h-[85vh] flex-col justify-end overflow-hidden px-4 pb-5 pt-4 sm:pt-16 text-sand-50">
         {businessSettings?.hero_video_url && !prefersReducedMotion ? (
           // Always a direct file URL, not a YouTube/Vimeo link (see the
           // admin Settings guidance) — a background video needs to
@@ -94,7 +94,7 @@ export default function Home() {
           }
         />
 
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6">
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-3">
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-gold-400">
             Diani &middot; Watamu &middot; Malindi &middot; Lamu
           </span>
@@ -107,7 +107,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="relative mx-auto mt-10 w-full max-w-5xl">
+        <div className="relative mx-auto mt-5 w-full max-w-5xl">
           <SearchBar />
         </div>
       </section>
@@ -115,8 +115,8 @@ export default function Home() {
       <span className="tideline" />
 
       {/* ---------------- FEATURED HOLIDAY HOMES ---------------- */}
-      <section className="mx-auto w-full max-w-7xl px-6 py-20">
-        <div className="flex items-end justify-between gap-4">
+      <section className="mx-auto w-full max-w-7xl px-6 py-10">
+        <div className="flex items-end justify-between gap-2">
           <SectionHeading
             eyebrow="Handpicked"
             title="Featured holiday homes"
