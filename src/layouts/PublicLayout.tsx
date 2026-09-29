@@ -53,7 +53,7 @@ export function PublicLayout() {
       <header className="sticky top-0 z-40 border-b border-sand-200 bg-sand-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link to="/" className="font-display text-xl font-medium text-teal-900">
-            Nataka Holidays
+            <img src="/mainLogo.svg" alt="" width={50} />
           </Link>
           <nav className="hidden gap-6 lg:flex">
             {NAV_LINKS.map((link) => (
@@ -150,7 +150,7 @@ export function PublicLayout() {
         role="dialog"
         aria-modal="true"
         aria-label="Menu"
-        className={`fixed inset-y-0 right-0 z-[60] w-72 overflow-y-auto bg-sand-50 p-6 shadow-card-hover transition-transform duration-300 lg:hidden ${
+        className={`fixed inset-y-0 right-0 z-[60] w-72 overflow-y-auto bg-sand-50 p-0 shadow-card-hover transition-transform duration-300 lg:hidden ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -170,7 +170,7 @@ export function PublicLayout() {
             <Link
               key={link.to}
               to={link.to}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-charcoal-700 transition-colors hover:bg-sand-100 hover:text-teal-800"
+              className="px-6 py-4.5 text-sm font-medium text-charcoal-700 transition-colors hover:bg-sand-100 hover:text-teal-800"
             >
               {link.label}
             </Link>
