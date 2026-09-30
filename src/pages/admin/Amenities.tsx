@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, Check, X } from 'lucide-react'
-import { AMENITY_ICON_MAP } from '@/components/property/AmenitiesList'
+import { AMENITY_ICON_MAP } from '@/components/property/amenityIcons'
 import { useAdminAmenities, useCreateAmenity, useUpdateAmenity, useDeleteAmenity } from '@/features/admin/amenities/queries'
 import type { Amenity } from '@/types/domain'
 

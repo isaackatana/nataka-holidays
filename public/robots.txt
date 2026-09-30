@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /favorites
+Disallow: /my-bookings
+Disallow: /profile
+Disallow: /trip
 
 Sitemap: https://natakaholidays.co.ke/sitemap.xml

@@ -77,7 +77,7 @@ function renderHtml({ title, description, image, url }) {
 
 export default async function handler(req, res) {
   const { type, slug } = req.query
-  const url = `${SITE_URL}${type === 'experience' ? '/experiences' : '/stays'}/${slug ?? ''}`
+  const url = `${SITE_URL}${type === 'experience' ? '/experiences' : '/stays'}/${encodeURIComponent(slug ?? '')}`
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   // Crawlers re-fetch link previews periodically; a short cache avoids

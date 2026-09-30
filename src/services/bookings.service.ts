@@ -55,6 +55,7 @@ export async function getBookingBlocks(propertyId: string): Promise<BookingBlock
 export interface MyBooking {
   id: string
   property_id: string
+  guest_phone: string
   check_in: string
   check_out: string
   guests: number
@@ -69,7 +70,7 @@ export async function getMyBookings(customerId: string): Promise<MyBooking[]> {
   const { data, error } = await supabase
     .from('bookings')
     .select(
-      'id, property_id, check_in, check_out, guests, nights, estimated_total, status, created_at, properties ( title, slug )',
+      'id, property_id, guest_phone, check_in, check_out, guests, nights, estimated_total, status, created_at, properties ( title, slug )',
     )
     .eq('customer_id', customerId)
     .order('created_at', { ascending: false })

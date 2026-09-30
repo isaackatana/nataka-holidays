@@ -3,10 +3,13 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronUp, Mail, Phone } from 'lucide-react'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { useAdminBookings, useUpdateBookingStatus } from '@/features/admin/bookings/queries'
+import { PaymentPanel } from '@/features/admin/payments/PaymentPanel'
+import { usePayments } from '@/features/admin/payments/queries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatDateRange } from '@/utils/dates'
 import { formatKES } from '@/utils/currency'
 import type { BookingStatus } from '@/types/domain'
+import { sumPaid } from '@/utils/payments'
 
 const STATUS_TABS: { value: BookingStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -35,6 +38,8 @@ export default function AdminBookings() {
 
   const { data: bookings, isLoading } = useAdminBookings(filters)
   const updateStatus = useUpdateBookingStatus()
+  const { data: payments } = usePayments()
+  const paymentsFor = (bookingId: string) => (payments ?? []).filter((p) => p.booking_id === bookingId)
 
   return (
     <div className="px-4 py-6 sm:px-8 sm:py-8">
@@ -118,6 +123,11 @@ export default function AdminBookings() {
                   </td>
                   <td className="px-4 py-3 font-figures text-charcoal-700">
                     {booking.estimated_total !== null ? formatKES(booking.estimated_total) : '—'}
+                    {sumPaid(paymentsFor(booking.id)) > 0 && (
+                      <span className="block text-xs text-palm-green">
+                        Paid {formatKES(sumPaid(paymentsFor(booking.id)))}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <select
@@ -168,6 +178,13 @@ export default function AdminBookings() {
                           "{booking.message}"
                         </p>
                       )}
+                      <PaymentPanel
+                        bookingId={booking.id}
+                        guestPhone={booking.guest_phone}
+                        estimatedTotal={booking.estimated_total}
+                        payments={paymentsFor(booking.id)}
+                        canRequest={booking.status !== 'cancelled' && booking.status !== 'completed'}
+                      />
                     </td>
                   </tr>
                 )}

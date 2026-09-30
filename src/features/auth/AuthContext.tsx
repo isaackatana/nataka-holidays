@@ -70,6 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
     queryClient.removeQueries({ queryKey: ['profile'] })
+    // Payment data is per-user (RLS-scoped): drop it so the next person on
+    // a shared device never briefly sees the previous user's payments.
+    queryClient.removeQueries({ queryKey: ['payments'] })
+    queryClient.removeQueries({ queryKey: ['my-bookings'] })
   }
 
   async function requestPasswordReset(email: string) {

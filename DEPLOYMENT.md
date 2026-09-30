@@ -91,6 +91,56 @@ environment, say), set the `SITE_URL` env var in that environment to
 override the default — and update `public/robots.txt`'s `Sitemap:` line,
 which is a static file rather than generated.
 
+## 6. M-Pesa payments (STK Push)
+
+Admins send a payment prompt to a guest's phone from **Admin → Bookings →
+expand a booking → M-Pesa payments**. The guest enters their PIN, and the
+payment shows as Paid within seconds. Guests see the paid amount on
+*My bookings*.
+
+**One-time setup**
+
+1. Run migrations `0008_payments.sql` and `0009_customer_payments.sql` on Supabase.
+2. Create an app at <https://developer.safaricom.co.ke> and get the
+   consumer key/secret. For testing, use the sandbox shortcode `174379`
+   and the public sandbox passkey shown on the Daraja "Simulate" page.
+3. Generate a long random string (e.g. `openssl rand -hex 32`). This is
+   your callback secret. Store it in **both** places:
+   - Vercel env var `MPESA_CALLBACK_SECRET`
+   - Supabase SQL Editor:
+     `insert into app_secrets (key, value) values ('mpesa_callback_secret', 'PASTE_THE_SAME_STRING');`
+4. Add the other `MPESA_*` variables from `.env.example` in Vercel, then
+   redeploy.
+5. **Test in sandbox first**, using your own number, before going live.
+   Sandbox callbacks need a public URL, so test on the deployed site
+   (set `SITE_URL` to that URL), not on localhost.
+
+**Going live:** apply for Go-Live on Daraja, then change `MPESA_ENV` to
+`production` and replace the shortcode, passkey, consumer key and secret
+with the production values. Keep `MPESA_CALLBACK_SECRET` the same or
+update it in both places.
+
+**Guests paying themselves:** on *My bookings*, a signed-in guest sees
+**Pay with M-Pesa** on a *confirmed* booking: a 30% deposit or the full
+balance (or just the balance after a deposit). The server checks that it's
+their booking, that it's confirmed, that the amount doesn't exceed what's
+unpaid, and blocks a second prompt within 3 minutes. Guests who booked
+without an account can't self-pay; send them a prompt from the admin
+instead.
+
+**Why it's safe:** only signed-in admins can trigger a prompt (checked
+server-side and by database rules). Safaricom's result is accepted only
+with the secret, only for a payment that is still pending, and the app
+never holds the Supabase service_role key.
+
+**If a payment doesn't update:** check Vercel → Logs for `pay-callback`.
+"Invalid callback secret" means the two secrets don't match. A guest who
+was charged but sees no record: the `[pay-request]` log line holds the
+CheckoutRequestID to match against your M-Pesa statement.
+
+**Local dev:** `npm run dev` doesn't serve `/api`. Use `vercel dev` to try
+payments locally (the callback still needs a public URL).
+
 ## Troubleshooting
 
 **"Something went wrong loading properties" (or a similar generic error
@@ -115,8 +165,13 @@ Other causes that produce the same generic message: `VITE_SUPABASE_URL`
 revoked anon key, or an RLS policy blocking the read — the console error
 will distinguish between these immediately.
 
+## Performance and security headers
+
+`vercel.json` sets long-lived immutable caching for hashed `/assets/*` files and basic security headers site-wide. `public/robots.txt` blocks crawling of admin, auth and account pages.
+
 ## Known gaps at time of writing
 
-- No online payment (by design — see the original spec's BOOKING SYSTEM
-  section). Booking enquiries are the whole flow for now; M-Pesa/Stripe
-  would be a genuinely new feature, not a bug fix.
+- M-Pesa only (no card payments). Self-pay needs a signed-in guest and a
+  confirmed booking; guest-checkout enquiries are paid via an admin prompt.
+- A payment doesn't change the booking's status; an admin still confirms
+  bookings manually.
