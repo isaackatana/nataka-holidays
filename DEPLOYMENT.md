@@ -100,7 +100,7 @@ payment shows as Paid within seconds. Guests see the paid amount on
 
 **One-time setup**
 
-1. Run migrations `0008_payments.sql` and `0009_customer_payments.sql` on Supabase.
+1. Run migrations `0008_payments.sql` and `0009_customer_payments.sql` on Supabase (and `0010_availability_sync.sql`, see §7).
 2. Create an app at <https://developer.safaricom.co.ke> and get the
    consumer key/secret. For testing, use the sandbox shortcode `174379`
    and the public sandbox passkey shown on the Daraja "Simulate" page.
@@ -140,6 +140,25 @@ CheckoutRequestID to match against your M-Pesa statement.
 
 **Local dev:** `npm run dev` doesn't serve `/api`. Use `vercel dev` to try
 payments locally (the callback still needs a public URL).
+
+## 7. Availability calendar
+
+The booking form on each property now shows a visual calendar: guests tap
+a check-in day, then a check-out day. Unavailable nights are struck
+through, and a stay can end on the day another begins.
+
+Run `0010_availability_sync.sql`. From then on:
+- **Confirming a booking** blocks its dates automatically. Changing it to
+  cancelled, completed or back to pending frees them again.
+- **Confirming dates that overlap** another booking or block is refused,
+  and the admin sees the reason, so two guests can't hold the same nights.
+- **Your own blocks** (owner stays, maintenance): Admin → Properties →
+  Edit → *Availability*. The label is publicly readable, so keep it
+  generic ("Owner stay").
+- Bookings that were already confirmed are blocked by the migration.
+
+Guests can still send an enquiry that overlaps a *pending* one, since
+nothing is held until you confirm.
 
 ## Troubleshooting
 

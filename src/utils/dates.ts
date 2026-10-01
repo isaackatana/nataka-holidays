@@ -12,8 +12,12 @@ export function formatDateRange(checkIn: string, checkOut: string): string {
   return `${start} – ${end}`
 }
 
+/** Today's date in the VISITOR'S timezone (not UTC, which is a day behind
+ * for the first hours of each morning in East Africa). */
 export function todayISO(): string {
-  return new Date().toISOString().split('T')[0]
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 /** True if [aStart, aEnd) overlaps [bStart, bEnd). */

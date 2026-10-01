@@ -71,6 +71,13 @@ export default function AdminBookings() {
         />
       </div>
 
+      {updateStatus.isError && (
+        <p role="alert" className="mt-4 rounded-lg bg-coral-500/10 px-4 py-3 text-sm text-coral-500">
+          {/* Supabase errors are plain objects with a `message`, not Error instances. */}
+          {(updateStatus.error as { message?: string } | null)?.message || 'Could not update that booking.'}
+        </p>
+      )}
+
       <div className="mt-6 overflow-x-auto rounded-card border border-sand-200 bg-sand-50">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-sand-200 bg-sand-100 text-xs uppercase tracking-wide text-charcoal-500">

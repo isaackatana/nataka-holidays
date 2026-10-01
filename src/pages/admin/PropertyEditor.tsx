@@ -10,6 +10,7 @@ import {
   useUpdateProperty,
 } from '@/features/admin/properties/queries'
 import { useAmenities } from '@/features/properties/queries'
+import { AvailabilityManager } from '@/components/admin/AvailabilityManager'
 import { ImageUploader } from '@/components/admin/ImageUploader'
 import { slugify } from '@/utils/slugify'
 import { InputField } from '@/components/ui/InputField'
@@ -306,6 +307,8 @@ export default function PropertyEditor() {
               />
             </div>
           </div>
+
+          {isEditing && existingProperty && <AvailabilityManager propertyId={existingProperty.id} />}
 
           {isEditing && existingProperty ? (
             <ImageUploader propertyId={existingProperty.id} images={existingProperty.property_images ?? []} />

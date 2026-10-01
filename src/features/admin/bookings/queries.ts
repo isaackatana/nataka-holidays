@@ -20,6 +20,10 @@ export function useUpdateBookingStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'bookings'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard-stats'] })
+      // Confirming/cancelling changes which dates are blocked (DB trigger).
+      queryClient.invalidateQueries({ queryKey: ['admin', 'booking-blocks'] })
+      queryClient.invalidateQueries({ queryKey: ['booking-blocks'] })
+      queryClient.invalidateQueries({ queryKey: ['properties'] })
       // The customer's own "My Bookings" view is keyed by their user id,
       // which this admin session doesn't know — it'll pick up the new
       // status on its own next fetch (React Query's default staleTime),

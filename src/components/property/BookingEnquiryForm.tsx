@@ -6,6 +6,7 @@ import { useBookingBlocks, useCreateBookingEnquiry } from '@/features/bookings/q
 import { bookingEnquirySchema, type BookingEnquiryValues } from '@/features/bookings/schemas'
 import { calculateNights, rangesOverlap, todayISO } from '@/utils/dates'
 import { formatKES } from '@/utils/currency'
+import { AvailabilityCalendar } from '@/components/property/AvailabilityCalendar'
 import { InputField } from '@/components/ui/InputField'
 import { Button } from '@/components/ui/Button'
 import type { Property } from '@/types/domain'
@@ -99,6 +100,17 @@ export function BookingEnquiryForm({ property }: { property: Property }) {
         </span>
         <span className="text-sm text-charcoal-500">/ night</span>
       </div>
+
+      <AvailabilityCalendar
+        blocks={blocks ?? []}
+        value={{ checkIn: checkIn ?? '', checkOut: checkOut ?? '' }}
+        onChange={(next) => {
+          // Only validate once both dates exist, so choosing a check-in
+          // doesn't flash a "select a check-out date" error.
+          setValue('checkIn', next.checkIn, { shouldDirty: true, shouldValidate: !!next.checkOut })
+          setValue('checkOut', next.checkOut, { shouldDirty: true, shouldValidate: !!next.checkOut })
+        }}
+      />
 
       <div className="grid grid-cols-2 gap-3">
         <InputField
