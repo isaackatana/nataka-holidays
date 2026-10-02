@@ -100,7 +100,7 @@ payment shows as Paid within seconds. Guests see the paid amount on
 
 **One-time setup**
 
-1. Run migrations `0008_payments.sql` and `0009_customer_payments.sql` on Supabase (and `0010_availability_sync.sql`, see §7).
+1. Run migrations `0008_payments.sql` and `0009_customer_payments.sql` on Supabase (then `0010_availability_sync.sql` §7 and `0011_notifications.sql` §8).
 2. Create an app at <https://developer.safaricom.co.ke> and get the
    consumer key/secret. For testing, use the sandbox shortcode `174379`
    and the public sandbox passkey shown on the Daraja "Simulate" page.
@@ -159,6 +159,120 @@ Run `0010_availability_sync.sql`. From then on:
 
 Guests can still send an enquiry that overlaps a *pending* one, since
 nothing is held until you confirm.
+
+## 8. Booking emails and WhatsApp
+
+**Emails sent automatically** (all optional, see setup below):
+- Guest: enquiry received, booking confirmed, booking cancelled, and an
+  M-Pesa payment receipt (with balance remaining).
+- You: new enquiry alert, and payment received alert.
+
+Each email goes out once per booking, and only if the booking is actually
+in that state (a "confirmed" email can't be triggered for an unconfirmed
+booking). A failed email never blocks a booking or status change.
+
+**Setup**
+1. Run `0011_notifications.sql` on Supabase (after `0008`-`0010`). It
+   needs the M-Pesa callback secret from §6 to be stored already, because
+   the email endpoints reuse it.
+2. Create a free account at <https://resend.com>, add your domain
+   (natakaholidays.co.ke) and add the DNS records it shows you.
+3. In Vercel add `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL` and
+   `NOTIFY_ADMIN_EMAIL` (see `.env.example`), then redeploy.
+4. Send yourself a test enquiry on the live site.
+
+Skip steps 2-3 and the site simply sends no email.
+
+**WhatsApp guest** (no setup): in Admin → Bookings, expand a booking and
+tap *WhatsApp guest* to open a chat with a ready-written message for that
+booking's status. It only appears for valid Kenyan mobile numbers.
+
+**Fixed in this release:** guests booking *without an account* could be
+blocked from sending an enquiry by the database's privacy rules (the form
+tried to read the new booking back, which only the owner or an admin may
+do). The form now creates the booking without reading it back.
+
+## 9. Security hardening (run before launch)
+
+Run `0012_security_hardening.sql`. The pre-launch review found that, while
+the database rules controlled *who* could write a row, they didn't limit
+*which fields*. Until 0012 is applied, a signed-in user could make
+themselves an admin, approve their own reviews, or create bookings already
+marked confirmed. 0012 closes all of these, makes the database (not the
+browser) calculate each booking's estimated total, and adds size limits to
+the booking and contact forms.
+
+You can still promote an admin from the Supabase SQL editor
+(`update profiles set role = 'admin' where id = '...'`), since that isn't
+a signed-in user's request.
+
+Then follow **`LAUNCH_CHECKLIST.md`**, which includes queries to check
+nothing suspicious happened before the fix.
+
+## 10. Arrival reminders
+
+A few days before check-in, confirmed guests get an email with their
+arrival details: check-in and check-out times, the location with a Google
+Maps link (when the property has map coordinates), any balance still due
+with how to pay, and the house rules. It's sent once per booking.
+
+**Setup**
+1. Run `0013_arrival_reminders.sql` on Supabase.
+2. In Vercel add `CRON_SECRET` (any long random string, e.g.
+   `openssl rand -hex 32`) and redeploy. Vercel then runs
+   `/api/send-reminders` every day at 08:00 East Africa Time (the schedule
+   is in `vercel.json`).
+3. Email (§8) must already be set up. Without it the job runs and sends
+   nothing.
+
+It looks 3 days ahead rather than exactly 3 days, so a missed run or a
+last-minute confirmation still gets a reminder. Up to 20 are sent per run;
+any extras go out the next day.
+
+**Check it works:** Vercel → your project → Logs → filter
+`send-reminders`. Each run logs how many reminders were due, sent,
+skipped and failed. You can also trigger it by hand with
+`curl -H "Authorization: Bearer <CRON_SECRET>" https://natakaholidays.co.ke/api/send-reminders`.
+
+**Tip:** the email's content comes from each property's *Stay details*
+(check-in/out times, house rules) and map location in the admin editor,
+so fill those in properly.
+
+## 11. Reports
+
+**Admin → Reports** shows, for a period you choose (this month, last month,
+next 30 days, last 90 days, this year):
+- **Collected:** payments received in the period (M-Pesa, cash and bank).
+- **Booked value:** totals of confirmed and completed stays that start in
+  the period.
+- **Balance still owed:** unpaid balance across every confirmed booking.
+- **Enquiry → booking:** share of enquiries received in the period that
+  became confirmed or completed.
+- **By property:** stays, booked nights, occupancy, booked value and
+  collected, so you can see which homes earn their keep.
+- **Arriving in the next 14 days:** who is coming, what they still owe, and
+  a WhatsApp button to chase the balance.
+- **Download CSV:** every booking overlapping the period, with total, paid
+  and balance, for your accountant. Guest-typed text that looks like a
+  spreadsheet formula is neutralised so opening the file is safe.
+
+No database changes are needed. It reads the bookings and payments you
+already have. Pending, contacted and cancelled bookings never count as
+revenue, and an unpaid booking shows in *Booked value* and *Balance owed*,
+not *Collected*. Record cash and bank payments as described in §12 so they count here.
+
+## 12. Cash and bank payments
+
+Run `0014_manual_payments.sql`. Then in **Admin → Bookings → expand a
+booking → Payments**, use **Record cash or bank payment**: amount, method
+(cash, bank transfer or other), the date the money was received, and an
+optional note such as a bank reference. It counts straight away toward the
+booking's paid total, the balance shown to the guest, self-pay limits, the
+arrival reminder's balance, and the Reports page (on the day you choose).
+
+A mistaken manual entry can be removed with **Remove** beside it. M-Pesa
+payments can't be removed: they're a record of what Safaricom reported.
+No receipt email is sent for manual payments.
 
 ## Troubleshooting
 

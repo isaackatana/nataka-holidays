@@ -7,6 +7,7 @@ import { PaymentPanel } from '@/features/admin/payments/PaymentPanel'
 import { usePayments } from '@/features/admin/payments/queries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatDateRange } from '@/utils/dates'
+import { buildGuestStatusMessage, buildGuestWhatsAppLink } from '@/utils/phone'
 import { formatKES } from '@/utils/currency'
 import type { BookingStatus } from '@/types/domain'
 import { sumPaid } from '@/utils/payments'
@@ -178,6 +179,27 @@ export default function AdminBookings() {
                           {booking.guest_phone}
                         </span>
                         <span>{booking.guests} guests</span>
+                        {(() => {
+                          const link = buildGuestWhatsAppLink(
+                            booking.guest_phone,
+                            buildGuestStatusMessage({
+                              guestName: booking.guest_name,
+                              propertyTitle: booking.properties?.title ?? null,
+                              dates: formatDateRange(booking.check_in, booking.check_out),
+                              status: booking.status,
+                            }),
+                          )
+                          return link ? (
+                            <a
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-teal-800 hover:underline"
+                            >
+                              WhatsApp guest
+                            </a>
+                          ) : null
+                        })()}
                         <StatusBadge status={booking.status} />
                       </div>
                       {booking.message && (

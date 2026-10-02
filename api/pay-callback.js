@@ -6,6 +6,7 @@
 // logged instead.
 import { createClient } from '@supabase/supabase-js'
 import { parseStkCallback } from './_mpesa.js'
+import { sendBookingNotification } from './_notify.js'
 
 const ACK = { ResultCode: 0, ResultDesc: 'Accepted' }
 
@@ -30,7 +31,7 @@ export default async function handler(req, res) {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 
-  const { error } = await supabase.rpc('record_mpesa_result', {
+  const { data: resolved, error } = await supabase.rpc('record_mpesa_result', {
     p_secret: secret,
     p_checkout_request_id: parsed.checkoutRequestId,
     p_result_code: parsed.resultCode,
@@ -39,6 +40,21 @@ export default async function handler(req, res) {
     p_paid_amount: parsed.amount,
   })
   if (error) console.error('[pay-callback] Could not record result:', parsed.checkoutRequestId, error.message)
+
+  // Email a receipt for a payment that was just resolved as successful.
+  // resolved.id is null when nothing changed (replayed callback), so a
+  // repeat from Safaricom never sends a second receipt.
+  if (!error && resolved?.id && resolved.status === 'success') {
+    try {
+      await sendBookingNotification({
+        event: 'payment',
+        bookingId: resolved.booking_id,
+        payment: { id: resolved.id, amount: resolved.paid_amount ?? resolved.amount, receipt: resolved.mpesa_receipt },
+      })
+    } catch (err) {
+      console.error('[pay-callback] receipt email failed:', err)
+    }
+  }
 
   return res.status(200).json(ACK)
 }

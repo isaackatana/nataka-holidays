@@ -58,5 +58,16 @@
         }
       ]
     }
-  ]
+  ],
+  "crons": [
+    {
+      "path": "/api/send-reminders",
+      "schedule": "0 5 * * *"
+    }
+  ],
+  "functions": {
+    "api/send-reminders.js": {
+      "maxDuration": 30
+    }
+  }
 }

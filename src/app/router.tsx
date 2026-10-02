@@ -114,6 +114,7 @@ export const router = createBrowserRouter([
             element: withSuspense(lazyPage(() => import('@/pages/admin/Amenities'))),
           },
           { path: 'bookings', element: withSuspense(lazyPage(() => import('@/pages/admin/Bookings'))) },
+          { path: 'reports', element: withSuspense(lazyPage(() => import('@/pages/admin/Reports'))) },
           { path: 'messages', element: withSuspense(lazyPage(() => import('@/pages/admin/Messages'))) },
           {
             path: 'customers',

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { BookingStatus } from '@/types/domain'
+import { notifyBooking } from '@/services/notify.service'
 
 export interface CreateBookingInput {
   propertyId: string
@@ -14,26 +15,30 @@ export interface CreateBookingInput {
   estimatedTotal: number
 }
 
-export async function createBookingEnquiry(input: CreateBookingInput) {
-  const { data, error } = await supabase
-    .from('bookings')
-    .insert({
-      property_id: input.propertyId,
-      customer_id: input.customerId,
-      guest_name: input.guestName,
-      guest_email: input.guestEmail,
-      guest_phone: input.guestPhone,
-      check_in: input.checkIn,
-      check_out: input.checkOut,
-      guests: input.guests,
-      message: input.message ?? null,
-      estimated_total: input.estimatedTotal,
-    } as never)
-    .select('*')
-    .single()
+export async function createBookingEnquiry(input: CreateBookingInput): Promise<{ id: string }> {
+  // The id is generated here rather than read back from the insert. Reading
+  // the new row back (.select()) needs SELECT permission, and RLS only
+  // lets a booking's own customer or an admin read it — so for a guest
+  // checking out without an account, insert-and-return would be rejected
+  // even though the insert itself is allowed.
+  const id = crypto.randomUUID()
+  const { error } = await supabase.from('bookings').insert({
+    id,
+    property_id: input.propertyId,
+    customer_id: input.customerId,
+    guest_name: input.guestName,
+    guest_email: input.guestEmail,
+    guest_phone: input.guestPhone,
+    check_in: input.checkIn,
+    check_out: input.checkOut,
+    guests: input.guests,
+    message: input.message ?? null,
+    estimated_total: input.estimatedTotal,
+  } as never)
 
   if (error) throw error
-  return data
+  notifyBooking('enquiry', id)
+  return { id }
 }
 
 export interface BookingBlock {

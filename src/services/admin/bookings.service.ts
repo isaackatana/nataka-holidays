@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { BookingStatus } from '@/types/domain'
+import { notifyBooking } from '@/services/notify.service'
 
 export interface AdminBooking {
   id: string
@@ -45,4 +46,7 @@ export async function getAllBookingsForAdmin(filters: AdminBookingFilters = {}):
 export async function updateBookingStatus(id: string, status: BookingStatus): Promise<void> {
   const { error } = await supabase.from('bookings').update({ status } as never).eq('id', id)
   if (error) throw error
+  // Only reached if the database accepted the change (e.g. a confirmation
+  // that would double-book is refused above and sends nothing).
+  if (status === 'confirmed' || status === 'cancelled') notifyBooking(status, id)
 }

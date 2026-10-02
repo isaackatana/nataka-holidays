@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   ListChecks,
+  BarChart3,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { label: 'Properties', to: '/admin/properties', icon: Home },
   { label: 'Amenities', to: '/admin/amenities', icon: ListChecks },
   { label: 'Bookings', to: '/admin/bookings', icon: CalendarCheck },
+  { label: 'Reports', to: '/admin/reports', icon: BarChart3 },
   { label: 'Messages', to: '/admin/messages', icon: Mail },
   { label: 'Customers', to: '/admin/customers', icon: Users },
   { label: 'Reviews', to: '/admin/reviews', icon: Star },
