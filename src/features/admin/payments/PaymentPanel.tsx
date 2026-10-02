@@ -147,7 +147,7 @@ export function PaymentPanel({
                       }
                     }}
                     disabled={remove.isPending}
-                    className="text-xs text-charcoal-400 hover:text-coral-500"
+                    className="text-xs text-charcoal-600 hover:text-coral-500"
                   >
                     Remove
                   </button>

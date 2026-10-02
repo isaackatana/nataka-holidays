@@ -116,7 +116,7 @@ export default function Reports() {
           format={(v) => (report.conversion === null ? '—' : `${v}%`)}
         />
       </div>
-      <p className="mt-2 text-xs text-charcoal-400">
+      <p className="mt-2 text-xs text-charcoal-600">
         Collected = payments received in the period (M-Pesa, cash and bank). Booked value = totals of stays starting in the period.
         Balance owed covers every confirmed booking, whenever it falls. {report.enquiriesReceived} enquir
         {report.enquiriesReceived === 1 ? 'y' : 'ies'} received in the period.
@@ -172,7 +172,7 @@ export default function Reports() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-charcoal-400">
+        <p className="mt-3 text-xs text-charcoal-600">
           Occupancy = booked nights ÷ nights in the period, so future bookings in the period count.
         </p>
       </div>

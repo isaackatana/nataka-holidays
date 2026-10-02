@@ -94,7 +94,7 @@ export default function AdminProperties() {
                       </div>
                       <div>
                         <p className="font-medium text-charcoal-900">{property.title}</p>
-                        <p className="font-mono text-xs text-charcoal-400">/{property.slug}</p>
+                        <p className="font-mono text-xs text-charcoal-600">/{property.slug}</p>
                       </div>
                     </div>
                   </td>

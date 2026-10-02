@@ -73,6 +73,8 @@ export default function Home() {
           <img
             src={businessSettings.hero_image_url}
             alt=""
+            fetchPriority="high"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />
         ) : null}

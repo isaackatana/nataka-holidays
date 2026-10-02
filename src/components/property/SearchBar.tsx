@@ -31,7 +31,7 @@ export function SearchBar() {
           placeholder="Diani, Watamu, Malindi, Lamu..."
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="bg-transparent text-sm text-charcoal-900 outline-none placeholder:text-charcoal-300"
+          className="bg-transparent text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500"
         />
       </label>
 

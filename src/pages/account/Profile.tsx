@@ -57,11 +57,11 @@ export default function Profile() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-5" noValidate>
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-charcoal-700">Email</label>
-          <p className="rounded-lg border border-sand-200 bg-sand-100 px-4 py-2.5 text-sm text-charcoal-500">
+          <span id="profile-email-label" className="text-sm font-medium text-charcoal-700">Email</span>
+          <p aria-labelledby="profile-email-label" className="rounded-lg border border-sand-200 bg-sand-100 px-4 py-2.5 text-sm text-charcoal-500">
             {user?.email}
           </p>
-          <p className="text-xs text-charcoal-400">
+          <p className="text-xs text-charcoal-600">
             Email can't be changed here — contact us if you need it updated.
           </p>
         </div>

@@ -104,7 +104,7 @@ export default function Experiences() {
           placeholder="Search experiences — dhow, diving, safari..."
           value={filters.search ?? ''}
           onChange={(e) => update({ ...filters, search: e.target.value || undefined })}
-          className="flex-1 rounded-lg border border-sand-200 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-300 focus:border-teal-700"
+          className="flex-1 rounded-lg border border-sand-200 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
         />
         <select
           value={filters.sort ?? 'newest'}
@@ -159,7 +159,7 @@ export default function Experiences() {
                 onChange={(e) =>
                   update({ ...filters, minPrice: e.target.value ? Number(e.target.value) : undefined })
                 }
-                className="rounded-lg border border-sand-200 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-300 focus:border-teal-700"
+                className="rounded-lg border border-sand-200 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
               />
             </div>
 
@@ -176,7 +176,7 @@ export default function Experiences() {
                 onChange={(e) =>
                   update({ ...filters, maxPrice: e.target.value ? Number(e.target.value) : undefined })
                 }
-                className="rounded-lg border border-sand-200 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-300 focus:border-teal-700"
+                className="rounded-lg border border-sand-200 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
               />
             </div>
           </div>

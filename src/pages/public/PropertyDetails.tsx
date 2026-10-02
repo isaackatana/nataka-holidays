@@ -304,7 +304,7 @@ export default function PropertyDetails() {
                 </button>
               </div>
             </div>
-            {businessPhone && <p className="-mt-6 text-xs text-charcoal-400">{businessPhone}</p>}
+            {businessPhone && <p className="-mt-6 text-xs text-charcoal-600">{businessPhone}</p>}
 
             <div>
               <h2 className="font-display text-xl font-medium text-teal-900">Reviews</h2>

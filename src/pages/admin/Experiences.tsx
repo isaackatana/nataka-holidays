@@ -43,7 +43,7 @@ export default function AdminExperiences() {
               <th className="px-4 py-3 font-medium">Location</th>
               <th className="px-4 py-3 font-medium">Price</th>
               <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium" />
+              <th className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sand-200">

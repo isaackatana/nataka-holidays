@@ -91,6 +91,12 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-sand-100">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-teal-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-sand-50"
+      >
+        Skip to main content
+      </a>
       {/* Applies to every /admin/* route through this one shared layout,
           rather than repeating a noindex <SEO> tag on ten separate admin
           pages — the whole section is behind auth and has no reason to
@@ -114,6 +120,7 @@ export function AdminLayout() {
         <div
           className="fixed inset-0 z-50 bg-charcoal-900/40 md:hidden"
           onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
         />
       )}
       <aside
@@ -164,7 +171,7 @@ export function AdminLayout() {
             </button>
           </div>
         </header>
-        <main>
+        <main id="main-content" tabIndex={-1} className="outline-none">
           <Outlet />
         </main>
       </div>

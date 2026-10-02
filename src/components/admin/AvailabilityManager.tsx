@@ -60,14 +60,14 @@ export function AvailabilityManager({ propertyId }: { propertyId: string }) {
               {b.booking_id ? 'Confirmed booking' : b.reason || 'Blocked'}
             </span>
             {b.booking_id ? (
-              <span className="text-xs text-charcoal-400">Automatic</span>
+              <span className="text-xs text-charcoal-600">Automatic</span>
             ) : (
               <button
                 type="button"
                 onClick={() => remove.mutate(b.id)}
                 disabled={remove.isPending}
                 aria-label="Remove block"
-                className="text-charcoal-400 hover:text-coral-500"
+                className="text-charcoal-600 hover:text-coral-500"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

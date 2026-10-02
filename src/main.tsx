@@ -1,6 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+// Fonts are self-hosted (bundled with the site) instead of loaded from Google:
+// no extra connections to other servers before text can render, which matters
+// on slow mobile networks. Browsers only download the character ranges a page
+// actually uses.
+import '@fontsource-variable/inter/index.css'
+import '@fontsource-variable/fraunces/opsz.css'
+import '@fontsource/ibm-plex-mono/latin-400.css'
+import '@fontsource/ibm-plex-mono/latin-500.css'
 import './index.css'
 
 const rootElement = document.getElementById('root')!

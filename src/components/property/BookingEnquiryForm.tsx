@@ -173,11 +173,12 @@ export function BookingEnquiryForm({ property }: { property: Property }) {
       <InputField label="Phone" type="tel" error={errors.guestPhone?.message} {...register('guestPhone')} />
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-charcoal-700">Message (optional)</label>
+        <label htmlFor="enquiry-message" className="text-sm font-medium text-charcoal-700">Message (optional)</label>
         <textarea
+          id="enquiry-message"
           rows={3}
           {...register('message')}
-          className="rounded-lg border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-300 focus:border-teal-700"
+          className="rounded-lg border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
           placeholder="Anything we should know?"
         />
       </div>
@@ -185,7 +186,7 @@ export function BookingEnquiryForm({ property }: { property: Property }) {
       <Button type="submit" loading={isSubmitting} disabled={hasConflict} className="mt-1 w-full">
         Send booking enquiry
       </Button>
-      <p className="text-center text-xs text-charcoal-400">
+      <p className="text-center text-xs text-charcoal-600">
         This sends an enquiry — payment isn't collected online. We'll confirm availability directly.
       </p>
     </form>

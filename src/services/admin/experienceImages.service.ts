@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { prepareImageForUpload } from '@/utils/image'
 import type { PropertyImage } from '@/types/domain'
 
 const BUCKET = 'experience-images'
@@ -14,10 +15,15 @@ export async function uploadExperienceImage(
   file: File,
   currentImageCount: number,
 ): Promise<ExperienceImage> {
-  const path = `${experienceId}/${Date.now()}-${sanitizeFilename(file.name)}`
+  // Shrink before upload: a phone original can be 5 MB+, which makes every
+  // listing slow to load on mobile data.
+  const optimized = await prepareImageForUpload(file)
+  const path = `${experienceId}/${Date.now()}-${sanitizeFilename(optimized.name)}`
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: '3600',
+  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, optimized, {
+    // Paths are unique per upload (timestamped), so a file never changes:
+    // let browsers and the CDN keep it for a year.
+    cacheControl: '31536000',
     upsert: false,
   })
   if (uploadError) throw uploadError

@@ -92,7 +92,7 @@ export default function AdminReviews() {
                   {review.properties.title}
                 </Link>
               ) : (
-                <p className="mt-1 text-xs text-charcoal-400">Deleted property</p>
+                <p className="mt-1 text-xs text-charcoal-600">Deleted property</p>
               )}
               {review.comment && (
                 <p className="mt-2 text-sm text-charcoal-700">"{review.comment}"</p>

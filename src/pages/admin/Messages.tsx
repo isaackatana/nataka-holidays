@@ -72,7 +72,7 @@ export default function AdminMessages() {
               >
                 <div className="flex items-start gap-3">
                   {msg.is_read ? (
-                    <MailOpen className="mt-0.5 h-4 w-4 shrink-0 text-charcoal-400" />
+                    <MailOpen className="mt-0.5 h-4 w-4 shrink-0 text-charcoal-600" />
                   ) : (
                     <Mail className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
                   )}
@@ -84,7 +84,7 @@ export default function AdminMessages() {
                     <p className="mt-0.5 text-xs text-charcoal-500">{msg.email}</p>
                   </div>
                 </div>
-                <span className="shrink-0 font-mono text-xs text-charcoal-400">
+                <span className="shrink-0 font-mono text-xs text-charcoal-600">
                   {new Date(msg.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                 </span>
               </button>

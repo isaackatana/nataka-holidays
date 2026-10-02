@@ -79,7 +79,7 @@ export default function AdminAmenities() {
             <tr>
               <th className="px-4 py-3 font-medium">Icon</th>
               <th className="px-4 py-3 font-medium">Name</th>
-              <th className="px-4 py-3 font-medium" />
+              <th className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sand-200">
@@ -106,7 +106,7 @@ export default function AdminAmenities() {
                     value={addForm.name}
                     onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                     onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                    className="w-full rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm outline-none placeholder:text-charcoal-300 focus:border-teal-700"
+                    className="w-full rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm outline-none placeholder:text-charcoal-500 focus:border-teal-700"
                   />
                 </td>
                 <td className="px-4 py-3">
@@ -208,7 +208,7 @@ export default function AdminAmenities() {
                     {IconComponent ? (
                       <IconComponent className="h-4 w-4 text-teal-700" />
                     ) : (
-                      <span className="text-xs text-charcoal-400">—</span>
+                      <span className="text-xs text-charcoal-600">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 font-medium text-charcoal-900">{amenity.name}</td>

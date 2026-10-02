@@ -1,32 +1,40 @@
-import { useState } from 'react'
-import { X, ChevronLeft, ChevronRight, Expand } from 'lucide-react'
-import { getPublicImageUrl } from '@/utils/storage'
+import { useState } from "react";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
+import { X, ChevronLeft, ChevronRight, Expand } from "lucide-react";
+import {
+  getImageSrcSet,
+  getPublicImageUrl,
+  getResizedImageUrl,
+} from "@/utils/storage";
 
 interface GalleryImage {
-  storage_path: string
-  sort_order: number
+  storage_path: string;
+  sort_order: number;
 }
 
 interface GalleryProps {
-  images: GalleryImage[]
-  title: string
+  images: GalleryImage[];
+  title: string;
   /** Which Storage bucket these images live in — properties and
    * experiences use separate buckets (see supabase/migrations/0004_storage.sql). */
-  bucket: 'property-images' | 'experience-images'
+  bucket: "property-images" | "experience-images";
 }
 
 export function Gallery({ images, title, bucket }: GalleryProps) {
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
-  const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order)
-  const urls = sorted.map((img) => getPublicImageUrl(bucket, img.storage_path))
+  const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
+  const urls = sorted.map((img) => getPublicImageUrl(bucket, img.storage_path));
+  // Grid/thumbnail sizes; the full-size URL is only used in the lightbox.
+  const thumb = (i: number, width: number) =>
+    getResizedImageUrl(bucket, sorted[i].storage_path, width);
 
   if (urls.length === 0) {
     return (
-      <div className="flex aspect-[16/9] w-full items-center justify-center rounded-card bg-sand-200 text-charcoal-400">
+      <div className="flex aspect-[16/9] w-full items-center justify-center rounded-card bg-sand-200 text-charcoal-600">
         <span className="font-mono text-sm">No photos yet</span>
       </div>
-    )
+    );
   }
 
   return (
@@ -37,15 +45,33 @@ export function Gallery({ images, title, bucket }: GalleryProps) {
           onClick={() => setViewerIndex(0)}
           className="relative col-span-2 row-span-2 overflow-hidden rounded-l-card"
         >
-          <img src={urls[0]} alt={title} className="h-full w-full object-cover transition-transform hover:scale-105" />
+          <img
+            src={thumb(0, 1200)}
+            srcSet={getImageSrcSet(
+              bucket,
+              sorted[0].storage_path,
+              [600, 1200, 1800],
+            )}
+            sizes="(min-width: 768px) 50vw, 100vw"
+            alt={title}
+            fetchPriority="high"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform hover:scale-105"
+          />
         </button>
         {urls.slice(1, 5).map((url, i) => (
           <button
             key={url}
             onClick={() => setViewerIndex(i + 1)}
-            className={`relative overflow-hidden ${i === 1 ? 'rounded-tr-card' : ''} ${i === 3 ? 'rounded-br-card' : ''}`}
+            className={`relative overflow-hidden ${i === 1 ? "rounded-tr-card" : ""} ${i === 3 ? "rounded-br-card" : ""}`}
           >
-            <img src={url} alt={`${title} photo ${i + 2}`} className="h-full w-full object-cover transition-transform hover:scale-105" />
+            <img
+              src={thumb(i + 1, 600)}
+              alt={`${title}, view ${i + 2}`}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover transition-transform hover:scale-105"
+            />
             {i === 3 && urls.length > 5 && (
               <span className="absolute inset-0 flex items-center justify-center bg-charcoal-900/50 text-sm font-medium text-sand-50">
                 +{urls.length - 5} more
@@ -75,7 +101,14 @@ export function Gallery({ images, title, bucket }: GalleryProps) {
             onClick={() => setViewerIndex(i)}
             className="aspect-[4/3] w-[85vw] shrink-0 snap-center overflow-hidden rounded-card"
           >
-            <img src={url} alt={`${title} photo ${i + 1}`} className="h-full w-full object-cover" />
+            <img
+              src={thumb(i, 900)}
+              alt={`${title}, view ${i + 1}`}
+              loading={i === 0 ? undefined : "lazy"}
+              fetchPriority={i === 0 ? "high" : undefined}
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
           </button>
         ))}
       </div>
@@ -90,7 +123,7 @@ export function Gallery({ images, title, bucket }: GalleryProps) {
         />
       )}
     </>
-  )
+  );
 }
 
 function FullscreenViewer({
@@ -100,31 +133,41 @@ function FullscreenViewer({
   onClose,
   onNavigate,
 }: {
-  urls: string[]
-  index: number
-  title: string
-  onClose: () => void
-  onNavigate: (i: number) => void
+  urls: string[];
+  index: number;
+  title: string;
+  onClose: () => void;
+  onNavigate: (i: number) => void;
 }) {
-  const goPrev = () => onNavigate((index - 1 + urls.length) % urls.length)
-  const goNext = () => onNavigate((index + 1) % urls.length)
+  const goPrev = () => onNavigate((index - 1 + urls.length) % urls.length);
+  const goNext = () => onNavigate((index + 1) % urls.length);
+
+  // Moves focus into the viewer, closes on Escape, and returns focus to the
+  // thumbnail that opened it.
+  const dialogRef = useDialogA11y<HTMLDivElement>(true, onClose);
 
   return (
     <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${title} photos`}
       className="fixed inset-0 z-[60] flex flex-col bg-charcoal-900/95"
       onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose()
-        if (e.key === 'ArrowLeft') goPrev()
-        if (e.key === 'ArrowRight') goNext()
+        if (e.key === "ArrowLeft") goPrev();
+        if (e.key === "ArrowRight") goNext();
       }}
-      tabIndex={-1}
-      ref={(el) => el?.focus()}
     >
       <div className="flex items-center justify-between px-6 py-4 text-sand-50">
-        <span className="font-mono text-xs">
+        <span className="font-mono text-xs" aria-live="polite">
           {index + 1} / {urls.length}
         </span>
-        <button onClick={onClose} aria-label="Close gallery">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close gallery"
+          className="flex h-10 w-10 items-center justify-center"
+        >
           <X className="h-6 w-6" />
         </button>
       </div>
@@ -140,7 +183,7 @@ function FullscreenViewer({
 
         <img
           src={urls[index]}
-          alt={`${title} photo ${index + 1}`}
+          alt={`${title}, view ${index + 1} of ${urls.length}`}
           className="max-h-full max-w-full rounded-lg object-contain"
         />
 
@@ -153,5 +196,5 @@ function FullscreenViewer({
         </button>
       </div>
     </div>
-  )
+  );
 }

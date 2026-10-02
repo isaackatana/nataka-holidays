@@ -2,7 +2,7 @@ import { type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, BedDouble, Users, MapPin, Briefcase, Check } from 'lucide-react'
 import type { Property } from '@/types/domain'
-import { getPrimaryPropertyImageUrl } from '@/utils/storage'
+import { getImageSrcSet, getPrimaryPropertyImagePath, getResizedImageUrl } from '@/utils/storage'
 import { formatKES } from '@/utils/currency'
 import { useTripCart } from '@/features/tripCart/TripCartContext'
 
@@ -13,7 +13,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, isFavorited, onToggleFavorite }: PropertyCardProps) {
-  const imageUrl = getPrimaryPropertyImageUrl(property.property_images)
+  const imagePath = getPrimaryPropertyImagePath(property.property_images)
   const { addProperty, removeProperty, isPropertyInCart } = useTripCart()
   const inTrip = isPropertyInCart(property.id)
 
@@ -37,11 +37,14 @@ export function PropertyCard({ property, isFavorited, onToggleFavorite }: Proper
       className="group flex flex-col overflow-hidden rounded-card bg-sand-50 shadow-card transition-shadow hover:shadow-card-hover"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-sand-200">
-        {imageUrl ? (
+        {imagePath ? (
           <img
-            src={imageUrl}
+            src={getResizedImageUrl('property-images', imagePath, 800)}
+            srcSet={getImageSrcSet('property-images', imagePath, [400, 800, 1200])}
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             alt={property.title}
             loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (

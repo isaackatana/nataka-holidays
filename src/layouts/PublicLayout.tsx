@@ -50,10 +50,16 @@ export function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-sand-50">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-teal-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-sand-50"
+      >
+        Skip to main content
+      </a>
       <header className="sticky top-0 z-40 border-b border-sand-200 bg-sand-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link to="/" className="font-display text-xl font-medium text-teal-900">
-            <img src="/mainLogo.svg" alt="" width={60} />
+            <img src="/mainLogo.svg" alt="" width={50} />
           </Link>
           <nav className="hidden gap-6 lg:flex">
             {NAV_LINKS.map((link) => (
@@ -143,6 +149,7 @@ export function PublicLayout() {
         <div
           className="fixed inset-0 z-[60] bg-charcoal-900/40 lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
         />
       )}
       <aside
@@ -220,7 +227,7 @@ export function PublicLayout() {
         </div>
       </aside>
 
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
         <Outlet />
       </main>
 

@@ -1,118 +1,153 @@
-import { useRef, useState } from 'react'
-import { ImagePlus, Trash2, ChevronUp, ChevronDown, Loader2 } from 'lucide-react'
-import type { ExperienceImage } from '@/services/admin/experienceImages.service'
-import { getPublicImageUrl } from '@/utils/storage'
+import { useRef, useState } from "react";
+import {
+  ImagePlus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  Loader2,
+} from "lucide-react";
+import type { ExperienceImage } from "@/services/admin/experienceImages.service";
+import { getPublicImageUrl } from "@/utils/storage";
 import {
   useUploadExperienceImage,
   useDeleteExperienceImage,
   useReorderExperienceImages,
-} from '@/features/admin/experienceImages/queries'
+} from "@/features/admin/experienceImages/queries";
 
-const MAX_FILE_SIZE_MB = 8
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+// Generous because photos are shrunk in the browser before upload.
+const MAX_FILE_SIZE_MB = 25;
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 interface ExperienceImageUploaderProps {
-  experienceId: string
-  images: ExperienceImage[]
+  experienceId: string;
+  images: ExperienceImage[];
 }
 
-export function ExperienceImageUploader({ experienceId, images }: ExperienceImageUploaderProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
+export function ExperienceImageUploader({
+  experienceId,
+  images,
+}: ExperienceImageUploaderProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const upload = useUploadExperienceImage(experienceId)
-  const deleteImage = useDeleteExperienceImage(experienceId)
-  const reorder = useReorderExperienceImages(experienceId)
+  const upload = useUploadExperienceImage(experienceId);
+  const deleteImage = useDeleteExperienceImage(experienceId);
+  const reorder = useReorderExperienceImages(experienceId);
 
-  const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order)
+  const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
 
   async function handleFiles(files: FileList | null) {
-    if (!files || files.length === 0) return
-    setUploadError(null)
+    if (!files || files.length === 0) return;
+    setUploadError(null);
 
     for (const file of Array.from(files)) {
       if (!ACCEPTED_TYPES.includes(file.type)) {
-        setUploadError(`${file.name}: only JPEG, PNG, or WebP images are allowed.`)
-        continue
+        setUploadError(
+          `${file.name}: only JPEG, PNG, or WebP images are allowed.`,
+        );
+        continue;
       }
       if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        setUploadError(`${file.name}: must be under ${MAX_FILE_SIZE_MB}MB.`)
-        continue
+        setUploadError(`${file.name}: must be under ${MAX_FILE_SIZE_MB}MB.`);
+        continue;
       }
       try {
         // Sequential, not Promise.all — same reasoning as the property
         // uploader: currentCount (and therefore sort_order) needs the
         // previous upload's result, not a race between simultaneous ones.
-        await upload.mutateAsync({ file, currentCount: sorted.length })
+        await upload.mutateAsync({ file, currentCount: sorted.length });
       } catch (err) {
-        setUploadError(err instanceof Error ? err.message : `Failed to upload ${file.name}`)
+        setUploadError(
+          err instanceof Error ? err.message : `Failed to upload ${file.name}`,
+        );
       }
     }
   }
 
   function move(index: number, direction: -1 | 1) {
-    const target = index + direction
-    if (target < 0 || target >= sorted.length) return
-    const reordered = [...sorted]
-    ;[reordered[index], reordered[target]] = [reordered[target], reordered[index]]
-    reorder.mutate(reordered.map((img) => img.id))
+    const target = index + direction;
+    if (target < 0 || target >= sorted.length) return;
+    const reordered = [...sorted];
+    [reordered[index], reordered[target]] = [
+      reordered[target],
+      reordered[index],
+    ];
+    reorder.mutate(reordered.map((img) => img.id));
   }
 
   return (
     <div className="rounded-card border border-sand-200 bg-sand-50 p-6">
       <h2 className="font-display text-lg font-medium text-teal-900">Photos</h2>
       <p className="mt-1 text-xs text-charcoal-500">
-        JPEG, PNG, or WebP, up to {MAX_FILE_SIZE_MB}MB each. The first photo is used as the cover
-        image on the Experiences page.
+        JPEG, PNG, or WebP, up to {MAX_FILE_SIZE_MB}MB each. The first photo is
+        used as the cover image on the Experiences page.
       </p>
 
       <div
         onDragOver={(e) => {
-          e.preventDefault()
-          setIsDragging(true)
+          e.preventDefault();
+          setIsDragging(true);
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={(e) => {
-          e.preventDefault()
-          setIsDragging(false)
-          handleFiles(e.dataTransfer.files)
+          e.preventDefault();
+          setIsDragging(false);
+          handleFiles(e.dataTransfer.files);
         }}
         onClick={() => fileInputRef.current?.click()}
+        role="button"
+        tabIndex={0}
+        aria-label="Add photos"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
         className={`mt-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-card border-2 border-dashed p-8 text-center transition-colors ${
-          isDragging ? 'border-teal-700 bg-teal-700/5' : 'border-sand-300 hover:border-sand-400'
+          isDragging
+            ? "border-teal-700 bg-teal-700/5"
+            : "border-sand-300 hover:border-sand-400"
         }`}
       >
         {upload.isPending ? (
           <Loader2 className="h-6 w-6 animate-spin text-teal-700" />
         ) : (
-          <ImagePlus className="h-6 w-6 text-charcoal-400" />
+          <ImagePlus className="h-6 w-6 text-charcoal-600" />
         )}
         <p className="text-sm text-charcoal-600">
-          {upload.isPending ? 'Uploading...' : 'Drag photos here, or click to browse'}
+          {upload.isPending
+            ? "Uploading..."
+            : "Drag photos here, or click to browse"}
         </p>
         <input
           ref={fileInputRef}
           type="file"
-          accept={ACCEPTED_TYPES.join(',')}
+          accept={ACCEPTED_TYPES.join(",")}
           multiple
           className="hidden"
           onChange={(e) => {
-            handleFiles(e.target.files)
-            e.target.value = ''
+            handleFiles(e.target.files);
+            e.target.value = "";
           }}
         />
       </div>
 
-      {uploadError && <p className="mt-2 text-sm text-coral-500">{uploadError}</p>}
+      {uploadError && (
+        <p className="mt-2 text-sm text-coral-500">{uploadError}</p>
+      )}
 
       {sorted.length > 0 && (
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {sorted.map((image, index) => (
-            <div key={image.id} className="group relative overflow-hidden rounded-lg bg-sand-200">
+            <div
+              key={image.id}
+              className="group relative overflow-hidden rounded-lg bg-sand-200"
+            >
               <img
-                src={getPublicImageUrl('experience-images', image.storage_path)}
-                alt={`Experience photo ${index + 1}${index === 0 ? ' (cover)' : ''}`}
+                src={getPublicImageUrl("experience-images", image.storage_path)}
+                alt={`Experience image ${index + 1}${index === 0 ? " (cover)" : ""}`}
                 className="aspect-square w-full object-cover"
               />
 
@@ -125,7 +160,13 @@ export function ExperienceImageUploader({ experienceId, images }: ExperienceImag
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-charcoal-900/0 opacity-0 transition-all group-hover:bg-charcoal-900/50 group-hover:opacity-100">
                 <button
                   type="button"
-                  onClick={() => deleteImage.mutate({ id: image.id, storage_path: image.storage_path, sort_order: image.sort_order })}
+                  onClick={() =>
+                    deleteImage.mutate({
+                      id: image.id,
+                      storage_path: image.storage_path,
+                      sort_order: image.sort_order,
+                    })
+                  }
                   aria-label="Delete photo"
                   className="flex h-7 w-7 items-center justify-center rounded-full bg-sand-50 text-coral-500 hover:bg-coral-500 hover:text-sand-50"
                 >
@@ -158,8 +199,10 @@ export function ExperienceImageUploader({ experienceId, images }: ExperienceImag
       )}
 
       {sorted.length === 0 && (
-        <p className="mt-4 text-center text-sm text-charcoal-400">No photos uploaded yet.</p>
+        <p className="mt-4 text-center text-sm text-charcoal-600">
+          No photos uploaded yet.
+        </p>
       )}
     </div>
-  )
+  );
 }

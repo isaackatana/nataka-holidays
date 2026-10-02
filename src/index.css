@@ -48,7 +48,13 @@
   --color-sand-400: #8f8169;
 
   --color-charcoal-900: #263234; /* Charcoal */
+  /* 800 and 600 were used across the app but never defined, so those classes
+   * silently did nothing and the text fell back to the inherited near-black.
+   * They are defined here as darker, AA-passing greys (>= 5.5:1 on sand-50 and
+   * sand-100), leaving the brand-specified Muted Text (500) untouched. */
+  --color-charcoal-800: #313e40;
   --color-charcoal-700: #4a5759;
+  --color-charcoal-600: #4f5e60;
   /* Muted Text as specified (#687678) measures 4.30:1 against the new
    * Ivory background — just under the 4.5:1 WCAG AA threshold for text,
    * unlike every other pair in this palette. Used as specified rather
@@ -64,13 +70,13 @@
    * darkened derivative is for text and solid-badge-with-light-text use
    * (eyebrow labels, status badges), the same fix pattern as the
    * previous palette's gold-600. */
-  --color-gold-600: #896929; /* darkened from Golden Hour for 4.5:1 AA text/badge use */
+  --color-gold-600: #7a5c22; /* darkened from Golden Hour for 4.5:1 AA text/badge use */
 
   /* Not part of the provided brand palette — kept from the previous
    * palette for error/alert semantics, since no alert color was
    * specified and this already passes WCAG AA (4.93:1) against the new
    * Ivory background without needing adjustment. */
-  --color-coral-500: #a1553c;
+  --color-coral-500: #964a31;
 
   /* New in this palette. Not wired into any component by default —
    * added here so it's available, and applied to StatusBadge's
@@ -80,8 +86,8 @@
   --color-palm-green: #55735a;
 
   /* Type */
-  --font-display: "Fraunces", "Iowan Old Style", serif;
-  --font-body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Fraunces Variable", "Fraunces", "Iowan Old Style", serif;
+  --font-body: "Inter Variable", "Inter", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   /* Radius */

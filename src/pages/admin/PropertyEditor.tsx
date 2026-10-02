@@ -170,8 +170,9 @@ export default function PropertyEditor() {
               <InputField label="Location" placeholder="e.g. Diani Beach, Kwale / Shela, Lamu" error={errors.location?.message} {...register('location')} />
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-charcoal-700">Property type</label>
+                <label htmlFor="propertyType" className="text-sm font-medium text-charcoal-700">Property type</label>
                 <select
+                  id="propertyType"
                   {...register('propertyType')}
                   className="rounded-lg border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none focus:border-teal-700"
                 >
@@ -314,7 +315,7 @@ export default function PropertyEditor() {
             <ImageUploader propertyId={existingProperty.id} images={existingProperty.property_images ?? []} />
           ) : (
             <div className="rounded-card border border-dashed border-sand-300 bg-sand-100 p-6 text-center">
-              <ImagePlus className="mx-auto h-6 w-6 text-charcoal-400" />
+              <ImagePlus className="mx-auto h-6 w-6 text-charcoal-600" />
               <p className="mt-2 text-sm text-charcoal-500">
                 Save this property first, then come back to add photos.
               </p>

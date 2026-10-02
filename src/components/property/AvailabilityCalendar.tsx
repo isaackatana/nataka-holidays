@@ -46,7 +46,7 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
           onClick={() => shift(-1)}
           disabled={atCurrentMonth}
           aria-label="Previous month"
-          className="rounded-full p-1.5 text-charcoal-600 hover:bg-sand-200 disabled:opacity-30"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-charcoal-600 hover:bg-sand-200 disabled:opacity-30"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -63,7 +63,7 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
         </button>
       </div>
 
-      <div className="grid grid-cols-7 text-center text-[11px] uppercase tracking-wide text-charcoal-400">
+      <div className="grid grid-cols-7 text-center text-[11px] uppercase tracking-wide text-charcoal-600">
         {WEEKDAYS.map((d) => (
           <span key={d} className="py-1">
             {d}
@@ -100,7 +100,7 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
                 month: 'long',
               })}${taken ? ', unavailable' : ''}`}
               aria-pressed={isStart || isEnd}
-              className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm font-figures transition-colors disabled:cursor-not-allowed ${style}`}
+              className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full text-sm font-figures transition-colors disabled:cursor-not-allowed ${style}`}
             >
               {Number(day.slice(8))}
             </button>
@@ -108,7 +108,7 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
         })}
       </div>
 
-      <p className="mt-2 text-[11px] text-charcoal-400">
+      <p className="mt-2 text-xs text-charcoal-600">
         <span className="line-through">12</span> = unavailable. You can check out the day another stay begins.
       </p>
     </div>

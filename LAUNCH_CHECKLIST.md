@@ -39,6 +39,8 @@ Work top to bottom. Items marked **(you)** are done in a dashboard, not in code.
 - [ ] Arrival reminder: confirm a booking starting in 2 days, run the `curl` command in `DEPLOYMENT.md` §10, check the email arrives.
 - [ ] Paste a property link into WhatsApp: photo and title appear.
 - [ ] Open the site on a phone: calendar, booking form, My bookings.
+- [ ] Accessibility: tab through the booking form with only the keyboard, and run Lighthouse (Accessibility) on the home page and a property page.
+- [ ] Re-upload each property's cover photo (and any big photos uploaded before the speed update), then run PageSpeed Insights on the live home page and a property page.
 
 ## 5. Going live with money
 - [ ] Complete Daraja **Go-Live** with Safaricom.

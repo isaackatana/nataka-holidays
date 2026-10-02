@@ -68,7 +68,7 @@ export default function AdminBookings() {
           placeholder="Search name or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-sand-300 bg-sand-50 px-4 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-300 focus:border-teal-700 sm:w-64"
+          className="w-full rounded-lg border border-sand-300 bg-sand-50 px-4 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700 sm:w-64"
         />
       </div>
 
@@ -88,7 +88,7 @@ export default function AdminBookings() {
               <th className="px-4 py-3 font-medium">Dates</th>
               <th className="px-4 py-3 font-medium">Total</th>
               <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium" />
+              <th className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sand-200">
@@ -122,12 +122,12 @@ export default function AdminBookings() {
                         {booking.properties.title}
                       </Link>
                     ) : (
-                      <span className="text-charcoal-400">Deleted property</span>
+                      <span className="text-charcoal-600">Deleted property</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-charcoal-700">
                     {formatDateRange(booking.check_in, booking.check_out)}
-                    <span className="text-charcoal-400"> · {booking.nights}n</span>
+                    <span className="text-charcoal-600"> · {booking.nights}n</span>
                   </td>
                   <td className="px-4 py-3 font-figures text-charcoal-700">
                     {booking.estimated_total !== null ? formatKES(booking.estimated_total) : '—'}

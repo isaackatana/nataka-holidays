@@ -2,13 +2,13 @@ import { type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, Briefcase, Check } from 'lucide-react'
 import type { Experience } from '@/types/domain'
-import { getPublicImageUrl } from '@/utils/storage'
+import { getImageSrcSet, getResizedImageUrl } from '@/utils/storage'
 import { formatKES } from '@/utils/currency'
 import { useTripCart } from '@/features/tripCart/TripCartContext'
 
 export function ExperienceCard({ experience }: { experience: Experience }) {
   const primaryImage = experience.experience_images?.[0]
-  const imageUrl = primaryImage ? getPublicImageUrl('experience-images', primaryImage.storage_path) : null
+  const imagePath = primaryImage?.storage_path ?? null
   const { addExperience, removeExperience, isExperienceInCart } = useTripCart()
   const inTrip = isExperienceInCart(experience.id)
 
@@ -32,11 +32,14 @@ export function ExperienceCard({ experience }: { experience: Experience }) {
       className="group flex flex-col overflow-hidden rounded-card bg-sand-50 shadow-card transition-shadow hover:shadow-card-hover"
     >
       <div className="relative aspect-[3/2] overflow-hidden bg-teal-900">
-        {imageUrl ? (
+        {imagePath ? (
           <img
-            src={imageUrl}
+            src={getResizedImageUrl('experience-images', imagePath, 800)}
+            srcSet={getImageSrcSet('experience-images', imagePath, [400, 800, 1200])}
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             alt={experience.title}
             loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (

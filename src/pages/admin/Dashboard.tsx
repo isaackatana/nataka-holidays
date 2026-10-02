@@ -135,7 +135,7 @@ export default function Dashboard() {
               className="flex items-center justify-between gap-3 rounded-lg bg-sand-100 px-4 py-3 hover:bg-sand-200"
             >
               <span className="flex items-center gap-3">
-                <span className="font-mono text-xs text-charcoal-400">#{i + 1}</span>
+                <span className="font-mono text-xs text-charcoal-600">#{i + 1}</span>
                 <span className="text-sm font-medium text-charcoal-900">{property.title}</span>
               </span>
               <span className="flex items-center gap-4 text-xs text-charcoal-500">

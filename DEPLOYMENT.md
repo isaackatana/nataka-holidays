@@ -274,6 +274,64 @@ A mistaken manual entry can be removed with **Remove** beside it. M-Pesa
 payments can't be removed: they're a record of what Safaricom reported.
 No receipt email is sent for manual payments.
 
+## 13. Speed on mobile networks
+
+What was changed, and what you should know:
+- **Photos are shrunk on upload.** A phone photo (often 3-8 MB) is resized
+  to 1920px on its longest side and saved as WebP in the browser before
+  it's uploaded, typically 200-500 KB. You can now upload originals up to
+  25 MB. **Photos uploaded before this release are still full size**: to
+  speed up those listings, delete and re-upload the main photos (start
+  with each property's cover photo).
+- **Fonts are bundled with the site** rather than fetched from Google, so
+  there are no extra connections before text appears.
+- **Photos load smartly:** the main photo on a page loads first, others
+  load as you scroll, and photos are cached by the browser for a year.
+- The site connects to Supabase early, while the page is still loading.
+
+**Optional, paid Supabase plans only:** set `VITE_IMAGE_TRANSFORMS=true` in
+Vercel (and redeploy) to have Supabase serve right-sized copies of every
+photo, including old uploads, with no re-uploading. Don't enable it on the
+free plan; images would fail to load.
+
+**Test it:** open your site in Chrome, DevTools → Network → set throttling
+to "Slow 4G", reload, and check the home and a property page feel fast.
+Or run PageSpeed Insights (pagespeed.web.dev) on your live URL; aim for
+green on mobile.
+
+## 14. Accessibility
+
+An accessibility pass found and fixed:
+- **Text colours that didn't exist.** Several greys used across the app
+  (charcoal 400/600/800) were never defined, so those styles silently did
+  nothing and the text fell back to near-black. 600 and 800 are now
+  defined as dark, AA-passing greys, and hint text uses 600. The error and
+  gold badge colours were deepened slightly to pass the 4.5:1 minimum.
+  Your brand's Muted Text (#687678) and Palm Green are unchanged. Muted
+  Text measures 4.30:1 on the ivory background, just under AA; it's used
+  for secondary text only. To make it AA, darken `--color-charcoal-500` in
+  `src/index.css` to `#5f6d6f` (one line).
+- **Form fields without labels.** The filters (sort, type, price, guests,
+  bedrooms, amenities), the enquiry message box, the property-type
+  selector and the profile email now announce properly in a screen reader.
+  Error messages on text areas are now connected to their field.
+- **Keyboard use.** The photo upload areas can be opened with Enter or
+  Space. The photo viewer is a proper dialog: focus moves into it, Escape
+  closes it, arrow keys move between photos, and focus returns afterwards.
+  A "Skip to main content" link appears on the first Tab press.
+- **Touch targets.** Calendar days and month buttons are 40px (were 36px
+  and 28px).
+- **Smaller fixes:** photo descriptions no longer say "photo photo",
+  and admin table action columns have a hidden "Actions" label.
+
+Already in place: visible focus outlines, reduced-motion support,
+screen-reader names on icon buttons, and menus that manage focus.
+
+**Still worth doing by hand before launch:** tab through the booking form
+and calendar with only a keyboard, then try VoiceOver (iPhone) or TalkBack
+(Android) on the home page and one property page. Lighthouse in Chrome
+DevTools (Accessibility category) is a quick second check; aim for 95+.
+
 ## Troubleshooting
 
 **"Something went wrong loading properties" (or a similar generic error
