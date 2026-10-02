@@ -53,7 +53,7 @@ export function PublicLayout() {
       <header className="sticky top-0 z-40 border-b border-sand-200 bg-sand-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link to="/" className="font-display text-xl font-medium text-teal-900">
-            <img src="/mainLogo.svg" alt="" width={50} />
+            <img src="/mainLogo.svg" alt="" width={60} />
           </Link>
           <nav className="hidden gap-6 lg:flex">
             {NAV_LINKS.map((link) => (
