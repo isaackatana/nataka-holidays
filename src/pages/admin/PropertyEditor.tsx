@@ -12,6 +12,7 @@ import {
 import { useAmenities } from '@/features/properties/queries'
 import { AvailabilityManager } from '@/components/admin/AvailabilityManager'
 import { ImageUploader } from '@/components/admin/ImageUploader'
+import { errorMessage, isUniqueViolation } from '@/utils/errors'
 import { slugify } from '@/utils/slugify'
 import { InputField } from '@/components/ui/InputField'
 import { TextareaField } from '@/components/ui/TextareaField'
@@ -131,7 +132,11 @@ export default function PropertyEditor() {
       }
       navigate('/admin/properties')
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong saving this property.')
+      setFormError(
+        isUniqueViolation(err)
+          ? 'Another property already uses that URL name (slug). Change the slug and save again.'
+          : errorMessage(err, 'Something went wrong saving this property.'),
+      )
     }
   }
 
@@ -174,7 +179,7 @@ export default function PropertyEditor() {
                 <select
                   id="propertyType"
                   {...register('propertyType')}
-                  className="rounded-lg border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+                  className="rounded-lg border border-sand-400 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none focus:border-teal-700"
                 >
                   {PROPERTY_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>
@@ -237,7 +242,7 @@ export default function PropertyEditor() {
                       type="checkbox"
                       checked={amenityIds.includes(amenity.id)}
                       onChange={() => toggleAmenity(amenity.id)}
-                      className="h-4 w-4 rounded border-sand-300 text-teal-700 focus:ring-teal-700"
+                      className="h-4 w-4 rounded border-sand-400 text-teal-700 focus:ring-teal-700"
                     />
                     {amenity.name}
                   </label>

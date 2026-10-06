@@ -7,6 +7,7 @@ import { useTripCart } from '@/features/tripCart/TripCartContext'
 import { buildWhatsAppLink } from '@/utils/whatsapp'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
+import { useRouteFocus } from '@/hooks/useRouteFocus'
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -23,6 +24,7 @@ const NAV_LINKS = [
  * WhatsApp deep-link builder land alongside the Home page build (Step 8).
  */
 export function PublicLayout() {
+  useRouteFocus()
   const { user, profile, signOut } = useAuth()
   const { totalCount: tripCount } = useTripCart()
   const { data: settings } = useBusinessSettings()

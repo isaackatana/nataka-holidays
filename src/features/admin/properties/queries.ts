@@ -3,6 +3,7 @@ import {
   getAllPropertiesForAdmin,
   getPropertyByIdForAdmin,
   createProperty,
+  duplicateProperty,
   updateProperty,
   deleteProperty,
   togglePublished,
@@ -75,6 +76,14 @@ export function useToggleFeatured() {
   const invalidate = useInvalidatePropertyCaches()
   return useMutation({
     mutationFn: ({ id, isFeatured }: { id: string; isFeatured: boolean }) => toggleFeatured(id, isFeatured),
+    onSuccess: invalidate,
+  })
+}
+
+export function useDuplicateProperty() {
+  const invalidate = useInvalidatePropertyCaches()
+  return useMutation({
+    mutationFn: (id: string) => duplicateProperty(id),
     onSuccess: invalidate,
   })
 }

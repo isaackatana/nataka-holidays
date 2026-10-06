@@ -39,7 +39,10 @@ export default function Reports() {
       buildReport({
         bookings: reportBookings,
         payments: reportPayments,
-        properties: (properties ?? []).map((p) => ({ id: p.id, title: p.title })),
+        properties: (properties ?? []).map((p) => ({
+          id: p.id,
+          title: p.title,
+        })),
         window,
       }),
     [reportBookings, reportPayments, properties, window],
@@ -51,8 +54,12 @@ export default function Reports() {
 
   function downloadCsv() {
     // Bookings whose stay overlaps the selected period.
-    const inPeriod = reportBookings.filter((b) => b.check_in < window.to && b.check_out > window.from)
-    const blob = new Blob(['\uFEFF' + bookingsToCsv(inPeriod, reportPayments)], { type: 'text/csv;charset=utf-8' })
+    const inPeriod = reportBookings.filter(
+      (b) => b.check_in < window.to && b.check_out > window.from,
+    )
+    const blob = new Blob(['\uFEFF' + bookingsToCsv(inPeriod, reportPayments)], {
+      type: 'text/csv;charset=utf-8',
+    })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -67,7 +74,8 @@ export default function Reports() {
         <div>
           <h1 className="font-display text-2xl font-medium text-teal-900">Reports</h1>
           <p className="mt-1 text-sm text-charcoal-500">
-            {formatDateRange(window.from, window.to)} · only confirmed and completed bookings count as revenue.
+            {formatDateRange(window.from, window.to)} · only confirmed and completed bookings count
+            as revenue.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -78,7 +86,7 @@ export default function Reports() {
             id="report-period"
             value={period}
             onChange={(e) => setPeriod(e.target.value as ReportPeriod)}
-            className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+            className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
           >
             {PERIODS.map((p) => (
               <option key={p} value={p}>
@@ -99,15 +107,36 @@ export default function Reports() {
       </div>
 
       {isError && (
-        <p role="alert" className="mt-6 rounded-lg bg-coral-500/10 px-4 py-3 text-sm text-coral-500">
+        <p
+          role="alert"
+          className="mt-6 rounded-lg bg-coral-500/10 px-4 py-3 text-sm text-coral-500"
+        >
           Could not load the report data. Please refresh.
         </p>
       )}
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Collected" value={report.collected} icon={Banknote} loading={loading} format={formatKES} />
-        <StatCard label="Booked value" value={report.bookedValue} icon={CalendarCheck} loading={loading} format={formatKES} />
-        <StatCard label="Balance still owed" value={report.outstanding} icon={Wallet} loading={loading} format={formatKES} />
+        <StatCard
+          label="Collected"
+          value={report.collected}
+          icon={Banknote}
+          loading={loading}
+          format={formatKES}
+        />
+        <StatCard
+          label="Booked value"
+          value={report.bookedValue}
+          icon={CalendarCheck}
+          loading={loading}
+          format={formatKES}
+        />
+        <StatCard
+          label="Balance still owed"
+          value={report.outstanding}
+          icon={Wallet}
+          loading={loading}
+          format={formatKES}
+        />
         <StatCard
           label="Enquiry → booking"
           value={report.conversion === null ? 0 : Math.round(report.conversion * 100)}
@@ -117,8 +146,9 @@ export default function Reports() {
         />
       </div>
       <p className="mt-2 text-xs text-charcoal-600">
-        Collected = payments received in the period (M-Pesa, cash and bank). Booked value = totals of stays starting in the period.
-        Balance owed covers every confirmed booking, whenever it falls. {report.enquiriesReceived} enquir
+        Collected = payments received in the period (M-Pesa, cash and bank). Booked value = totals
+        of stays starting in the period. Balance owed covers every confirmed booking, whenever it
+        falls. {report.enquiriesReceived} enquir
         {report.enquiriesReceived === 1 ? 'y' : 'ies'} received in the period.
       </p>
 
@@ -127,14 +157,29 @@ export default function Reports() {
         <h2 className="font-display text-lg font-medium text-teal-900">By property</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[34rem] text-left text-sm">
+            <caption className="sr-only">
+              Bookings, occupancy and revenue by property for the selected period
+            </caption>
             <thead>
               <tr className="border-b border-sand-200 text-xs uppercase tracking-wide text-charcoal-500">
-                <th className="py-2 pr-4 font-medium">Property</th>
-                <th className="py-2 pr-4 font-medium">Stays</th>
-                <th className="py-2 pr-4 font-medium">Booked nights</th>
-                <th className="py-2 pr-4 font-medium">Occupancy</th>
-                <th className="py-2 pr-4 text-right font-medium">Booked value</th>
-                <th className="py-2 text-right font-medium">Collected</th>
+                <th scope="col" className="py-2 pr-4 font-medium">
+                  Property
+                </th>
+                <th scope="col" className="py-2 pr-4 font-medium">
+                  Stays
+                </th>
+                <th scope="col" className="py-2 pr-4 font-medium">
+                  Booked nights
+                </th>
+                <th scope="col" className="py-2 pr-4 font-medium">
+                  Occupancy
+                </th>
+                <th scope="col" className="py-2 pr-4 text-right font-medium">
+                  Booked value
+                </th>
+                <th scope="col" className="py-2 text-right font-medium">
+                  Collected
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-sand-200">
@@ -159,13 +204,23 @@ export default function Reports() {
                   <td className="py-3 pr-4 font-figures">{row.bookedNights}</td>
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-sand-200" aria-hidden>
-                        <div className="h-full bg-teal-700" style={{ width: `${Math.round(row.occupancy * 100)}%` }} />
+                      <div
+                        className="h-1.5 w-20 overflow-hidden rounded-full bg-sand-200"
+                        aria-hidden
+                      >
+                        <div
+                          className="h-full bg-teal-700"
+                          style={{
+                            width: `${Math.round(row.occupancy * 100)}%`,
+                          }}
+                        />
                       </div>
                       <span className="font-figures">{Math.round(row.occupancy * 100)}%</span>
                     </div>
                   </td>
-                  <td className="py-3 pr-4 text-right font-figures">{formatKES(row.bookedValue)}</td>
+                  <td className="py-3 pr-4 text-right font-figures">
+                    {formatKES(row.bookedValue)}
+                  </td>
                   <td className="py-3 text-right font-figures">{formatKES(row.collected)}</td>
                 </tr>
               ))}
@@ -179,10 +234,14 @@ export default function Reports() {
 
       {/* ---------------- ARRIVALS ---------------- */}
       <div className="mt-6 rounded-card border border-sand-200 bg-sand-50 p-5">
-        <h2 className="font-display text-lg font-medium text-teal-900">Arriving in the next 14 days</h2>
+        <h2 className="font-display text-lg font-medium text-teal-900">
+          Arriving in the next 14 days
+        </h2>
         <div className="mt-4 flex flex-col gap-3">
           {!loading && arrivals.length === 0 && (
-            <p className="py-4 text-center text-sm text-charcoal-500">No confirmed arrivals in the next 14 days.</p>
+            <p className="py-4 text-center text-sm text-charcoal-500">
+              No confirmed arrivals in the next 14 days.
+            </p>
           )}
           {arrivals.map(({ booking, balance }) => {
             const link = buildGuestWhatsAppLink(
@@ -206,11 +265,18 @@ export default function Reports() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <span className={`font-figures ${balance > 0 ? 'font-medium text-coral-500' : 'text-palm-green'}`}>
+                  <span
+                    className={`font-figures ${balance > 0 ? 'font-medium text-coral-500' : 'text-palm-green'}`}
+                  >
                     {balance > 0 ? `${formatKES(balance)} due` : 'Paid in full'}
                   </span>
                   {link && (
-                    <a href={link} target="_blank" rel="noopener noreferrer" className="font-medium text-teal-800 hover:underline">
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-teal-800 hover:underline"
+                    >
                       WhatsApp
                     </a>
                   )}

@@ -77,9 +77,9 @@ export default function AdminAmenities() {
         <table className="w-full min-w-[480px] text-left text-sm">
           <thead className="border-b border-sand-200 bg-sand-100 text-xs uppercase tracking-wide text-charcoal-500">
             <tr>
-              <th className="px-4 py-3 font-medium">Icon</th>
-              <th className="px-4 py-3 font-medium">Name</th>
-              <th className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
+              <th scope="col" className="px-4 py-3 font-medium">Icon</th>
+              <th scope="col" className="px-4 py-3 font-medium">Name</th>
+              <th scope="col" className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sand-200">
@@ -89,7 +89,7 @@ export default function AdminAmenities() {
                   <select
                     value={addForm.icon}
                     onChange={(e) => setAddForm({ ...addForm, icon: e.target.value })}
-                    className="rounded-lg border border-sand-300 bg-sand-50 px-2 py-1.5 text-sm outline-none focus:border-teal-700"
+                    className="rounded-lg border border-sand-400 bg-sand-50 px-2 py-1.5 text-sm outline-none focus:border-teal-700"
                   >
                     {ICON_NAMES.map((name) => (
                       <option key={name} value={name}>
@@ -106,7 +106,7 @@ export default function AdminAmenities() {
                     value={addForm.name}
                     onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                     onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                    className="w-full rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm outline-none placeholder:text-charcoal-500 focus:border-teal-700"
+                    className="w-full rounded-lg border border-sand-400 bg-sand-50 px-3 py-1.5 text-sm outline-none placeholder:text-charcoal-500 focus:border-teal-700"
                   />
                 </td>
                 <td className="px-4 py-3">
@@ -161,7 +161,7 @@ export default function AdminAmenities() {
                       <select
                         value={editForm.icon}
                         onChange={(e) => setEditForm({ ...editForm, icon: e.target.value })}
-                        className="rounded-lg border border-sand-300 bg-sand-50 px-2 py-1.5 text-sm outline-none focus:border-teal-700"
+                        className="rounded-lg border border-sand-400 bg-sand-50 px-2 py-1.5 text-sm outline-none focus:border-teal-700"
                       >
                         {ICON_NAMES.map((name) => (
                           <option key={name} value={name}>
@@ -177,7 +177,7 @@ export default function AdminAmenities() {
                         value={editForm.name}
                         onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                         onKeyDown={(e) => e.key === 'Enter' && handleUpdate(amenity.id)}
-                        className="w-full rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm outline-none focus:border-teal-700"
+                        className="w-full rounded-lg border border-sand-400 bg-sand-50 px-3 py-1.5 text-sm outline-none focus:border-teal-700"
                       />
                     </td>
                     <td className="px-4 py-3">

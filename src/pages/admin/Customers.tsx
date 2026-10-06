@@ -39,19 +39,19 @@ export default function AdminCustomers() {
         placeholder="Search by name..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="mt-4 w-full rounded-lg border border-sand-300 bg-sand-50 px-4 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700 sm:w-72"
+        className="mt-4 w-full rounded-lg border border-sand-400 bg-sand-50 px-4 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700 sm:w-72"
       />
 
       <div className="mt-6 overflow-x-auto rounded-card border border-sand-200 bg-sand-50">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-sand-200 bg-sand-100 text-xs uppercase tracking-wide text-charcoal-500">
             <tr>
-              <th className="px-4 py-3 font-medium">Name</th>
-              <th className="px-4 py-3 font-medium">Phone</th>
-              <th className="px-4 py-3 font-medium">Bookings</th>
-              <th className="px-4 py-3 font-medium">Joined</th>
-              <th className="px-4 py-3 font-medium">Role</th>
-              <th className="px-4 py-3 font-medium text-right">Actions</th>
+              <th scope="col" className="px-4 py-3 font-medium">Name</th>
+              <th scope="col" className="px-4 py-3 font-medium">Phone</th>
+              <th scope="col" className="px-4 py-3 font-medium">Bookings</th>
+              <th scope="col" className="px-4 py-3 font-medium">Joined</th>
+              <th scope="col" className="px-4 py-3 font-medium">Role</th>
+              <th scope="col" className="px-4 py-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sand-200">

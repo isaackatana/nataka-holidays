@@ -13,6 +13,10 @@ Work top to bottom. Items marked **(you)** are done in a dashboard, not in code.
       Anything you didn't set yourself is suspect (guests could insert these statuses before 0012).
 - [ ] Store the callback secret: `insert into app_secrets (key, value) values ('mpesa_callback_secret', '<long random string>');`
 
+> The migrations and security rules were already dry-run on a scratch
+> PostgreSQL (71 checks pass, see `DEPLOYMENT.md` §16), so the list below
+> is about your real Supabase project and live services.
+
 ## 2. Supabase dashboard settings (you)
 - [ ] **Authentication → URL configuration:** set Site URL to `https://natakaholidays.co.ke` and add it (plus `/reset-password`) to Redirect URLs.
 - [ ] **Authentication → Providers → Email:** turn on "Confirm email" so people can't sign up with someone else's address.
@@ -38,7 +42,8 @@ Work top to bottom. Items marked **(you)** are done in a dashboard, not in code.
 - [ ] Sign in as a normal customer and open `/admin`: you must be turned away.
 - [ ] Arrival reminder: confirm a booking starting in 2 days, run the `curl` command in `DEPLOYMENT.md` §10, check the email arrives.
 - [ ] Paste a property link into WhatsApp: photo and title appear.
-- [ ] Open the site on a phone: calendar, booking form, My bookings.
+- [ ] Open the site on a phone: calendar, booking form, My bookings. Tap a form field on an iPhone: the page must not zoom in.
+- [ ] Run Lighthouse (Chrome DevTools) → Accessibility on the home page, a property page and the booking form.
 - [ ] Accessibility: tab through the booking form with only the keyboard, and run Lighthouse (Accessibility) on the home page and a property page.
 - [ ] Re-upload each property's cover photo (and any big photos uploaded before the speed update), then run PageSpeed Insights on the live home page and a property page.
 

@@ -136,7 +136,7 @@ export function FilterPanel({
               onChange={(e) =>
                 update("sort", e.target.value as PropertyFilters["sort"])
               }
-              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+              className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -157,7 +157,7 @@ export function FilterPanel({
               id="filter-location"
               value={filters.location ?? ""}
               onChange={(e) => update("location", e.target.value || undefined)}
-              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+              className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
             >
               <option value="">Anywhere on the coast</option>
               {DESTINATION_REGIONS.map((region) => (
@@ -185,7 +185,7 @@ export function FilterPanel({
               onChange={(e) =>
                 update("propertyType", e.target.value || undefined)
               }
-              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+              className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
             >
               <option value="">Any type</option>
               {PROPERTY_TYPES.map((t) => (
@@ -220,7 +220,7 @@ export function FilterPanel({
                     e.target.value ? Number(e.target.value) : undefined,
                   )
                 }
-                className="w-full rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
+                className="w-full rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
               />
               <span className="text-charcoal-600" aria-hidden="true">
                 –
@@ -237,7 +237,7 @@ export function FilterPanel({
                     e.target.value ? Number(e.target.value) : undefined,
                   )
                 }
-                className="w-full rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
+                className="w-full rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
               />
             </div>
           </div>
@@ -261,7 +261,7 @@ export function FilterPanel({
                   e.target.value ? Number(e.target.value) : undefined,
                 )
               }
-              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
+              className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
             />
           </div>
 
@@ -284,7 +284,7 @@ export function FilterPanel({
                   e.target.value ? Number(e.target.value) : undefined,
                 )
               }
-              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
+              className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
             />
           </div>
 
@@ -312,7 +312,7 @@ export function FilterPanel({
                         filters.amenityIds?.includes(amenity.id) ?? false
                       }
                       onChange={() => toggleAmenity(amenity.id)}
-                      className="h-4 w-4 rounded border-sand-300 text-teal-700 focus:ring-teal-700"
+                      className="h-4 w-4 rounded border-sand-400 text-teal-700 focus:ring-teal-700"
                     />
                     {amenity.name}
                   </label>

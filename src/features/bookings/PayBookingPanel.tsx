@@ -44,7 +44,7 @@ export function PayBookingPanel({ bookingId, guestPhone, estimatedTotal, payment
             key={o.value}
             type="button"
             onClick={() => setAmount(o.value)}
-            className={`rounded-pill px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-pill px-4 py-2.5 text-xs font-medium transition-colors ${
               chosen === o.value ? 'bg-teal-900 text-sand-50' : 'bg-sand-50 text-charcoal-600 hover:bg-sand-200'
             }`}
           >
@@ -60,7 +60,7 @@ export function PayBookingPanel({ bookingId, guestPhone, estimatedTotal, payment
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-48 rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+            className="w-48 rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
           />
         </label>
         <Button
@@ -79,7 +79,7 @@ export function PayBookingPanel({ bookingId, guestPhone, estimatedTotal, payment
         </p>
       )}
       {hasPending && (
-        <p className="mt-2 text-sm text-charcoal-500">Check your phone and enter your M-Pesa PIN…</p>
+        <p role="status" className="mt-2 text-sm text-charcoal-500">Check your phone and enter your M-Pesa PIN…</p>
       )}
     </div>
   )

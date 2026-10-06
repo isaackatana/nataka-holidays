@@ -12,7 +12,7 @@ export function Toggle({ checked, onChange, label, description }: ToggleProps) {
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between gap-4 rounded-lg border border-sand-300 bg-sand-50 px-4 py-3 text-left"
+      className="flex w-full items-center justify-between gap-4 rounded-lg border border-sand-400 bg-sand-50 px-4 py-3 text-left"
     >
       <span>
         <span className="block text-sm font-medium text-charcoal-900">{label}</span>

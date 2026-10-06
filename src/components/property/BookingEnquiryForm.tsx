@@ -168,9 +168,9 @@ export function BookingEnquiryForm({ property }: { property: Property }) {
         </div>
       )}
 
-      <InputField label="Full name" error={errors.guestName?.message} {...register('guestName')} />
-      <InputField label="Email" type="email" error={errors.guestEmail?.message} {...register('guestEmail')} />
-      <InputField label="Phone" type="tel" error={errors.guestPhone?.message} {...register('guestPhone')} />
+      <InputField label="Full name" autoComplete="name" error={errors.guestName?.message} {...register('guestName')} />
+      <InputField label="Email" type="email" autoComplete="email" error={errors.guestEmail?.message} {...register('guestEmail')} />
+      <InputField label="Phone" type="tel" autoComplete="tel" error={errors.guestPhone?.message} {...register('guestPhone')} />
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="enquiry-message" className="text-sm font-medium text-charcoal-700">Message (optional)</label>
@@ -178,7 +178,7 @@ export function BookingEnquiryForm({ property }: { property: Property }) {
           id="enquiry-message"
           rows={3}
           {...register('message')}
-          className="rounded-lg border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
+          className="rounded-lg border border-sand-400 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
           placeholder="Anything we should know?"
         />
       </div>

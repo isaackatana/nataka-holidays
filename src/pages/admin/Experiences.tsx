@@ -39,11 +39,11 @@ export default function AdminExperiences() {
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-sand-200 bg-sand-100 text-xs uppercase tracking-wide text-charcoal-500">
             <tr>
-              <th className="px-4 py-3 font-medium">Title</th>
-              <th className="px-4 py-3 font-medium">Location</th>
-              <th className="px-4 py-3 font-medium">Price</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
+              <th scope="col" className="px-4 py-3 font-medium">Title</th>
+              <th scope="col" className="px-4 py-3 font-medium">Location</th>
+              <th scope="col" className="px-4 py-3 font-medium">Price</th>
+              <th scope="col" className="px-4 py-3 font-medium">Status</th>
+              <th scope="col" className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sand-200">

@@ -93,9 +93,9 @@ export default function Contact() {
             className="flex flex-col gap-4"
             noValidate
           >
-            <InputField label="Name" error={errors.name?.message} {...register('name')} />
-            <InputField label="Email" type="email" error={errors.email?.message} {...register('email')} />
-            <InputField label="Phone (optional)" error={errors.phone?.message} {...register('phone')} />
+            <InputField label="Name" autoComplete="name" error={errors.name?.message} {...register('name')} />
+            <InputField label="Email" type="email" autoComplete="email" error={errors.email?.message} {...register('email')} />
+            <InputField label="Phone (optional)" type="tel" autoComplete="tel" error={errors.phone?.message} {...register('phone')} />
             <InputField label="Subject (optional)" error={errors.subject?.message} {...register('subject')} />
             <TextareaField
               label="Message"

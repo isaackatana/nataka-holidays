@@ -84,7 +84,7 @@ export function AvailabilityManager({ propertyId }: { propertyId: string }) {
             min={todayISO()}
             value={start}
             onChange={(e) => setStart(e.target.value)}
-            className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+            className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
           />
         </label>
         <label className="flex flex-col gap-1 text-xs text-charcoal-500">
@@ -94,7 +94,7 @@ export function AvailabilityManager({ propertyId }: { propertyId: string }) {
             min={start || todayISO()}
             value={end}
             onChange={(e) => setEnd(e.target.value)}
-            className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+            className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
           />
         </label>
         <label className="flex flex-1 flex-col gap-1 text-xs text-charcoal-500">
@@ -104,7 +104,7 @@ export function AvailabilityManager({ propertyId }: { propertyId: string }) {
             maxLength={40}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+            className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
           />
         </label>
         <Button type="button" variant="secondary" loading={create.isPending} onClick={add}>

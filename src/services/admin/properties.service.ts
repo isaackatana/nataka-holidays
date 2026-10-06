@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { Property, AdminPropertyDetail } from '@/types/domain'
+import { slugify, uniqueSlug } from '@/utils/slugify'
 
 const PROPERTY_SELECT = `
   id, title, slug, description, location, latitude, longitude,
@@ -131,8 +132,57 @@ export async function deleteProperty(id: string): Promise<void> {
   // via ON DELETE CASCADE (see 0001_initial_schema.sql); bookings keep a
   // dangling property_id reference by design so enquiry history survives
   // a delisted property (handled as "Deleted property" in the UI).
+  //
+  // The cascade removes the image ROWS but not the files in storage, which
+  // would be left behind forever, so the paths are read first and the files
+  // removed after the row is gone.
+  const { data: images } = await supabase
+    .from('property_images')
+    .select('storage_path')
+    .eq('property_id', id)
+  const paths = ((images ?? []) as { storage_path: string }[]).map((i) => i.storage_path)
+
   const { error } = await supabase.from('properties').delete().eq('id', id)
   if (error) throw error
+
+  if (paths.length > 0) {
+    const { error: storageError } = await supabase.storage.from('property-images').remove(paths)
+    // The property is already deleted, so don't fail the whole action over leftovers.
+    if (storageError) console.error('[deleteProperty] could not remove photo files:', storageError)
+  }
+}
+
+/** Copies a property's details and amenities into a new UNPUBLISHED listing
+ * (no photos, not featured) with a fresh URL name, ready to edit. */
+export async function duplicateProperty(id: string): Promise<Property> {
+  const source = await getPropertyByIdForAdmin(id)
+  if (!source) throw new Error('That property no longer exists.')
+
+  const base = `${slugify(source.slug)}-copy`
+  const { data: taken } = await supabase.from('properties').select('slug').like('slug', `${base}%`)
+  const slug = uniqueSlug(base, ((taken ?? []) as { slug: string }[]).map((r) => r.slug))
+
+  return createProperty({
+    title: `${source.title} (copy)`,
+    slug,
+    description: source.description,
+    location: source.location,
+    propertyType: source.property_type,
+    pricePerNight: source.price_per_night,
+    cleaningFee: source.cleaning_fee,
+    maxGuests: source.max_guests,
+    bedrooms: source.bedrooms,
+    bathrooms: source.bathrooms,
+    houseRules: source.house_rules ?? undefined,
+    checkInTime: source.check_in_time,
+    checkOutTime: source.check_out_time,
+    videoUrl: source.video_url ?? undefined,
+    latitude: source.latitude ?? undefined,
+    longitude: source.longitude ?? undefined,
+    isFeatured: false,
+    isPublished: false,
+    amenityIds: source.amenityIds,
+  })
 }
 
 export async function togglePublished(id: string, isPublished: boolean): Promise<void> {

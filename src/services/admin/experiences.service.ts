@@ -66,8 +66,21 @@ export async function updateExperience(id: string, input: ExperienceInput): Prom
 }
 
 export async function deleteExperience(id: string): Promise<void> {
+  // Image rows cascade, but the files in storage don't: read the paths first
+  // and remove the files once the experience is gone.
+  const { data: images } = await supabase
+    .from('experience_images')
+    .select('storage_path')
+    .eq('experience_id', id)
+  const paths = ((images ?? []) as { storage_path: string }[]).map((i) => i.storage_path)
+
   const { error } = await supabase.from('experiences').delete().eq('id', id)
   if (error) throw error
+
+  if (paths.length > 0) {
+    const { error: storageError } = await supabase.storage.from('experience-images').remove(paths)
+    if (storageError) console.error('[deleteExperience] could not remove photo files:', storageError)
+  }
 }
 
 export async function toggleExperiencePublished(id: string, isPublished: boolean): Promise<void> {

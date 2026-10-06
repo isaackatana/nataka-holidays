@@ -14,6 +14,7 @@ import { buildTripRequestMessage } from '@/features/tripCart/buildTripRequestMes
 import { submitContactMessage } from '@/services/contact.service'
 import { buildWhatsAppLink } from '@/utils/whatsapp'
 import { formatKES } from '@/utils/currency'
+import { errorMessage } from '@/utils/errors'
 
 export default function Trip() {
   const { user, profile } = useAuth()
@@ -65,7 +66,7 @@ export default function Trip() {
       setSubmitted(true)
       clear()
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Something went wrong sending your request.')
+      setSubmitError(errorMessage(err, 'Something went wrong sending your request.'))
     }
   }
 

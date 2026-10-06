@@ -7,7 +7,7 @@ import {
   type DateRange,
   type Selection,
 } from '@/utils/availability'
-import { todayISO } from '@/utils/dates'
+import { formatDateRange, todayISO } from '@/utils/dates'
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
@@ -33,6 +33,12 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
     year: 'numeric',
   })
 
+  const status = !value.checkIn
+    ? 'Choose your check-in day.'
+    : !value.checkOut
+      ? 'Now choose your check-out day.'
+      : `${formatDateRange(value.checkIn, value.checkOut)} selected.`
+
   function shift(delta: number) {
     const d = new Date(view.year, view.month + delta, 1)
     setView({ year: d.getFullYear(), month: d.getMonth() })
@@ -57,7 +63,7 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
           type="button"
           onClick={() => shift(1)}
           aria-label="Next month"
-          className="rounded-full p-1.5 text-charcoal-600 hover:bg-sand-200"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-charcoal-600 hover:bg-sand-200"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -80,7 +86,8 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
           const clickable = !isPast && nextSelection(value, day, occupied, today) !== value
           const isStart = day === value.checkIn
           const isEnd = day === value.checkOut
-          const inRange = !!value.checkIn && !!value.checkOut && day > value.checkIn && day < value.checkOut
+          const inRange =
+            !!value.checkIn && !!value.checkOut && day > value.checkIn && day < value.checkOut
 
           let style = 'text-charcoal-800 hover:bg-teal-600/15'
           if (isStart || isEnd) style = 'bg-teal-900 text-sand-50'
@@ -98,7 +105,7 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
-              })}${taken ? ', unavailable' : ''}`}
+              })}${taken ? ', unavailable' : ''}${inRange ? ', in your stay' : ''}${isStart ? ', check-in' : ''}${isEnd ? ', check-out' : ''}`}
               aria-pressed={isStart || isEnd}
               className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full text-sm font-figures transition-colors disabled:cursor-not-allowed ${style}`}
             >
@@ -108,8 +115,12 @@ export function AvailabilityCalendar({ blocks, value, onChange }: Props) {
         })}
       </div>
 
-      <p className="mt-2 text-xs text-charcoal-600">
-        <span className="line-through">12</span> = unavailable. You can check out the day another stay begins.
+      <p role="status" className="mt-3 text-sm font-medium text-teal-900">
+        {status}
+      </p>
+      <p className="mt-1 text-xs text-charcoal-500">
+        <span className="line-through">12</span> = unavailable. You can check out the day another
+        stay begins.
       </p>
     </div>
   )

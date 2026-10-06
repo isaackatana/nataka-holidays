@@ -332,6 +332,93 @@ and calendar with only a keyboard, then try VoiceOver (iPhone) or TalkBack
 (Android) on the home page and one property page. Lighthouse in Chrome
 DevTools (Accessibility category) is a quick second check; aim for 95+.
 
+## 14. Accessibility and phone usability
+
+What was checked and changed:
+- **Muted grey text is slightly darker** (`#687678` to `#5b696b`, same hue).
+  The original failed the standard readability minimum (WCAG AA) on the
+  sand backgrounds, and it's used for small secondary text everywhere,
+  which is hard to read in bright sun on a phone. To restore the original
+  brand value, change `--color-charcoal-500` in `src/index.css`.
+- **Form field outlines are darker** so fields are easy to see against the
+  page (they previously blended in).
+- **Phones no longer zoom in** when you tap a form field (iPhones do that
+  for text under 16px and never zoom back out).
+- **Page changes are announced and scroll to the top.** Before, opening a
+  property from the middle of a long list kept the old scroll position, and
+  keyboard / screen-reader users weren't told the page changed.
+- **Availability calendar:** bigger tap targets (44px), a plain-language
+  line saying what to pick next ("Now choose your check-out day"), and
+  full-date labels for screen readers, including unavailable days.
+- **Autofill** now works on the booking and contact forms (name, email,
+  phone), so phones fill them in with one tap.
+- **Tables** now identify their column headings for screen readers, and
+  payment status messages are announced as they change.
+- **Automated checks:** `src/test/a11y.test.tsx` runs the axe accessibility
+  engine on the calendar, form fields and both payment panels, and runs with
+  `npm test`. It can't judge colour contrast (that needs a real browser),
+  which is why contrast was calculated separately.
+
+**Please still try:** Chrome DevTools → Lighthouse → Accessibility on the live
+home, a property page and the booking form; and tab through the booking form
+with only the keyboard.
+
+## 15. Properties admin
+
+**Admin → Properties** now has:
+- **Search and filter** by name, location or URL, and by published /
+  unpublished, with a count of what's shown.
+- **Duplicate:** copies a property's details and amenities into a new
+  *unpublished* listing (no photos, not featured) with a fresh URL name,
+  and opens it for editing. Handy for similar units.
+- **View on website** (opens the live page in a new tab) for published
+  properties.
+- A red **"Published with no photos"** warning so you don't leave a blank
+  listing live.
+- Failed actions (publish, feature, delete, duplicate) now **show a
+  message** instead of silently doing nothing, and bigger buttons that are
+  easier to tap.
+
+**Fixes**
+- **Deleting a property (or experience) now deletes its photo files** too.
+  Before, the photos stayed in storage forever, using up space. The delete
+  warning now says it also removes reviews and guests' favourites, and
+  points to the *Published* switch as the way to just hide a property.
+- **Saving a property with a URL name (slug) another property already uses
+  now says so.** Before, the real reason was hidden behind a generic
+  "Something went wrong". The same hidden-reason problem is fixed on the
+  trip-request form.
+
+Photos orphaned by deletions made *before* this release stay in the
+`property-images` / `experience-images` storage buckets. If space matters,
+clear the unused folders in Supabase → Storage.
+
+## 16. Database tests (dry run of the migrations)
+
+`supabase/tests/` holds a test suite that builds a throwaway PostgreSQL
+database, applies all 14 migrations in order, and then acts as a guest, a
+customer and an admin to check the rules that protect your business:
+- nobody can make themselves an admin, approve their own review, or insert
+  a pre-confirmed booking; booking totals are calculated by the database;
+- confirming a booking blocks its dates, an overlapping confirmation is
+  refused, cancelling frees the dates, and back-to-back stays work;
+- customers see only their own payments; cash entries can be removed but
+  M-Pesa records can't; a replayed M-Pesa callback can't change a finished
+  payment; the callback, email and reminder functions refuse a wrong secret;
+- the private secrets and notification log can't be read through the API;
+- oversized booking and contact text is rejected.
+
+It runs on your own computer, never against your live Supabase:
+`bash supabase/tests/run.sh` (needs PostgreSQL 15+ installed locally; see
+`supabase/tests/README.md`). It was run for this release: **71 of 71 passed**
+and every migration applied cleanly on a fresh database. Re-run it after
+changing any migration.
+
+It uses stand-ins for Supabase's own login and storage pieces, so it proves
+your rules and migrations are correct, not that your Supabase project is
+configured correctly. That's what the live checks in `LAUNCH_CHECKLIST.md`
+are for.
+
 ## Troubleshooting
 
 **"Something went wrong loading properties" (or a similar generic error

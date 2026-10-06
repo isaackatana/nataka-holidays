@@ -68,7 +68,7 @@ export default function AdminBookings() {
           placeholder="Search name or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-sand-300 bg-sand-50 px-4 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700 sm:w-64"
+          className="w-full rounded-lg border border-sand-400 bg-sand-50 px-4 py-2 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700 sm:w-64"
         />
       </div>
 
@@ -83,12 +83,12 @@ export default function AdminBookings() {
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-sand-200 bg-sand-100 text-xs uppercase tracking-wide text-charcoal-500">
             <tr>
-              <th className="px-4 py-3 font-medium">Guest</th>
-              <th className="px-4 py-3 font-medium">Property</th>
-              <th className="px-4 py-3 font-medium">Dates</th>
-              <th className="px-4 py-3 font-medium">Total</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
+              <th scope="col" className="px-4 py-3 font-medium">Guest</th>
+              <th scope="col" className="px-4 py-3 font-medium">Property</th>
+              <th scope="col" className="px-4 py-3 font-medium">Dates</th>
+              <th scope="col" className="px-4 py-3 font-medium">Total</th>
+              <th scope="col" className="px-4 py-3 font-medium">Status</th>
+              <th scope="col" className="px-4 py-3 font-medium"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sand-200">
@@ -143,7 +143,7 @@ export default function AdminBookings() {
                       onChange={(e) =>
                         updateStatus.mutate({ id: booking.id, status: e.target.value as BookingStatus })
                       }
-                      className="rounded-lg border border-sand-300 bg-sand-50 px-2 py-1.5 text-xs font-medium text-charcoal-900 outline-none focus:border-teal-700"
+                      className="rounded-lg border border-sand-400 bg-sand-50 px-2 py-1.5 text-xs font-medium text-charcoal-900 outline-none focus:border-teal-700"
                     >
                       {ALL_STATUSES.map((s) => (
                         <option key={s} value={s}>

@@ -1,35 +1,27 @@
-import { Link } from "react-router-dom";
-import { CalendarCheck, Users, MapPin } from "lucide-react";
-import { SEO } from "@/components/shared/SEO";
-import { StatusBadge } from "@/components/shared/StatusBadge";
-import { useAuth } from "@/features/auth/AuthContext";
-import { useMyBookings } from "@/features/bookings/queries";
-import { usePayments } from "@/features/admin/payments/queries";
-import { PayBookingPanel } from "@/features/bookings/PayBookingPanel";
-import { formatDateRange } from "@/utils/dates";
-import { formatKES } from "@/utils/currency";
-import { sumPaid } from "@/utils/payments";
+import { Link } from 'react-router-dom'
+import { CalendarCheck, Users, MapPin } from 'lucide-react'
+import { SEO } from '@/components/shared/SEO'
+import { StatusBadge } from '@/components/shared/StatusBadge'
+import { useAuth } from '@/features/auth/AuthContext'
+import { useMyBookings } from '@/features/bookings/queries'
+import { usePayments } from '@/features/admin/payments/queries'
+import { PayBookingPanel } from '@/features/bookings/PayBookingPanel'
+import { formatDateRange } from '@/utils/dates'
+import { formatKES } from '@/utils/currency'
+import { sumPaid } from '@/utils/payments'
 
 export default function MyBookings() {
-  const { user } = useAuth();
-  const { data: bookings, isLoading, isError } = useMyBookings(user?.id);
+  const { user } = useAuth()
+  const { data: bookings, isLoading, isError } = useMyBookings(user?.id)
   // RLS limits this to payments on the signed-in customer's own bookings.
-  const { data: payments } = usePayments();
+  const { data: payments } = usePayments()
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-12">
-      <SEO
-        title="My Bookings"
-        description="Your booking enquiries with Nataka Holidays."
-        noindex
-      />
+      <SEO title="My Bookings" description="Your booking enquiries with Nataka Holidays." noindex />
 
-      <h1 className="font-display text-3xl font-medium text-teal-900 md:text-4xl">
-        My bookings
-      </h1>
-      <p className="mt-2 text-charcoal-500">
-        Enquiries you've sent, and where they stand.
-      </p>
+      <h1 className="font-display text-3xl font-medium text-teal-900 md:text-4xl">My bookings</h1>
+      <p className="mt-2 text-charcoal-500">Enquiries you've sent, and where they stand.</p>
 
       {isError && (
         <p className="mt-8 rounded-card bg-coral-500/10 p-6 text-sm text-coral-500">
@@ -41,18 +33,13 @@ export default function MyBookings() {
         <div className="mt-8 flex flex-col gap-4">
           {isLoading &&
             Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-32 animate-pulse rounded-card bg-sand-200"
-              />
+              <div key={i} className="h-32 animate-pulse rounded-card bg-sand-200" />
             ))}
 
           {!isLoading && bookings?.length === 0 && (
             <div className="flex flex-col items-center gap-4 rounded-card bg-sand-100 py-16 text-center">
               <CalendarCheck className="h-10 w-10 text-sand-300" />
-              <p className="text-charcoal-500">
-                You haven't sent any booking enquiries yet.
-              </p>
+              <p className="text-charcoal-500">You haven't sent any booking enquiries yet.</p>
               <Link
                 to="/holiday-homes"
                 className="rounded-full bg-teal-900 px-6 py-2.5 text-sm font-medium text-sand-50 hover:bg-teal-800"
@@ -86,15 +73,13 @@ export default function MyBookings() {
                   <div className="flex flex-wrap items-center gap-4 text-sm text-charcoal-500">
                     <span className="flex items-center gap-1.5">
                       <CalendarCheck className="h-4 w-4" />
-                      {formatDateRange(
-                        booking.check_in,
-                        booking.check_out,
-                      )} · {booking.nights} night
-                      {booking.nights === 1 ? "" : "s"}
+                      {formatDateRange(booking.check_in, booking.check_out)} · {booking.nights}{' '}
+                      night
+                      {booking.nights === 1 ? '' : 's'}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Users className="h-4 w-4" />
-                      {booking.guests} guest{booking.guests === 1 ? "" : "s"}
+                      {booking.guests} guest{booking.guests === 1 ? '' : 's'}
                     </span>
                   </div>
 
@@ -104,17 +89,11 @@ export default function MyBookings() {
                     </span>
                   )}
 
-                  {sumPaid(
-                    (payments ?? []).filter((p) => p.booking_id === booking.id),
-                  ) > 0 && (
+                  {sumPaid((payments ?? []).filter((p) => p.booking_id === booking.id)) > 0 && (
                     <span className="font-figures text-sm text-palm-green">
-                      Paid via M-Pesa:{" "}
+                      Paid via M-Pesa:{' '}
                       {formatKES(
-                        sumPaid(
-                          (payments ?? []).filter(
-                            (p) => p.booking_id === booking.id,
-                          ),
-                        ),
+                        sumPaid((payments ?? []).filter((p) => p.booking_id === booking.id)),
                       )}
                     </span>
                   )}
@@ -125,21 +104,18 @@ export default function MyBookings() {
                 </div>
               </div>
 
-              {booking.status === "confirmed" &&
-                booking.estimated_total !== null && (
-                  <PayBookingPanel
-                    bookingId={booking.id}
-                    guestPhone={booking.guest_phone}
-                    estimatedTotal={booking.estimated_total}
-                    payments={(payments ?? []).filter(
-                      (p) => p.booking_id === booking.id,
-                    )}
-                  />
-                )}
+              {booking.status === 'confirmed' && booking.estimated_total !== null && (
+                <PayBookingPanel
+                  bookingId={booking.id}
+                  guestPhone={booking.guest_phone}
+                  estimatedTotal={booking.estimated_total}
+                  payments={(payments ?? []).filter((p) => p.booking_id === booking.id)}
+                />
+              )}
             </div>
           ))}
         </div>
       )}
     </div>
-  );
+  )
 }

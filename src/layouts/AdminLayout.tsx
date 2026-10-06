@@ -20,6 +20,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
+import { useRouteFocus } from '@/hooks/useRouteFocus'
 
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
@@ -40,6 +41,7 @@ const NAV_ITEMS = [
  * frame only.
  */
 export function AdminLayout() {
+  useRouteFocus()
   const location = useLocation()
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()

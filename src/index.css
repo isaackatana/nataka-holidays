@@ -55,13 +55,13 @@
   --color-charcoal-800: #313e40;
   --color-charcoal-700: #4a5759;
   --color-charcoal-600: #4f5e60;
-  /* Muted Text as specified (#687678) measures 4.30:1 against the new
-   * Ivory background — just under the 4.5:1 WCAG AA threshold for text,
-   * unlike every other pair in this palette. Used as specified rather
-   * than silently darkened, since this is an explicitly named brand
-   * color, not one this project invented — flagged here and in the
-   * handoff notes so it's an informed choice, not a silent gap. */
-  --color-charcoal-500: #687678; /* Muted Text — 4.30:1 on sand-50, just under AA */
+  /* Muted Text. The brand value (#687678) measured 4.30:1 on Ivory and only
+   * 3.81:1 on Soft Sand, below the 4.5:1 WCAG AA minimum, and this colour is
+   * used for small secondary text throughout the site and admin, which is
+   * hard to read in bright sun on a phone. Darkened slightly to #5b696b
+   * (5.2:1 on Ivory, 4.6:1 on Soft Sand), the same hue. To restore the
+   * original brand value, change it back here. */
+  --color-charcoal-500: #5b696b; /* Muted Text, AA on Ivory and Soft Sand */
   --color-charcoal-300: #a8a38f;
 
   --color-gold-500: #c99a3d; /* Golden Hour */
@@ -135,6 +135,16 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* iOS Safari zooms the whole page when a field with text smaller than 16px
+ * is focused, and doesn't zoom back out. Phones get 16px fields. */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 

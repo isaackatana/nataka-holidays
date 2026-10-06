@@ -1,37 +1,32 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { useState } from 'react'
+import { Button } from '@/components/ui/Button'
 import {
   useDeleteManualPayment,
   useRecordManualPayment,
   useRequestPayment,
-} from "@/features/admin/payments/queries";
-import type { Payment } from "@/services/admin/payments.service";
-import { formatKES } from "@/utils/currency";
-import { todayISO } from "@/utils/dates";
-import {
-  METHOD_LABELS,
-  manualPaymentError,
-  sumPaid,
-  type PaymentMethod,
-} from "@/utils/payments";
+} from '@/features/admin/payments/queries'
+import type { Payment } from '@/services/admin/payments.service'
+import { formatKES } from '@/utils/currency'
+import { todayISO } from '@/utils/dates'
+import { METHOD_LABELS, manualPaymentError, sumPaid, type PaymentMethod } from '@/utils/payments'
 
-const STATUS_STYLES: Record<Payment["status"], string> = {
-  pending: "bg-gold-500/15 text-gold-600",
-  success: "bg-palm-green text-sand-50",
-  failed: "bg-coral-500/15 text-coral-500",
-};
-const STATUS_LABELS: Record<Payment["status"], string> = {
-  pending: "Waiting for PIN",
-  success: "Paid",
-  failed: "Failed",
-};
+const STATUS_STYLES: Record<Payment['status'], string> = {
+  pending: 'bg-gold-500/15 text-gold-600',
+  success: 'bg-palm-green text-sand-50',
+  failed: 'bg-coral-500/15 text-coral-500',
+}
+const STATUS_LABELS: Record<Payment['status'], string> = {
+  pending: 'Waiting for PIN',
+  success: 'Paid',
+  failed: 'Failed',
+}
 
 interface Props {
-  bookingId: string;
-  guestPhone: string;
-  estimatedTotal: number | null;
-  payments: Payment[];
-  canRequest: boolean;
+  bookingId: string
+  guestPhone: string
+  estimatedTotal: number | null
+  payments: Payment[]
+  canRequest: boolean
 }
 
 export function PaymentPanel({
@@ -41,36 +36,34 @@ export function PaymentPanel({
   payments,
   canRequest,
 }: Props) {
-  const [amount, setAmount] = useState("");
-  const [phone, setPhone] = useState(guestPhone);
-  const request = useRequestPayment();
-  const record = useRecordManualPayment();
-  const remove = useDeleteManualPayment();
-  const [manualAmount, setManualAmount] = useState("");
-  const [manualMethod, setManualMethod] =
-    useState<Exclude<PaymentMethod, "mpesa">>("cash");
-  const [manualDate, setManualDate] = useState(todayISO());
-  const [manualNote, setManualNote] = useState("");
-  const [manualError, setManualError] = useState<string | null>(null);
+  const [amount, setAmount] = useState('')
+  const [phone, setPhone] = useState(guestPhone)
+  const request = useRequestPayment()
+  const record = useRecordManualPayment()
+  const remove = useDeleteManualPayment()
+  const [manualAmount, setManualAmount] = useState('')
+  const [manualMethod, setManualMethod] = useState<Exclude<PaymentMethod, 'mpesa'>>('cash')
+  const [manualDate, setManualDate] = useState(todayISO())
+  const [manualNote, setManualNote] = useState('')
+  const [manualError, setManualError] = useState<string | null>(null)
 
-  const paid = sumPaid(payments);
-  const balance =
-    estimatedTotal !== null ? Math.max(estimatedTotal - paid, 0) : null;
-  const hasPending = payments.some((p) => p.status === "pending");
+  const paid = sumPaid(payments)
+  const balance = estimatedTotal !== null ? Math.max(estimatedTotal - paid, 0) : null
+  const hasPending = payments.some((p) => p.status === 'pending')
 
   function fill(value: number) {
-    setAmount(String(Math.round(value)));
+    setAmount(String(Math.round(value)))
   }
 
   function submitManual() {
-    const amountValue = Number(manualAmount);
+    const amountValue = Number(manualAmount)
     const problem = manualPaymentError({
       amount: amountValue,
       date: manualDate,
       today: todayISO(),
-    });
-    setManualError(problem);
-    if (problem) return;
+    })
+    setManualError(problem)
+    if (problem) return
     record.mutate(
       {
         bookingId,
@@ -81,17 +74,16 @@ export function PaymentPanel({
       },
       {
         onSuccess: () => {
-          setManualAmount("");
-          setManualNote("");
+          setManualAmount('')
+          setManualNote('')
         },
-        onError: () =>
-          setManualError("Could not save that payment. Please try again."),
+        onError: () => setManualError('Could not save that payment. Please try again.'),
       },
-    );
+    )
   }
 
   function submit() {
-    request.mutate({ bookingId, amount: Number(amount), phone });
+    request.mutate({ bookingId, amount: Number(amount), phone })
   }
 
   return (
@@ -107,26 +99,19 @@ export function PaymentPanel({
       {payments.length > 0 && (
         <ul className="mt-3 divide-y divide-sand-200 text-sm">
           {payments.map((p) => (
-            <li
-              key={p.id}
-              className="flex flex-wrap items-center justify-between gap-2 py-2"
-            >
+            <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
               <span className="font-figures text-charcoal-900">
                 {formatKES(p.paid_amount ?? p.amount)}
               </span>
               <span className="text-xs text-charcoal-500">
-                {METHOD_LABELS[p.method]} ·{" "}
-                {new Date(p.created_at).toLocaleString("en-KE", {
-                  dateStyle: "medium",
-                  ...(p.method === "mpesa"
-                    ? { timeStyle: "short" as const }
-                    : {}),
+                {METHOD_LABELS[p.method]} ·{' '}
+                {new Date(p.created_at).toLocaleString('en-KE', {
+                  dateStyle: 'medium',
+                  ...(p.method === 'mpesa' ? { timeStyle: 'short' as const } : {}),
                 })}
                 {p.mpesa_receipt && ` · ${p.mpesa_receipt}`}
                 {p.note && ` · ${p.note}`}
-                {p.status === "failed" &&
-                  p.result_desc &&
-                  ` · ${p.result_desc}`}
+                {p.status === 'failed' && p.result_desc && ` · ${p.result_desc}`}
               </span>
               <span className="flex items-center gap-2">
                 <span
@@ -134,7 +119,7 @@ export function PaymentPanel({
                 >
                   {STATUS_LABELS[p.status]}
                 </span>
-                {p.method !== "mpesa" && (
+                {p.method !== 'mpesa' && (
                   <button
                     type="button"
                     onClick={() => {
@@ -143,7 +128,7 @@ export function PaymentPanel({
                           `Remove this ${formatKES(p.amount)} ${METHOD_LABELS[p.method].toLowerCase()} payment?`,
                         )
                       ) {
-                        remove.mutate(p.id);
+                        remove.mutate(p.id)
                       }
                     }}
                     disabled={remove.isPending}
@@ -166,7 +151,7 @@ export function PaymentPanel({
                 <button
                   type="button"
                   onClick={() => fill(estimatedTotal * 0.3)}
-                  className="rounded-pill bg-sand-100 px-3 py-1 text-xs font-medium text-charcoal-600 hover:bg-sand-200"
+                  className="rounded-pill bg-sand-100 px-4 py-2 text-xs font-medium text-charcoal-600 hover:bg-sand-200"
                 >
                   30% deposit
                 </button>
@@ -174,7 +159,7 @@ export function PaymentPanel({
                   <button
                     type="button"
                     onClick={() => fill(balance)}
-                    className="rounded-pill bg-sand-100 px-3 py-1 text-xs font-medium text-charcoal-600 hover:bg-sand-200"
+                    className="rounded-pill bg-sand-100 px-4 py-2 text-xs font-medium text-charcoal-600 hover:bg-sand-200"
                   >
                     Full balance
                   </button>
@@ -193,7 +178,7 @@ export function PaymentPanel({
                 inputMode="numeric"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-36 rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+                className="w-36 rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
               />
             </label>
             <label className="flex flex-col gap-1 text-xs text-charcoal-500">
@@ -202,7 +187,7 @@ export function PaymentPanel({
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-48 rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+                className="w-48 rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
               />
             </label>
             <Button
@@ -217,9 +202,7 @@ export function PaymentPanel({
 
           {request.isError && (
             <p role="alert" className="text-sm text-coral-500">
-              {request.error instanceof Error
-                ? request.error.message
-                : "Something went wrong."}
+              {request.error instanceof Error ? request.error.message : 'Something went wrong.'}
             </p>
           )}
           {request.isSuccess && !hasPending && (
@@ -248,19 +231,15 @@ export function PaymentPanel({
               inputMode="numeric"
               value={manualAmount}
               onChange={(e) => setManualAmount(e.target.value)}
-              className="w-32 rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+              className="w-32 rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
             />
           </label>
           <label className="flex flex-col gap-1 text-xs text-charcoal-500">
             Method
             <select
               value={manualMethod}
-              onChange={(e) =>
-                setManualMethod(
-                  e.target.value as Exclude<PaymentMethod, "mpesa">,
-                )
-              }
-              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+              onChange={(e) => setManualMethod(e.target.value as Exclude<PaymentMethod, 'mpesa'>)}
+              className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
             >
               <option value="cash">Cash</option>
               <option value="bank">Bank transfer</option>
@@ -274,7 +253,7 @@ export function PaymentPanel({
               max={todayISO()}
               value={manualDate}
               onChange={(e) => setManualDate(e.target.value)}
-              className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+              className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
             />
           </label>
           <label className="flex flex-1 flex-col gap-1 text-xs text-charcoal-500">
@@ -284,7 +263,7 @@ export function PaymentPanel({
               maxLength={200}
               value={manualNote}
               onChange={(e) => setManualNote(e.target.value)}
-              className="min-w-40 rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
+              className="min-w-40 rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-charcoal-900 outline-none focus:border-teal-700"
             />
           </label>
           <Button
@@ -304,5 +283,5 @@ export function PaymentPanel({
         )}
       </div>
     </div>
-  );
+  )
 }
