@@ -133,6 +133,15 @@ server-side and by database rules). Safaricom's result is accepted only
 with the secret, only for a payment that is still pending, and the app
 never holds the Supabase service_role key.
 
+**Stuck payments:** if a prompt is still "Waiting for PIN" after 5 minutes,
+the Bookings page shows a yellow warning with a "Show the booking" link, and
+the booking's payment panel tells you to check your M-Pesa statement before
+sending another prompt. If your statement shows no payment, tap **Mark as
+failed** on that payment (needs `0015_clear_stuck_payments.sql`). If Safaricom's
+success result does arrive later, it is still recorded and the guest gets
+their receipt, so a real payment is never lost. A genuinely failed payment
+can't be turned into a success this way.
+
 **If a payment doesn't update:** check Vercel → Logs for `pay-callback`.
 "Invalid callback secret" means the two secrets don't match. A guest who
 was charged but sees no record: the `[pay-request]` log line holds the
@@ -299,7 +308,7 @@ to "Slow 4G", reload, and check the home and a property page feel fast.
 Or run PageSpeed Insights (pagespeed.web.dev) on your live URL; aim for
 green on mobile.
 
-## 14. Accessibility
+## 14. Accessibility and phone usability
 
 An accessibility pass found and fixed:
 - **Text colours that didn't exist.** Several greys used across the app
@@ -307,10 +316,10 @@ An accessibility pass found and fixed:
   nothing and the text fell back to near-black. 600 and 800 are now
   defined as dark, AA-passing greys, and hint text uses 600. The error and
   gold badge colours were deepened slightly to pass the 4.5:1 minimum.
-  Your brand's Muted Text (#687678) and Palm Green are unchanged. Muted
-  Text measures 4.30:1 on the ivory background, just under AA; it's used
-  for secondary text only. To make it AA, darken `--color-charcoal-500` in
-  `src/index.css` to `#5f6d6f` (one line).
+  Muted Text (`--color-charcoal-500`) was also darkened from `#687678`
+  to `#5b696b` (same hue) so it passes AA on the ivory and sand
+  backgrounds; to restore the original brand value, change it in
+  `src/index.css`.
 - **Form fields without labels.** The filters (sort, type, price, guests,
   bedrooms, amenities), the enquiry message box, the property-type
   selector and the profile email now announce properly in a screen reader.
@@ -319,27 +328,12 @@ An accessibility pass found and fixed:
   Space. The photo viewer is a proper dialog: focus moves into it, Escape
   closes it, arrow keys move between photos, and focus returns afterwards.
   A "Skip to main content" link appears on the first Tab press.
-- **Touch targets.** Calendar days and month buttons are 40px (were 36px
+- **Touch targets.** Calendar days and month buttons are 40-44px (were 36px
   and 28px).
 - **Smaller fixes:** photo descriptions no longer say "photo photo",
   and admin table action columns have a hidden "Actions" label.
 
-Already in place: visible focus outlines, reduced-motion support,
-screen-reader names on icon buttons, and menus that manage focus.
-
-**Still worth doing by hand before launch:** tab through the booking form
-and calendar with only a keyboard, then try VoiceOver (iPhone) or TalkBack
-(Android) on the home page and one property page. Lighthouse in Chrome
-DevTools (Accessibility category) is a quick second check; aim for 95+.
-
-## 14. Accessibility and phone usability
-
-What was checked and changed:
-- **Muted grey text is slightly darker** (`#687678` to `#5b696b`, same hue).
-  The original failed the standard readability minimum (WCAG AA) on the
-  sand backgrounds, and it's used for small secondary text everywhere,
-  which is hard to read in bright sun on a phone. To restore the original
-  brand value, change `--color-charcoal-500` in `src/index.css`.
+Also changed (phone usability):
 - **Form field outlines are darker** so fields are easy to see against the
   page (they previously blended in).
 - **Phones no longer zoom in** when you tap a form field (iPhones do that
@@ -347,7 +341,7 @@ What was checked and changed:
 - **Page changes are announced and scroll to the top.** Before, opening a
   property from the middle of a long list kept the old scroll position, and
   keyboard / screen-reader users weren't told the page changed.
-- **Availability calendar:** bigger tap targets (44px), a plain-language
+- **Availability calendar:** bigger tap targets (40–44px), a plain-language
   line saying what to pick next ("Now choose your check-out day"), and
   full-date labels for screen readers, including unavailable days.
 - **Autofill** now works on the booking and contact forms (name, email,
@@ -359,9 +353,13 @@ What was checked and changed:
   `npm test`. It can't judge colour contrast (that needs a real browser),
   which is why contrast was calculated separately.
 
-**Please still try:** Chrome DevTools → Lighthouse → Accessibility on the live
-home, a property page and the booking form; and tab through the booking form
-with only the keyboard.
+Already in place: visible focus outlines, reduced-motion support,
+screen-reader names on icon buttons, and menus that manage focus.
+
+**Still worth doing by hand before launch:** tab through the booking form
+and calendar with only a keyboard, then try VoiceOver (iPhone) or TalkBack
+(Android) on the home page and one property page. Lighthouse in Chrome
+DevTools (Accessibility category) is a quick second check; aim for 95+.
 
 ## 15. Properties admin
 
@@ -396,21 +394,22 @@ clear the unused folders in Supabase → Storage.
 ## 16. Database tests (dry run of the migrations)
 
 `supabase/tests/` holds a test suite that builds a throwaway PostgreSQL
-database, applies all 14 migrations in order, and then acts as a guest, a
+database, applies all 15 migrations in order, and then acts as a guest, a
 customer and an admin to check the rules that protect your business:
 - nobody can make themselves an admin, approve their own review, or insert
   a pre-confirmed booking; booking totals are calculated by the database;
 - confirming a booking blocks its dates, an overlapping confirmation is
   refused, cancelling frees the dates, and back-to-back stays work;
 - customers see only their own payments; cash entries can be removed but
-  M-Pesa records can't; a replayed M-Pesa callback can't change a finished
+  M-Pesa records can't; only an admin can clear a stuck M-Pesa prompt, and
+  only after 5 minutes; a replayed M-Pesa callback can't change a finished
   payment; the callback, email and reminder functions refuse a wrong secret;
 - the private secrets and notification log can't be read through the API;
 - oversized booking and contact text is rejected.
 
 It runs on your own computer, never against your live Supabase:
 `bash supabase/tests/run.sh` (needs PostgreSQL 15+ installed locally; see
-`supabase/tests/README.md`). It was run for this release: **71 of 71 passed**
+`supabase/tests/README.md`). It was run for this release: **90 of 90 passed**
 and every migration applied cleanly on a fresh database. Re-run it after
 changing any migration.
 

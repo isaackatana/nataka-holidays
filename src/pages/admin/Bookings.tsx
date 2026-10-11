@@ -10,7 +10,7 @@ import { formatDateRange } from '@/utils/dates'
 import { buildGuestStatusMessage, buildGuestWhatsAppLink } from '@/utils/phone'
 import { formatKES } from '@/utils/currency'
 import type { BookingStatus } from '@/types/domain'
-import { sumPaid } from '@/utils/payments'
+import { STUCK_PAYMENT_MINUTES, findStuckPayments, sumPaid } from '@/utils/payments'
 
 const STATUS_TABS: { value: BookingStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -41,11 +41,43 @@ export default function AdminBookings() {
   const updateStatus = useUpdateBookingStatus()
   const { data: payments } = usePayments()
   const paymentsFor = (bookingId: string) => (payments ?? []).filter((p) => p.booking_id === bookingId)
+  // Re-evaluated on every render; the payments query keeps refetching while
+  // anything is pending, so this stays current without its own timer.
+  const stuckPayments = findStuckPayments(payments ?? [])
+
+  function showStuckBooking() {
+    setStatusFilter('all')
+    setSearch('')
+    setExpandedId(stuckPayments[0]?.booking_id ?? null)
+  }
 
   return (
     <div className="px-4 py-6 sm:px-8 sm:py-8">
       <h1 className="font-display text-2xl font-medium text-teal-900">Bookings</h1>
       <p className="mt-1 text-sm text-charcoal-500">Enquiries from the booking form, newest first.</p>
+
+      {stuckPayments.length > 0 && (
+        <div role="alert" className="mt-4 rounded-lg bg-gold-500/15 px-4 py-3 text-sm text-charcoal-900">
+          <p className="font-medium">
+            {stuckPayments.length === 1
+              ? '1 M-Pesa payment has'
+              : `${stuckPayments.length} M-Pesa payments have`}{' '}
+            been waiting for a PIN for over {STUCK_PAYMENT_MINUTES} minutes.
+          </p>
+          <p className="mt-1 text-charcoal-700">
+            The guest may have dismissed the prompt, or the result may not have reached the site. Check
+            your M-Pesa statement before sending another prompt, and see Vercel → Logs → pay-callback if
+            a payment was taken.
+          </p>
+          <button
+            type="button"
+            onClick={showStuckBooking}
+            className="mt-2 font-medium text-teal-800 underline hover:text-teal-900"
+          >
+            Show the booking
+          </button>
+        </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import {
+  useClearStuckPayment,
   useDeleteManualPayment,
   useRecordManualPayment,
   useRequestPayment,
@@ -8,7 +9,14 @@ import {
 import type { Payment } from '@/services/admin/payments.service'
 import { formatKES } from '@/utils/currency'
 import { todayISO } from '@/utils/dates'
-import { METHOD_LABELS, manualPaymentError, sumPaid, type PaymentMethod } from '@/utils/payments'
+import {
+  METHOD_LABELS,
+  STUCK_PAYMENT_MINUTES,
+  findStuckPayments,
+  manualPaymentError,
+  sumPaid,
+  type PaymentMethod,
+} from '@/utils/payments'
 
 const STATUS_STYLES: Record<Payment['status'], string> = {
   pending: 'bg-gold-500/15 text-gold-600',
@@ -41,6 +49,7 @@ export function PaymentPanel({
   const request = useRequestPayment()
   const record = useRecordManualPayment()
   const remove = useDeleteManualPayment()
+  const clear = useClearStuckPayment()
   const [manualAmount, setManualAmount] = useState('')
   const [manualMethod, setManualMethod] = useState<Exclude<PaymentMethod, 'mpesa'>>('cash')
   const [manualDate, setManualDate] = useState(todayISO())
@@ -50,6 +59,8 @@ export function PaymentPanel({
   const paid = sumPaid(payments)
   const balance = estimatedTotal !== null ? Math.max(estimatedTotal - paid, 0) : null
   const hasPending = payments.some((p) => p.status === 'pending')
+  const stuckIds = new Set(findStuckPayments(payments).map((p) => p.id))
+  const hasStuck = stuckIds.size > 0
 
   function fill(value: number) {
     setAmount(String(Math.round(value)))
@@ -119,6 +130,24 @@ export function PaymentPanel({
                 >
                   {STATUS_LABELS[p.status]}
                 </span>
+                {stuckIds.has(p.id) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Mark this ${formatKES(p.amount)} prompt as failed?\n\nOnly do this after checking your M-Pesa statement shows no payment from this guest. If the payment does arrive later, it will still be recorded automatically.`,
+                        )
+                      ) {
+                        clear.mutate(p.id)
+                      }
+                    }}
+                    disabled={clear.isPending}
+                    className="text-xs font-medium text-teal-800 underline hover:text-teal-900"
+                  >
+                    Mark as failed
+                  </button>
+                )}
                 {p.method !== 'mpesa' && (
                   <button
                     type="button"
@@ -210,9 +239,20 @@ export function PaymentPanel({
               Prompt sent. The status updates here automatically.
             </p>
           )}
-          {hasPending && (
+          {hasPending && !hasStuck && (
             <p className="text-sm text-charcoal-500">
               Waiting for the guest to enter their M-Pesa PIN…
+            </p>
+          )}
+          {hasStuck && (
+            <p role="status" className="text-sm text-charcoal-700">
+              Still waiting after {STUCK_PAYMENT_MINUTES} minutes. Check your M-Pesa statement before
+              sending another prompt, then use "Mark as failed" on the payment above if no money was taken.
+            </p>
+          )}
+          {clear.isError && (
+            <p role="alert" className="text-sm text-coral-500">
+              Could not clear that payment. It may have just been resolved; refresh and check.
             </p>
           )}
         </div>

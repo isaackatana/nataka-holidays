@@ -1,9 +1,9 @@
 # Launch checklist — Nataka Holidays
 
-Work top to bottom. Items marked **(you)** are done in a dashboard, not in code.
+Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items marked **(you)** are done in a dashboard, not in code.
 
 ## 1. Database (Supabase SQL editor)
-- [ ] Run every file in `supabase/migrations/` in order, up to **`0014_manual_payments.sql`** (`0012` is the security fix: don't skip it).
+- [ ] Run every file in `supabase/migrations/` in order, up to **`0015_clear_stuck_payments.sql`** (`0012` is the security fix: don't skip it).
 - [ ] **Check who is an admin.** Run: `select id, full_name, role from profiles where role = 'admin';`
       Before 0012, any signed-in user could promote themselves, so make sure every row is someone you know.
       Demote anyone unexpected: `update profiles set role = 'customer' where id = '...';`
@@ -14,7 +14,7 @@ Work top to bottom. Items marked **(you)** are done in a dashboard, not in code.
 - [ ] Store the callback secret: `insert into app_secrets (key, value) values ('mpesa_callback_secret', '<long random string>');`
 
 > The migrations and security rules were already dry-run on a scratch
-> PostgreSQL (71 checks pass, see `DEPLOYMENT.md` §16), so the list below
+> PostgreSQL (90 checks pass, see `DEPLOYMENT.md` §16), so the list below
 > is about your real Supabase project and live services.
 
 ## 2. Supabase dashboard settings (you)
@@ -43,8 +43,7 @@ Work top to bottom. Items marked **(you)** are done in a dashboard, not in code.
 - [ ] Arrival reminder: confirm a booking starting in 2 days, run the `curl` command in `DEPLOYMENT.md` §10, check the email arrives.
 - [ ] Paste a property link into WhatsApp: photo and title appear.
 - [ ] Open the site on a phone: calendar, booking form, My bookings. Tap a form field on an iPhone: the page must not zoom in.
-- [ ] Run Lighthouse (Chrome DevTools) → Accessibility on the home page, a property page and the booking form.
-- [ ] Accessibility: tab through the booking form with only the keyboard, and run Lighthouse (Accessibility) on the home page and a property page.
+- [ ] Accessibility: tab through the booking form with only the keyboard, then run Lighthouse (Chrome DevTools → Accessibility) on the home page, a property page and the booking form. Aim for 95+.
 - [ ] Re-upload each property's cover photo (and any big photos uploaded before the speed update), then run PageSpeed Insights on the live home page and a property page.
 
 ## 5. Going live with money
@@ -53,6 +52,6 @@ Work top to bottom. Items marked **(you)** are done in a dashboard, not in code.
 - [ ] Do one real KSh 10 payment to yourself and confirm it appears, then refund it from the M-Pesa side.
 
 ## 6. Ongoing
-- [ ] Check the admin Bookings page for **Waiting for PIN** payments older than a few minutes (callback problems show in Vercel → Logs → `pay-callback`).
+- [ ] The admin Bookings page now warns you when a payment has been **Waiting for PIN** for over 5 minutes. If you see it, check your M-Pesa statement, then Vercel → Logs → `pay-callback`. If no money was taken, tap **Mark as failed** on that payment.
 - [ ] Rotate `MPESA_CALLBACK_SECRET` (in Vercel **and** the `app_secrets` row) if you ever think it leaked. It appears in the callback URL, so it can show up in Vercel logs.
 - [ ] Before confirming a booking, glance at the total. It is now computed by the database from the property's price, but check it's right.

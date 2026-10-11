@@ -40,3 +40,22 @@ export function manualPaymentError(input: { amount: number; date: string; today:
 export function manualPaymentTimestamp(date: string): string {
   return `${date}T12:00:00+03:00`
 }
+
+/** An M-Pesa prompt normally resolves within a minute. Past this, the guest
+ * probably dismissed it, or Safaricom's result never reached the site. */
+export const STUCK_PAYMENT_MINUTES = 5
+
+export interface StuckCandidate {
+  status: PaymentStatus
+  method: PaymentMethod
+  created_at: string
+}
+
+/** M-Pesa payments still "waiting for PIN" after STUCK_PAYMENT_MINUTES.
+ * Cash and bank entries never wait, so they are ignored. */
+export function findStuckPayments<T extends StuckCandidate>(payments: T[], now: number = Date.now()): T[] {
+  const cutoff = now - STUCK_PAYMENT_MINUTES * 60_000
+  return payments.filter(
+    (p) => p.method === 'mpesa' && p.status === 'pending' && new Date(p.created_at).getTime() <= cutoff,
+  )
+}

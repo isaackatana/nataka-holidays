@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  clearStuckPayment,
   deleteManualPayment,
   getPayments,
   recordManualPayment,
@@ -39,6 +40,14 @@ export function useDeleteManualPayment() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => deleteManualPayment(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payments'] }),
+  })
+}
+
+export function useClearStuckPayment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => clearStuckPayment(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payments'] }),
   })
 }

@@ -80,3 +80,11 @@ export async function deleteManualPayment(id: string): Promise<void> {
   const { error } = await supabase.from('payments').delete().eq('id', id).neq('method', 'mpesa')
   if (error) throw error
 }
+
+/** Admin: clear an M-Pesa prompt stuck on "waiting for PIN" for 5+ minutes.
+ * The database refuses anything younger or not pending. A late success from
+ * Safaricom is still recorded afterwards, so a real payment isn't lost. */
+export async function clearStuckPayment(id: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_clear_stuck_payment' as never, { p_payment_id: id } as never)
+  if (error) throw error
+}
