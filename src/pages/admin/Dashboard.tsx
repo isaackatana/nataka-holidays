@@ -8,6 +8,7 @@ import {
   useRecentUsers,
   usePopularProperties,
 } from '@/features/admin/queries'
+import { StuckPaymentsNotice } from '@/features/admin/payments/StuckPaymentsNotice'
 import { formatDateRange } from '@/utils/dates'
 import { formatKES } from '@/utils/currency'
 
@@ -21,6 +22,8 @@ export default function Dashboard() {
     <div className="px-4 py-6 sm:px-8 sm:py-8">
       <h1 className="font-display text-2xl font-medium text-teal-900">Dashboard</h1>
       <p className="mt-1 text-sm text-charcoal-500">An overview of Nataka Holidays right now.</p>
+
+      <StuckPaymentsNotice />
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Total properties" value={stats?.totalProperties} icon={Home} loading={statsLoading} />

@@ -178,7 +178,7 @@ export function BookingEnquiryForm({ property }: { property: Property }) {
           id="enquiry-message"
           rows={3}
           {...register('message')}
-          className="rounded-lg border border-sand-400 bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700"
+          className="rounded-lg border border-sand-400 bg-sand-50 px-4 py-2.5 text-base text-charcoal-900 sm:text-sm outline-none placeholder:text-charcoal-500 focus:border-teal-700"
           placeholder="Anything we should know?"
         />
       </div>

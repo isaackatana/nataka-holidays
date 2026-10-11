@@ -17,7 +17,7 @@ export const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>
         <textarea
           ref={ref}
           id={inputId}
-          className={`rounded-lg border bg-sand-50 px-4 py-2.5 text-sm text-charcoal-900 outline-none transition-colors placeholder:text-charcoal-500 focus:border-teal-700 ${
+          className={`rounded-lg border bg-sand-50 px-4 py-2.5 text-base text-charcoal-900 sm:text-sm outline-none transition-colors placeholder:text-charcoal-500 focus:border-teal-700 ${
             error ? 'border-coral-500' : 'border-sand-400'
           }`}
           aria-invalid={!!error}

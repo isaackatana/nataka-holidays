@@ -134,6 +134,7 @@ with the secret, only for a payment that is still pending, and the app
 never holds the Supabase service_role key.
 
 **Stuck payments:** if a prompt is still "Waiting for PIN" after 5 minutes,
+the admin Dashboard shows a yellow notice as soon as you log in, and
 the Bookings page shows a yellow warning with a "Show the booking" link, and
 the booking's payment panel tells you to check your M-Pesa statement before
 sending another prompt. If your statement shows no payment, tap **Mark as
@@ -334,6 +335,8 @@ An accessibility pass found and fixed:
   and admin table action columns have a hidden "Actions" label.
 
 Also changed (phone usability):
+- Text boxes on the public forms (booking, contact, sign-in) use 16px text on
+  phones. Below that, iPhones zoom the page in when you tap a field.
 - **Form field outlines are darker** so fields are easy to see against the
   page (they previously blended in).
 - **Phones no longer zoom in** when you tap a form field (iPhones do that
@@ -452,3 +455,26 @@ will distinguish between these immediately.
   confirmed booking; guest-checkout enquiries are paid via an admin prompt.
 - A payment doesn't change the booking's status; an admin still confirms
   bookings manually.
+
+## Link previews (WhatsApp, Facebook, X)
+
+Every public page has its own preview. Crawlers can't run the site's
+JavaScript, so `vercel.json` sends them to `api/prerender.js`, which returns
+the right title, description and image for: the home page, Holiday homes,
+Experiences, About, Contact, Transport, Packages, and each stay and
+experience (with its own first photo). Everything else (sign-in, account and
+admin pages) shows the site-wide preview from `index.html`.
+
+- The preview image must be an absolute URL (WhatsApp and Facebook ignore a
+  relative one). `index.html` and the prerender function both use
+  `https://natakaholidays.co.ke/og-default.jpg` (1200x630).
+- If you change a page's title or description in `src/pages/public/`, change
+  it in `api/_pages.js` too. A test fails if they differ.
+- Platforms cache previews. After deploying, refresh them with Facebook's
+  Sharing Debugger (developers.facebook.com/tools/debug); WhatsApp will pick
+  the new preview up on its own after a while, or sooner if you add `?v=2`
+  to the link you share.
+- On `npm run dev` (localhost) the crawler rewrite does not exist, so only
+  the browser tags are visible there. Each page's own tags replace the
+  defaults from `index.html` as soon as it loads (a test covers this).
+  To see exactly what WhatsApp will get, test on the deployed site.

@@ -19,6 +19,7 @@
 // mediocre link preview is a much better outcome than a broken one for
 // a page that's actively being shared right now.
 import { createClient } from '@supabase/supabase-js'
+import { PAGES } from './_pages.js'
 
 // See scripts/generate-sitemap.mjs for why this reads an env var instead
 // of self-detecting like the browser-side src/utils/siteUrl.ts does —
@@ -47,10 +48,14 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
 }
 
-function renderHtml({ title, description, image, url }) {
-  const fullTitle = `${escapeHtml(title)} | ${SITE_NAME}`
+export function renderHtml({ title, description, image, url }) {
+  const fullTitle = title === SITE_NAME ? SITE_NAME : `${escapeHtml(title)} | ${SITE_NAME}`
   const desc = escapeHtml(description)
   const resolvedImage = escapeHtml(image || DEFAULT_IMAGE)
+  // Dimensions are only known for the site's own default image.
+  const imageSize = image
+    ? ''
+    : '\n<meta property="og:image:width" content="1200" />\n<meta property="og:image:height" content="630" />'
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -62,7 +67,8 @@ function renderHtml({ title, description, image, url }) {
 <meta property="og:description" content="${desc}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${escapeHtml(url)}" />
-<meta property="og:image" content="${resolvedImage}" />
+<meta property="og:image" content="${resolvedImage}" />${imageSize}
+<meta property="og:image:alt" content="${fullTitle}" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${fullTitle}" />
 <meta name="twitter:description" content="${desc}" />
@@ -76,7 +82,21 @@ function renderHtml({ title, description, image, url }) {
 }
 
 export default async function handler(req, res) {
-  const { type, slug } = req.query
+  const { type, slug, page } = req.query
+
+  // Fixed public pages (home, holiday homes, about, ...): no database needed.
+  if (type === 'page') {
+    const entry = PAGES[page]
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600')
+    res.status(200).send(
+      entry
+        ? renderHtml({ title: entry.title, description: entry.description, url: `${SITE_URL}${entry.path}` })
+        : renderHtml({ title: SITE_NAME, description: DEFAULT_DESCRIPTION, url: SITE_URL }),
+    )
+    return
+  }
+
   const url = `${SITE_URL}${type === 'experience' ? '/experiences' : '/stays'}/${encodeURIComponent(slug ?? '')}`
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')

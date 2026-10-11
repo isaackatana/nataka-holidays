@@ -46,7 +46,7 @@ export default function Home() {
       />
 
       {/* ---------------- HERO ---------------- */}
-      <section className="relative flex min-h-[85vh] flex-col justify-end overflow-hidden px-4 pb-5 pt-4 sm:pt-16 text-sand-50">
+      <section className="relative flex min-h-[85svh] flex-col justify-end overflow-hidden px-4 pb-24 pt-10 text-sand-50 sm:pb-6 sm:pt-16">
         {businessSettings?.hero_video_url && !prefersReducedMotion ? (
           // Always a direct file URL, not a YouTube/Vimeo link (see the
           // admin Settings guidance) — a background video needs to
@@ -97,13 +97,13 @@ export default function Home() {
         />
 
         <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-3">
-          <span className="font-mono text-xs uppercase tracking-[0.3em] text-gold-400">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-gold-400 sm:text-xs sm:tracking-[0.3em]">
             Diani &middot; Watamu &middot; Malindi &middot; Lamu
           </span>
-          <h1 className="max-w-3xl font-display text-5xl font-medium leading-[1.05] md:text-6xl">
+          <h1 className="max-w-3xl text-balance font-display text-[2rem] font-medium leading-[1.1] sm:text-5xl sm:leading-[1.05] md:text-6xl">
             Holiday homes on Kenya's most celebrated coastline.
           </h1>
-          <p className="max-w-xl text-lg text-sand-200">
+          <p className="max-w-xl text-base text-sand-200 sm:text-lg">
             Villas, apartments and beach houses the length of the coast — verified, locally managed,
             and a real person on WhatsApp when you need one.
           </p>

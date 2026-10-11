@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { SITE_ORIGIN } from '@/utils/siteUrl'
 
@@ -25,6 +26,17 @@ interface SEOProps {
 export function SEO({ title, description, image, path, type = 'website', noindex }: SEOProps) {
   const fullTitle = `${title} | Nataka Holidays`
   const url = path ? `${SITE_ORIGIN}${path}` : undefined
+  // Pages without their own photo still get the site-wide image, as an
+  // absolute URL (relative ones are ignored by link-preview crawlers).
+  const ogImage = image ?? `${SITE_ORIGIN}/og-default.jpg`
+
+  // index.html ships generic default tags for crawlers that don't run JS.
+  // Helmet only adds its own tags beside them, leaving two of each (and
+  // anything that reads the first match shows the generic one), so drop the
+  // defaults once a page has its own.
+  useEffect(() => {
+    document.head.querySelectorAll('[data-default-seo]').forEach((el) => el.remove())
+  }, [])
 
   return (
     <Helmet>
@@ -36,13 +48,13 @@ export function SEO({ title, description, image, path, type = 'website', noindex
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
-      {image && <meta property="og:image" content={image} />}
+      <meta property="og:image" content={ogImage} />
       {url && <meta property="og:url" content={url} />}
 
-      <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
+      <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
-      {image && <meta name="twitter:image" content={image} />}
+      <meta name="twitter:image" content={ogImage} />
     </Helmet>
   )
 }

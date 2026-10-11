@@ -22,46 +22,46 @@ export function SearchBar() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full flex-col gap-3 rounded-card bg-sand-50 p-3 shadow-card-hover md:flex-row md:items-end md:gap-2 md:p-3"
+      className="grid w-full grid-cols-1 gap-3 rounded-card bg-sand-50 p-3 shadow-card-hover sm:grid-cols-2 lg:flex lg:flex-row lg:items-end lg:gap-2"
     >
-      <label className="flex flex-1 flex-col gap-1 px-2">
+      <label className="flex min-w-0 flex-1 flex-col gap-1 px-2">
         <span className="text-xs font-medium uppercase tracking-wide text-charcoal-500">Where</span>
         <input
           type="text"
           placeholder="Diani, Watamu, Malindi, Lamu..."
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="bg-transparent text-sm text-charcoal-900 outline-none placeholder:text-charcoal-500"
+          className="bg-transparent text-base text-charcoal-900 md:text-sm outline-none placeholder:text-charcoal-500"
         />
       </label>
 
-      <div className="hidden h-10 w-px bg-sand-200 md:block" />
+      <div className="hidden h-10 w-px bg-sand-200 lg:block" />
 
-      <label className="flex flex-1 flex-col gap-1 px-2">
+      <label className="flex min-w-0 flex-1 flex-col gap-1 px-2">
         <span className="text-xs font-medium uppercase tracking-wide text-charcoal-500">Check-in</span>
         <input
           type="date"
           value={checkIn}
           onChange={(e) => setCheckIn(e.target.value)}
-          className="bg-transparent text-sm text-charcoal-900 outline-none"
+          className="bg-transparent text-base text-charcoal-900 md:text-sm outline-none"
         />
       </label>
 
-      <div className="hidden h-10 w-px bg-sand-200 md:block" />
+      <div className="hidden h-10 w-px bg-sand-200 lg:block" />
 
-      <label className="flex flex-1 flex-col gap-1 px-2">
+      <label className="flex min-w-0 flex-1 flex-col gap-1 px-2">
         <span className="text-xs font-medium uppercase tracking-wide text-charcoal-500">Check-out</span>
         <input
           type="date"
           value={checkOut}
           onChange={(e) => setCheckOut(e.target.value)}
-          className="bg-transparent text-sm text-charcoal-900 outline-none"
+          className="bg-transparent text-base text-charcoal-900 md:text-sm outline-none"
         />
       </label>
 
-      <div className="hidden h-10 w-px bg-sand-200 md:block" />
+      <div className="hidden h-10 w-px bg-sand-200 lg:block" />
 
-      <label className="flex flex-1 flex-col gap-1 px-2">
+      <label className="flex min-w-0 flex-1 flex-col gap-1 px-2">
         <span className="text-xs font-medium uppercase tracking-wide text-charcoal-500">Guests</span>
         <span className="flex items-center gap-1.5">
           <Users className="h-3.5 w-3.5 text-charcoal-500" />
@@ -70,14 +70,14 @@ export function SearchBar() {
             min={1}
             value={guests}
             onChange={(e) => setGuests(Number(e.target.value))}
-            className="w-12 bg-transparent text-sm text-charcoal-900 outline-none"
+            className="w-12 bg-transparent text-base text-charcoal-900 md:text-sm outline-none"
           />
         </span>
       </label>
 
       <button
         type="submit"
-        className="flex items-center justify-center gap-2 rounded-full bg-teal-900 px-6 py-3 text-sm font-medium text-sand-50 transition-colors hover:bg-teal-800 md:py-2.5"
+        className="flex items-center justify-center gap-2 rounded-full bg-teal-900 px-6 py-3 text-sm font-medium text-sand-50 transition-colors hover:bg-teal-800 sm:col-span-2 lg:col-span-1 lg:py-2.5"
       >
         <Search className="h-4 w-4" />
         Search

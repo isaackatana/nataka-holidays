@@ -41,7 +41,7 @@ Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items m
 - [ ] M-Pesa **sandbox**: send a prompt to your own phone, enter the PIN, see Paid + receipt email.
 - [ ] Sign in as a normal customer and open `/admin`: you must be turned away.
 - [ ] Arrival reminder: confirm a booking starting in 2 days, run the `curl` command in `DEPLOYMENT.md` §10, check the email arrives.
-- [ ] Paste a property link into WhatsApp: photo and title appear.
+- [ ] Paste links into WhatsApp: a property link, and also the home page, `/holiday-homes`, `/about` and `/contact`. Each should show its own title and a picture. If one looks stale, add `?v=2` to the link (see `DEPLOYMENT.md`, Link previews).
 - [ ] Open the site on a phone: calendar, booking form, My bookings. Tap a form field on an iPhone: the page must not zoom in.
 - [ ] Accessibility: tab through the booking form with only the keyboard, then run Lighthouse (Chrome DevTools → Accessibility) on the home page, a property page and the booking form. Aim for 95+.
 - [ ] Re-upload each property's cover photo (and any big photos uploaded before the speed update), then run PageSpeed Insights on the live home page and a property page.
@@ -52,6 +52,6 @@ Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items m
 - [ ] Do one real KSh 10 payment to yourself and confirm it appears, then refund it from the M-Pesa side.
 
 ## 6. Ongoing
-- [ ] The admin Bookings page now warns you when a payment has been **Waiting for PIN** for over 5 minutes. If you see it, check your M-Pesa statement, then Vercel → Logs → `pay-callback`. If no money was taken, tap **Mark as failed** on that payment.
+- [ ] The admin Dashboard and Bookings pages now warn you when a payment has been **Waiting for PIN** for over 5 minutes. If you see it, check your M-Pesa statement, then Vercel → Logs → `pay-callback`. If no money was taken, tap **Mark as failed** on that payment.
 - [ ] Rotate `MPESA_CALLBACK_SECRET` (in Vercel **and** the `app_secrets` row) if you ever think it leaked. It appears in the callback URL, so it can show up in Vercel logs.
 - [ ] Before confirming a booking, glance at the total. It is now computed by the database from the property's price, but check it's right.

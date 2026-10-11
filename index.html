@@ -6,32 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Nataka Holidays | Villas &amp; Beach Houses on the Kenyan Coast</title>
-    <meta
+    <meta data-default-seo
       name="description"
       content="Nataka Holidays offers premium villas, apartments and beach houses along the Kenyan Coast — Diani, Mombasa, Kilifi, Watamu, Malindi and Lamu. Browse holiday homes, check availability and book your getaway."
     />
     <meta name="theme-color" content="#0f5c5e" />
 
-    <!-- Open Graph defaults (overridden per-page) -->
+    <!-- Open Graph defaults. Tags marked data-default-seo are removed by the
+         <SEO> component once a page sets its own, so a page never carries two
+         og:title tags (tools that read the first one would show these). -->
     <meta property="og:site_name" content="Nataka Holidays" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Nataka Holidays | The Kenyan Coast" />
-    <meta
+    <meta data-default-seo property="og:type" content="website" />
+    <meta data-default-seo property="og:title" content="Nataka Holidays | The Kenyan Coast" />
+    <meta data-default-seo
       property="og:description"
       content="Premium villas, apartments and beach houses on the Kenyan Coast."
     />
-    <meta property="og:image" content="/og-default.jpg" />
+    <meta data-default-seo property="og:url" content="https://natakaholidays.co.ke/" />
+    <meta property="og:locale" content="en_KE" />
+    <!-- Must be an absolute URL: WhatsApp, Facebook and X ignore a relative one. -->
+    <meta data-default-seo property="og:image" content="https://natakaholidays.co.ke/og-default.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Nataka Holidays: holiday homes on the Kenyan Coast" />
 
     <!-- Twitter Card — X/Twitter's scraper looks for twitter:card
          specifically and doesn't reliably fall back to Open Graph tags
          alone, unlike WhatsApp/Facebook/LinkedIn. -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Nataka Holidays | The Kenyan Coast" />
-    <meta
+    <meta data-default-seo name="twitter:card" content="summary_large_image" />
+    <meta data-default-seo name="twitter:title" content="Nataka Holidays | The Kenyan Coast" />
+    <meta data-default-seo
       name="twitter:description"
       content="Premium villas, apartments and beach houses on the Kenyan Coast."
     />
-    <meta name="twitter:image" content="/og-default.jpg" />
+    <meta data-default-seo name="twitter:image" content="https://natakaholidays.co.ke/og-default.jpg" />
 
     <!-- Open the connection to the database/image host while the app downloads. -->
     <link rel="preconnect" href="%VITE_SUPABASE_URL%" crossorigin />

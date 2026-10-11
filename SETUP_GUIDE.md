@@ -110,7 +110,7 @@ email, WhatsApp link preview, phone check, Lighthouse accessibility.
 
 ## Afterwards
 
-- **Admin → Bookings** shows a yellow warning if a payment has been stuck on
+- The admin **Dashboard** and **Bookings** pages show a yellow warning if a payment has been stuck on
   "Waiting for PIN" for over 5 minutes. Check your M-Pesa statement, then
   Vercel → Logs → `pay-callback`. If no money was taken, open the booking and
   tap **Mark as failed** on that payment.
