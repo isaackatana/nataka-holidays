@@ -19,6 +19,7 @@
       "files": [
         "src/features/auth/AuthContext.tsx",
         "src/features/tripCart/TripCartContext.tsx",
+        "src/features/shop/ShopCartContext.tsx",
         "src/app/router.tsx"
       ],
       "rules": {

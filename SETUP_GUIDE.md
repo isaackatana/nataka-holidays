@@ -13,7 +13,7 @@ access to the DNS settings for natakaholidays.co.ke.
 
 1. Open your Supabase project, then **SQL Editor**.
 2. Run every file in `supabase/migrations/` **in number order**, from
-   `0001` to `0015`. Do not skip `0012`; it is the security fix.
+   `0001` to `0016`. Do not skip `0012`; it is the security fix.
 3. Make a long random string for the M-Pesa callback secret (on a
    computer: `openssl rand -hex 32`). Save it somewhere safe; you will
    paste it twice. Then run:
@@ -84,10 +84,16 @@ Copy two values from **Project Settings → API**: the Project URL and the
    secret.
 2. In Vercel add: `MPESA_ENV` = `sandbox`, `MPESA_CONSUMER_KEY`,
    `MPESA_CONSUMER_SECRET`, `MPESA_SHORTCODE` = `174379`, and `MPESA_PASSKEY`
-   (the public sandbox passkey on the Daraja "Simulate" page). Redeploy.
+   (the public sandbox passkey on the Daraja "Simulate" page). Make sure
+   `SITE_URL` is the address the site is really live on, because Safaricom
+   sends the result there. Redeploy.
 3. On the live site: confirm a booking in admin, then in **Admin → Bookings
-   → M-Pesa payments** send a prompt to your own phone. Enter the PIN. It
-   should show **Paid** and you should get a receipt email.
+   → M-Pesa payments** send a prompt to the Safaricom **test number**
+   `254708374149`. The sandbox does not send anything to a real phone: it
+   pretends the customer paid and sends the result to your site a few
+   seconds later. It should show **Paid** and the receipt email should be
+   sent. (Use the test number, not your own; real numbers only work after
+   you go live in Step 8.)
 4. If it stays on "Waiting for PIN", open Vercel → Logs and filter
    `pay-callback`. "Invalid callback secret" means Step 1 and Step 3
    used different strings.
@@ -105,8 +111,25 @@ email, WhatsApp link preview, phone check, Lighthouse accessibility.
 2. When approved, set `MPESA_ENV` = `production` and replace the shortcode,
    passkey, consumer key and consumer secret with the production values.
    Redeploy.
+   **Because you collect on a Till (Buy Goods)**, also set:
+   - `MPESA_TRANSACTION_TYPE` = `CustomerBuyGoodsOnline`
+   - `MPESA_SHORTCODE` = your **Store / Head Office number** (the number
+     Safaricom gives you for Daraja, which is not always the Till itself)
+   - `MPESA_PARTY_B` = your **Till number**
+   If your Till is its own store (one number only), set `MPESA_SHORTCODE` to
+   the Till and leave `MPESA_PARTY_B` out. Safaricom confirms which numbers
+   to use when your Go-Live is approved. Sandbox keeps using the settings
+   from Step 6.
 3. Make one real KSh 10 payment to yourself, confirm it shows up, then
    refund it from the M-Pesa side.
+
+## Shop (after payments work)
+
+1. Run `supabase/migrations/0016_shop.sql` in the Supabase SQL editor.
+2. In the admin, open **Settings** and set the delivery fee.
+3. Open **Products** and add your first items with photos, prices and stock.
+4. Open `/shop` on your phone, place a KSh-small test order, and check the
+   order shows under **Shop orders** and the receipt email arrives.
 
 ## Afterwards
 

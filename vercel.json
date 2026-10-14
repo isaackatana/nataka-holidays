@@ -12,7 +12,7 @@
       "destination": "/api/prerender?type=page&page=home"
     },
     {
-      "source": "/:page(holiday-homes|experiences|about|contact|transport|packages)",
+      "source": "/:page(holiday-homes|experiences|about|contact|transport|packages|shop)",
       "has": [
         {
           "type": "header",

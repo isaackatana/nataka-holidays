@@ -80,3 +80,57 @@ export interface Experience {
   updated_at: string
   experience_images?: { id: string; storage_path: string; sort_order: number }[]
 }
+
+export interface Product {
+  id: string
+  name: string
+  slug: string
+  description: string
+  price: number
+  stock: number
+  image_path: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type OrderStatus = 'pending_payment' | 'paid' | 'packed' | 'completed' | 'cancelled' | 'expired'
+export type Fulfilment = 'handover' | 'delivery'
+
+export interface OrderItem {
+  id: string
+  order_id: string
+  product_id: string | null
+  product_name: string
+  unit_price: number
+  quantity: number
+}
+
+export interface OrderPayment {
+  id: string
+  order_id: string
+  amount: number
+  status: 'pending' | 'success' | 'failed'
+  created_at: string
+}
+
+export interface Order {
+  id: string
+  customer_id: string | null
+  customer_name: string
+  customer_phone: string
+  customer_email: string | null
+  fulfilment: Fulfilment
+  handover_note: string | null
+  delivery_address: string | null
+  subtotal: number
+  delivery_fee: number
+  total: number
+  status: OrderStatus
+  expires_at: string
+  paid_at: string | null
+  admin_note: string | null
+  created_at: string
+  order_items?: OrderItem[]
+  order_payments?: OrderPayment[]
+}

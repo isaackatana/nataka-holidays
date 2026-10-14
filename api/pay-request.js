@@ -40,7 +40,9 @@ export default async function handler(req, res) {
     MPESA_ENV,
     MPESA_TRANSACTION_TYPE,
     MPESA_PARTY_B,
-  } = process.env
+  } = Object.fromEntries(
+    Object.entries(process.env).map(([k, v]) => [k, typeof v === 'string' ? v.trim().replace(/^["']|["']$/g, '') : v]),
+  )
 
   if (
     !VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY || !MPESA_CONSUMER_KEY ||
@@ -103,7 +105,12 @@ export default async function handler(req, res) {
     const tokenRes = await fetch(`${base}/oauth/v1/generate?grant_type=client_credentials`, {
       headers: { Authorization: `Basic ${basic}` },
     })
-    if (!tokenRes.ok) throw new Error(`Daraja auth failed (${tokenRes.status})`)
+    if (!tokenRes.ok) {
+      // Safaricom's own reply says why (never logs the keys themselves).
+      const detail = (await tokenRes.text().catch(() => '')).slice(0, 300)
+      console.error(`[pay-request] Daraja auth rejected: env=${MPESA_ENV || 'sandbox (default)'} status=${tokenRes.status} body=${detail}`)
+      throw new Error(`Daraja auth failed (${tokenRes.status})`)
+    }
     const { access_token: accessToken } = await tokenRes.json()
 
     const timestamp = darajaTimestamp()

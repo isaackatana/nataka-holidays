@@ -50,6 +50,7 @@ export const router = createBrowserRouter([
       { path: '/about', element: withSuspense(lazyPage(() => import('@/pages/public/About'))) },
       { path: '/contact', element: withSuspense(lazyPage(() => import('@/pages/public/Contact'))) },
       { path: '/trip', element: withSuspense(lazyPage(() => import('@/pages/public/Trip'))) },
+      { path: '/shop', element: withSuspense(lazyPage(() => import('@/pages/public/Shop'))) },
       {
         // Customer-only pages — redirect to /login (with a return path) if
         // there's no session at all. Role isn't checked here since any
@@ -67,6 +68,14 @@ export const router = createBrowserRouter([
           {
             path: '/profile',
             element: withSuspense(lazyPage(() => import('@/pages/account/Profile'))),
+          },
+          {
+            path: '/shop/checkout',
+            element: withSuspense(lazyPage(() => import('@/pages/public/ShopCheckout'))),
+          },
+          {
+            path: '/my-orders',
+            element: withSuspense(lazyPage(() => import('@/pages/account/MyOrders'))),
           },
         ],
       },
@@ -133,6 +142,8 @@ export const router = createBrowserRouter([
             path: 'experiences/:id/edit',
             element: withSuspense(lazyPage(() => import('@/pages/admin/ExperienceEditor'))),
           },
+          { path: 'products', element: withSuspense(lazyPage(() => import('@/pages/admin/Products'))) },
+          { path: 'orders', element: withSuspense(lazyPage(() => import('@/pages/admin/Orders'))) },
           { path: 'settings', element: withSuspense(lazyPage(() => import('@/pages/admin/Settings'))) },
         ],
       },

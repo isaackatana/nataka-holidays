@@ -1,21 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import {
-  LayoutDashboard,
-  Home,
-  CalendarCheck,
-  Users,
-  Star,
-  Compass,
-  Settings,
-  LogOut,
-  Mail,
-  Menu,
-  X,
-  ListChecks,
-  BarChart3,
-} from 'lucide-react'
+import { LayoutDashboard, Home, CalendarCheck, Users, Star, Compass, Settings, LogOut, Mail, Menu, X, ListChecks, BarChart3, ShoppingBag, Package } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
@@ -32,6 +18,8 @@ const NAV_ITEMS = [
   { label: 'Customers', to: '/admin/customers', icon: Users },
   { label: 'Reviews', to: '/admin/reviews', icon: Star },
   { label: 'Experiences', to: '/admin/experiences', icon: Compass },
+  { label: 'Products', to: '/admin/products', icon: ShoppingBag },
+  { label: 'Shop orders', to: '/admin/orders', icon: Package },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
 ]
 

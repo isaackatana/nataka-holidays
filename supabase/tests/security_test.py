@@ -157,4 +157,153 @@ check('a later success CANNOT revive a payment that really failed (not admin-cle
 check('...still failed', scalar("select status from payments where checkout_request_id='ws_REALFAIL'")=='failed')
 check('late-success flow after clearing: untouched second cleared row is still failed', scalar(f"select status from payments where id='{ID_OLD2}'")=='failed')
 
+# ---------- 10. shop (0016) ----------
+import json
+PA='aaaa1111-0000-0000-0000-00000000000a'; PB='bbbb2222-0000-0000-0000-00000000000b'; PC='cccc3333-0000-0000-0000-00000000000c'
+ok,out = sh(f"""
+insert into products (id,slug,name,price,stock,is_active) values
+ ('{PA}','kikoy','Kikoy cloth',1500,5,true),
+ ('{PB}','basket','Sisal basket',800,2,true),
+ ('{PC}','hidden','Hidden item',999,9,false);
+update business_settings set shop_delivery_fee = 300;
+""")
+check('shop fixtures load', ok, out)
+q = lambda v: 'null' if v is None else f"'{v}'"
+def po(items, ful='handover', note='Beach Villa, Diani', addr=None, name='Amina', phone='254712345678'):
+    return f"select (create_order('{json.dumps(items)}'::jsonb,'{ful}','{name}','{phone}',{q(note if ful=='handover' else None)},{q(addr)})).id;"
+stock = lambda pid: int(scalar(f"select stock from products where id='{pid}'"))
+last = lambda out: out.split('\n')[-1].strip()
+
+# catalogue visibility and admin-only writes
+ok,out = sh("select count(*) from products;",'anon'); check('anon sees only the 2 active products', ok and out.endswith('2'), out)
+ok,out = sh("select count(*) from products;",'authenticated',C1); check('customer sees only the 2 active products', ok and out.endswith('2'), out)
+ok,out = sh("select count(*) from products;",'authenticated',ADMIN); check('admin sees all 3 products', ok and out.endswith('3'), out)
+expect_fail('customer cannot add a product', "insert into products (slug,name,price,stock) values ('x-item','X item',100,1);", 'authenticated', C1, 'row-level security')
+ok,out = sh(f"update products set price=1 where id='{PA}'; select count(*) from products where id='{PA}' and price=1;",'authenticated',C1)
+check('customer cannot change a price (no rows change)', ok and out.endswith('0'), out)
+expect_ok('admin can add a product', "insert into products (slug,name,price,stock) values ('soapstone','Soapstone bowl',2500,3);", 'authenticated', ADMIN)
+expect_fail('a zero price is refused', "insert into products (slug,name,price,stock) values ('free','Free item',0,1);", 'authenticated', ADMIN, 'check')
+expect_fail('negative stock is refused', "insert into products (slug,name,price,stock) values ('neg','Neg item',100,-1);", 'authenticated', ADMIN, 'check')
+
+# placing orders
+ok,out = sh(po([{'product_id':PA,'quantity':1}]), 'anon'); check('anon cannot place an order', (not ok) and ('permission denied' in out or 'sign in' in out), out)
+ok,out = sh(po([{'product_id':PA,'quantity':2},{'product_id':PB,'quantity':1}]), 'authenticated', C1)
+check('customer places a hand-over order', ok, out)
+O1 = last(out)
+check('stock was reserved (5-2, 2-1)', stock(PA)==3 and stock(PB)==1)
+check('totals come from the database: 2x1500 + 1x800 = 3800, no fee for hand-over', scalar(f"select subtotal||'/'||delivery_fee||'/'||total||'/'||status from orders where id='{O1}'")=='3800/0/3800/pending_payment')
+check('line items snapshot the name and price', scalar(f"select string_agg(product_name||':'||unit_price||'x'||quantity, ',' order by product_name) from order_items where order_id='{O1}'")=='Kikoy cloth:1500x2,Sisal basket:800x1')
+ok,out = sh(po([{'product_id':PA,'quantity':1},{'product_id':PA,'quantity':1}]), 'authenticated', C1); check('the same product twice is added up', ok, out)
+OD = last(out); check('...as one line of 2', scalar(f"select quantity from order_items where order_id='{OD}'")=='2')
+sh(f"select cancel_order('{OD}');",'authenticated',C1)
+check('...and cancelling put the stock back', stock(PA)==3)
+expect_fail('cannot buy more than is in stock', po([{'product_id':PB,'quantity':2}]), 'authenticated', C1, 'only 1 left')
+check('...a refused order changes no stock', stock(PB)==1)
+expect_fail('an inactive product cannot be ordered', po([{'product_id':PC,'quantity':1}]), 'authenticated', C1, 'no longer available')
+expect_fail('an empty cart is refused', po([]), 'authenticated', C1, 'cart is empty')
+expect_fail('quantity 0 is refused', po([{'product_id':PA,'quantity':0}]), 'authenticated', C1, 'between 1 and 20')
+expect_fail('quantity over 20 is refused', po([{'product_id':PA,'quantity':21}]), 'authenticated', C1, 'between 1 and 20')
+expect_fail('a bad phone number is refused', po([{'product_id':PA,'quantity':1}], phone='0712345678'), 'authenticated', C1, 'valid Safaricom')
+expect_fail('hand-over needs to know where', po([{'product_id':PA,'quantity':1}], note=' '), 'authenticated', C1, 'where you are staying')
+expect_fail('delivery needs an address', po([{'product_id':PA,'quantity':1}], ful='delivery', addr=''), 'authenticated', C1, 'delivery address')
+ok,out = sh(po([{'product_id':PA,'quantity':1}], ful='delivery', addr='Beach Road, Diani'), 'authenticated', C1)
+check('customer places a delivery order', ok, out)
+O2 = last(out)
+check('flat delivery fee is added: 1500 + 300 = 1800', scalar(f"select subtotal||'/'||delivery_fee||'/'||total from orders where id='{O2}'")=='1500/300/1800')
+check('stock for it reserved', stock(PA)==2)
+sh("update business_settings set shop_delivery_fee = 500;")
+check('changing the fee later does not alter an existing order', scalar(f"select total from orders where id='{O2}'")=='1800')
+
+# who can see / change orders
+ok,out = sh("select count(*) from orders;",'authenticated',C2); check('another customer sees none of these orders', ok and out.endswith('0'), out)
+ok,out = sh("select count(*) from orders;",'authenticated',C1); check('the owner sees their own orders', ok and out.endswith('3'), out)
+ok,out = sh("select count(*) from orders;",'authenticated',ADMIN); check('admin sees all orders', ok and out.endswith('3'), out)
+ok,out = sh("select count(*) from order_items;",'authenticated',C2); check('another customer sees none of the items', ok and out.endswith('0'), out)
+expect_fail('customer cannot insert an order directly', f"insert into orders (customer_id,customer_name,customer_phone,fulfilment,handover_note,subtotal,total) values ('{C1}','Amina','254712345678','handover','x1',1,1);", 'authenticated', C1, 'row-level security')
+ok,out = sh(f"update orders set total=1, status='paid' where id='{O1}'; select count(*) from orders where id='{O1}' and total=1;",'authenticated',C1)
+check('customer cannot edit an order (no rows change)', ok and out.endswith('0'), out)
+ok,out = sh(f"delete from orders where id='{O1}'; select count(*) from orders where id='{O1}';",'authenticated',C1)
+check('customer cannot delete an order (still there afterwards)', ok and out.endswith('1'), out)
+expect_fail('customer cannot call admin_mark_order_paid', f"select admin_mark_order_paid('{O1}');", 'authenticated', C1, 'admins only')
+expect_fail('customer cannot call admin_set_order_status', f"select admin_set_order_status('{O1}','cancelled');", 'authenticated', C1, 'admins only')
+
+# the unpaid-order cap
+expect_ok('a third unpaid order is allowed', po([{'product_id':PA,'quantity':1}]), 'authenticated', C1)
+expect_fail('a fourth unpaid order is refused', po([{'product_id':PA,'quantity':1}]), 'authenticated', C1, 'unpaid orders waiting')
+
+# paying for an order (the M-Pesa functions)
+expect_fail('payment request needs the secret', f"select record_order_payment_request('wrong','{O1}','254712345678','ws_O1','mr1');", 'authenticated', C1, 'invalid secret')
+expect_fail("another customer cannot start a payment for someone's order", f"select record_order_payment_request('{SECRET}','{O1}','254712345678','ws_O1','mr1');", 'authenticated', C2, 'not your order')
+expect_fail('anon cannot start an order payment', f"select record_order_payment_request('{SECRET}','{O1}','254712345678','ws_O1','mr1');", 'anon', None, 'permission denied')
+ok,out = sh(f"select (record_order_payment_request('{SECRET}','{O1}','254712345678','ws_O1','mr1')).amount;",'authenticated',C1)
+check('owner records a prompt; the amount is the order TOTAL (3800), not chosen by the caller', ok and out.endswith('3800'), out)
+ok,out = sh(f"select (record_order_payment_result('wrong','ws_O1',0,'ok','RCP1',3800)).id;",'anon'); check('callback with a wrong secret is refused', (not ok) and 'invalid callback secret' in out, out)
+ok,out = sh(f"select (record_order_payment_result('{SECRET}','ws_O1',1032,'cancelled',null,null)).status;",'anon')
+check('a failed result marks the payment failed', ok and out.endswith('failed'), out)
+check('...but the order stays payable', scalar(f"select status from orders where id='{O1}'")=='pending_payment')
+sh(f"select record_order_payment_request('{SECRET}','{O1}','254712345678','ws_O1b','mr2');",'authenticated',C1)
+ok,out = sh(f"select (record_order_payment_result('{SECRET}','ws_O1b',0,'ok','RCPA',3800)).status;",'anon')
+check('a success result marks the payment successful', ok and out.endswith('success'), out)
+check('...and the order is now paid, with a paid time', scalar(f"select status||'/'||(paid_at is not null) from orders where id='{O1}'")=='paid/true')
+ok,out = sh(f"select (record_order_payment_result('{SECRET}','ws_O1b',0,'ok','RCPB',3800)).id is null;",'anon')
+check('a repeated callback changes nothing (no second receipt)', ok and out.endswith('t'), out)
+expect_fail('a paid order cannot be paid again', f"select record_order_payment_request('{SECRET}','{O1}','254712345678','ws_O1c','mr3');", 'authenticated', C1, 'can no longer be paid')
+
+# underpayment never marks an order paid
+ok,out = sh(po([{'product_id':PA,'quantity':1}]), 'authenticated', C1); check('place an order to test underpayment', ok, out)
+OU = last(out)
+sh(f"select record_order_payment_request('{SECRET}','{OU}','254712345678','ws_OU','mr4');",'authenticated',C1)
+sh(f"select record_order_payment_result('{SECRET}','ws_OU',0,'ok','RCPU',10);",'anon')
+check('an underpayment does NOT mark the order paid', scalar(f"select status from orders where id='{OU}'")=='pending_payment')
+check('...and flags it for the admin', 'Underpaid' in scalar(f"select coalesce(admin_note,'') from orders where id='{OU}'"))
+
+# cancelling
+expect_fail('another customer cannot cancel it', f"select cancel_order('{O2}');", 'authenticated', C2, 'order not found')
+before=stock(PA)
+ok,out = sh(f"select (cancel_order('{O2}')).status;",'authenticated',C1); check('owner cancels an unpaid order', ok and out.endswith('cancelled'), out)
+check('...its 1 item of stock came back', stock(PA)==before+1 and scalar(f"select status from orders where id='{O2}'")=='cancelled')
+before=stock(PA)
+ok,out = sh(f"select (cancel_order('{O2}')).status;",'authenticated',C1); check('cancelling again does nothing', ok and out.endswith('cancelled'), out)
+check('...and does NOT return stock twice', stock(PA)==before)
+expect_fail('a customer cannot cancel a PAID order', f"select cancel_order('{O1}');", 'authenticated', C1, 'can no longer be cancelled')
+sh(f"select record_order_payment_request('{SECRET}','{OU}','254712345678','ws_OU2','mr5');",'authenticated',C1)
+sh(f"select cancel_order('{OU}');",'authenticated',C1)
+sh(f"select record_order_payment_result('{SECRET}','ws_OU2',0,'ok','RCPLATE',{scalar(f"select total from orders where id='{OU}'")});",'anon')
+check('money arriving after a cancel keeps the order cancelled', scalar(f"select status from orders where id='{OU}'")=='cancelled')
+check('...and tells the admin to refund', 'Refund' in scalar(f"select coalesce(admin_note,'') from orders where id='{OU}'"))
+
+# admin flow: paid -> packed -> completed
+expect_fail('cannot jump from unpaid straight to completed', f"select admin_set_order_status('{OU}','completed');", 'authenticated', ADMIN, 'Cannot change')
+ok,out = sh(f"select (admin_set_order_status('{O1}','packed')).status;",'authenticated',ADMIN); check('admin marks a paid order packed', ok and out.endswith('packed'), out)
+ok,out = sh(f"select (admin_set_order_status('{O1}','completed')).status;",'authenticated',ADMIN); check('admin marks it completed', ok and out.endswith('completed'), out)
+expect_fail('a completed order cannot be cancelled', f"select admin_set_order_status('{O1}','cancelled');", 'authenticated', ADMIN, 'Cannot change')
+expect_fail('an unknown status is refused', f"select admin_set_order_status('{O1}','bogus');", 'authenticated', ADMIN, 'Cannot change')
+
+# cash at hand-over
+ok,out = sh(po([{'product_id':PB,'quantity':1}]), 'authenticated', C1); check('place an order to pay in cash', ok, out)
+OC = last(out)
+expect_fail('admin_mark_order_paid refuses odd payment methods', f"select admin_mark_order_paid('{OC}','mpesa');", 'authenticated', ADMIN, 'cash or other')
+ok,out = sh(f"select (admin_mark_order_paid('{OC}','cash')).status;",'authenticated',ADMIN); check('admin marks an order paid (cash)', ok and out.endswith('paid'), out)
+expect_fail('it cannot be marked paid twice', f"select admin_mark_order_paid('{OC}','cash');", 'authenticated', ADMIN, 'Only an unpaid order')
+before=stock(PB)
+ok,out = sh(f"select (admin_set_order_status('{OC}','cancelled')).status;",'authenticated',ADMIN); check('admin can cancel a PAID order', ok and out.endswith('cancelled'), out)
+check('...and the stock comes back', stock(PB)==before+1)
+
+# expiry gives stock back, and a late payment still counts
+ok,out = sh(po([{'product_id':PB,'quantity':1}]), 'authenticated', C1); OE = last(out)
+sh(f"select record_order_payment_request('{SECRET}','{OE}','254712345678','ws_OE','mr6');",'authenticated',C1)
+before=stock(PB)
+sh(f"update orders set expires_at = now() - interval '1 minute' where id='{OE}';")
+sh("select release_expired_orders();",'anon')
+check('an unpaid order past its time expires', scalar(f"select status from orders where id='{OE}'")=='expired')
+check('...and its stock is released', stock(PB)==before+1)
+ok,out = sh(f"select (record_order_payment_result('{SECRET}','ws_OE',0,'ok','RCPEXP',{scalar(f"select total from orders where id='{OE}'")})).status;",'anon')
+check('a payment that lands after expiry is still accepted', ok and out.endswith('success'), out)
+check('...the order becomes paid, flagged to check stock, and stock is taken again', scalar(f"select status from orders where id='{OE}'")=='paid' and stock(PB)==before and 'Check stock' in scalar(f"select coalesce(admin_note,'') from orders where id='{OE}'"))
+
+# emails
+expect_fail('order email data needs the secret', f"select order_notification_context('nope','{O1}');", 'anon', None, 'invalid secret')
+ok,out = sh(f"select order_notification_context('{SECRET}','{O1}')->'order'->>'total';",'anon'); check('order email data comes back with the secret', ok and out.endswith('3800'), out)
+ok,out = sh(f"select jsonb_array_length(order_notification_context('{SECRET}','{O1}')->'items');",'anon'); check('...including its items', ok and out.endswith('2'), out)
+
 report()

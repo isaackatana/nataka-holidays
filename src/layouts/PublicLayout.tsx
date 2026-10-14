@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
-import { MessageCircle, Heart, CalendarCheck, User, LogOut, Menu, X, Briefcase } from 'lucide-react'
+import { MessageCircle, Heart, CalendarCheck, User, LogOut, Menu, X, Briefcase, ShoppingBag, Package } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useBusinessSettings } from '@/features/settings/queries'
 import { useTripCart } from '@/features/tripCart/TripCartContext'
+import { useShopCart } from '@/features/shop/ShopCartContext'
 import { buildWhatsAppLink } from '@/utils/whatsapp'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
@@ -13,6 +14,7 @@ const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Holiday Homes', to: '/holiday-homes' },
   { label: 'Experiences', to: '/experiences' },
+  { label: 'Shop', to: '/shop' },
   { label: 'Transport', to: '/transport' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
@@ -27,6 +29,7 @@ export function PublicLayout() {
   useRouteFocus()
   const { user, profile, signOut } = useAuth()
   const { totalCount: tripCount } = useTripCart()
+  const { count: shopCount } = useShopCart()
   const { data: settings } = useBusinessSettings()
   const navigate = useNavigate()
   const location = useLocation()
@@ -77,6 +80,19 @@ export function PublicLayout() {
 
           <div className="flex items-center gap-4">
             <Link
+              to="/shop/checkout"
+              aria-label={`Shop cart, ${shopCount} item${shopCount === 1 ? '' : 's'}`}
+              className="relative text-charcoal-700 transition-colors hover:text-teal-800"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {shopCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-pill bg-gold-600 px-1 font-mono text-[10px] text-sand-50">
+                  {shopCount}
+                </span>
+              )}
+            </Link>
+
+            <Link
               to="/trip"
               aria-label={`Trip cart, ${tripCount} item${tripCount === 1 ? '' : 's'}`}
               className="relative text-charcoal-700 transition-colors hover:text-teal-800"
@@ -104,6 +120,13 @@ export function PublicLayout() {
                   className="text-charcoal-700 transition-colors hover:text-teal-800"
                 >
                   <CalendarCheck className="h-5 w-5" />
+                </Link>
+                <Link
+                  to="/my-orders"
+                  aria-label="My orders"
+                  className="text-charcoal-700 transition-colors hover:text-teal-800"
+                >
+                  <Package className="h-5 w-5" />
                 </Link>
                 <Link
                   to="/profile"
@@ -202,6 +225,13 @@ export function PublicLayout() {
               >
                 <CalendarCheck className="h-4 w-4" />
                 My bookings
+              </Link>
+              <Link
+                to="/my-orders"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-charcoal-700 hover:bg-sand-100 hover:text-teal-800"
+              >
+                <Package className="h-4 w-4" />
+                My orders
               </Link>
               <Link
                 to="/profile"

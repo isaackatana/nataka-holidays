@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { queryClient } from '@/lib/queryClient'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { TripCartProvider } from '@/features/tripCart/TripCartContext'
+import { ShopCartProvider } from '@/features/shop/ShopCartContext'
 
 /**
  * Root provider stack. AuthProvider must sit *inside* QueryClientProvider
@@ -21,7 +22,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <TripCartProvider>{children}</TripCartProvider>
+          <TripCartProvider>
+            <ShopCartProvider>{children}</ShopCartProvider>
+          </TripCartProvider>
         </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>

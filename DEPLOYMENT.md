@@ -111,7 +111,9 @@ payment shows as Paid within seconds. Guests see the paid amount on
      `insert into app_secrets (key, value) values ('mpesa_callback_secret', 'PASTE_THE_SAME_STRING');`
 4. Add the other `MPESA_*` variables from `.env.example` in Vercel, then
    redeploy.
-5. **Test in sandbox first**, using your own number, before going live.
+5. **Test in sandbox first**, using the Safaricom test number
+   `254708374149` (the sandbox never sends a prompt to a real phone), before
+   going live.
    Sandbox callbacks need a public URL, so test on the deployed site
    (set `SITE_URL` to that URL), not on localhost.
 
@@ -397,7 +399,7 @@ clear the unused folders in Supabase → Storage.
 ## 16. Database tests (dry run of the migrations)
 
 `supabase/tests/` holds a test suite that builds a throwaway PostgreSQL
-database, applies all 15 migrations in order, and then acts as a guest, a
+database, applies all 16 migrations in order, and then acts as a guest, a
 customer and an admin to check the rules that protect your business:
 - nobody can make themselves an admin, approve their own review, or insert
   a pre-confirmed booking; booking totals are calculated by the database;
@@ -412,7 +414,7 @@ customer and an admin to check the rules that protect your business:
 
 It runs on your own computer, never against your live Supabase:
 `bash supabase/tests/run.sh` (needs PostgreSQL 15+ installed locally; see
-`supabase/tests/README.md`). It was run for this release: **90 of 90 passed**
+`supabase/tests/README.md`). It was run for this release: **171 of 171 passed**
 and every migration applied cleanly on a fresh database. Re-run it after
 changing any migration.
 
@@ -478,3 +480,37 @@ admin pages) shows the site-wide preview from `index.html`.
   the browser tags are visible there. Each page's own tags replace the
   defaults from `index.html` as soon as it loads (a test covers this).
   To see exactly what WhatsApp will get, test on the deployed site.
+
+## The shop (souvenirs and local products)
+
+Run `0016_shop.sql` first (it also creates the `product-images` storage
+bucket). Then, in the admin:
+
+1. **Settings -> Shop:** set the flat **delivery fee** (default KSh 300).
+   Hand-over at a guest's stay is always free.
+2. **Products:** add each item with a photo, price and stock. Untick "Show in
+   the shop" to hide one without deleting it.
+3. **Shop orders:** paid orders appear here (and you get an email). Mark them
+   **packed**, then **handed over / delivered**.
+
+How it works for guests: they add items to a cart, sign in, choose hand-over
+or delivery, and pay with M-Pesa on `/shop/checkout`. Their orders and
+payment prompts live at **My orders** (`/my-orders`).
+
+Safety rules (all enforced in the database, and covered by the test suite):
+- Prices and totals come from the products table, never from the browser.
+- Stock is held for 30 minutes when an order is placed, and released if it
+  isn't paid. A guest can also cancel an unpaid order themselves.
+- The M-Pesa amount is always the order total. Nobody can choose it.
+- A payment that arrives after an order was cancelled or expired is never
+  lost: the order shows a note telling you to refund it or check stock.
+- Orders can't be edited or deleted by customers; only the database functions
+  can change them.
+
+M-Pesa works exactly as for bookings (same Till, same callback), through a
+separate endpoint (`api/shop-pay.js`), so booking payments are unchanged. For
+**cash at hand-over**, open the order and tap **Paid in cash**.
+
+If a customer was charged but the order isn't marked paid, check Vercel Logs
+for `pay-callback` and `shop-pay`, and your M-Pesa statement, then tap **Paid
+in cash** (or "other") on the order. Refunds are done on the M-Pesa side.

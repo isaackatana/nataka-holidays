@@ -277,3 +277,64 @@ export function buildEmails(event, ctx, { siteUrl, extra } = {}) {
 
   return []
 }
+
+/**
+ * Emails for a paid shop order. `ctx` is order_notification_context();
+ * `receipt` is the M-Pesa receipt number.
+ */
+export function buildOrderEmails(ctx, { siteUrl, receipt } = {}) {
+  const o = ctx.order
+  const items = ctx.items ?? []
+  const first = escapeHtml(String(o.customer_name || '').split(' ')[0] || 'there')
+  const itemRows = items.map((i) => [`${i.quantity} × ${i.name}`, kes(i.unit_price * i.quantity)])
+  const how =
+    o.fulfilment === 'delivery'
+      ? ['Delivery to', o.delivery_address]
+      : ['Hand-over at', o.handover_note]
+  const rows = [
+    ...itemRows,
+    o.delivery_fee > 0 ? ['Delivery fee', kes(o.delivery_fee)] : null,
+    ['Total paid', kes(o.total)],
+    receipt ? ['M-Pesa receipt', receipt] : null,
+    how,
+  ].filter(Boolean)
+  const wrap = (heading, bodyHtml) => layout({ business: ctx.business, heading, bodyHtml, siteUrl })
+  const p = (t) => `<p style="margin:0 0 12px;font-size:15px;line-height:1.5">${t}</p>`
+  const nextStep =
+    o.fulfilment === 'delivery'
+      ? "We'll pack your order and deliver it to the address above. We'll contact you on the number you gave if we need anything."
+      : "We'll hand your order to you during your stay."
+  const contact = [ctx.business?.phone, ctx.business?.email].filter(Boolean).join(' · ')
+  const text = (lines) => lines.filter(Boolean).join('\n')
+
+  return [
+    {
+      to: 'guest',
+      subject: `Order received — ${kes(o.total)}`,
+      html: wrap(
+        'Thank you for your order',
+        p(`Hi ${first}, we've received your payment.`) + detailsTable(rows) + p(escapeHtml(nextStep)) +
+          (contact ? p(`Questions? ${escapeHtml(contact)}`) : ''),
+      ),
+      text: text([
+        `Hi ${o.customer_name}, we've received your payment of ${kes(o.total)}${receipt ? ` (receipt ${receipt})` : ''}.`,
+        ...items.map((i) => `${i.quantity} x ${i.name} - ${kes(i.unit_price * i.quantity)}`),
+        `${how[0]}: ${how[1]}`,
+        nextStep,
+      ]),
+    },
+    {
+      to: 'admin',
+      subject: `New shop order: ${kes(o.total)} from ${o.customer_name}`,
+      html: wrap(
+        'New shop order (paid)',
+        detailsTable([['Customer', o.customer_name], ['Phone', o.customer_phone], ...rows]),
+      ),
+      text: text([
+        `${o.customer_name} (${o.customer_phone}) paid ${kes(o.total)}.`,
+        ...items.map((i) => `${i.quantity} x ${i.name}`),
+        `${how[0]}: ${how[1]}`,
+      ]),
+    },
+  ]
+}

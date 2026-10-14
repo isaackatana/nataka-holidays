@@ -10,6 +10,7 @@ export interface BusinessSettings {
   facebook_url: string | null
   hero_video_url: string | null
   hero_image_url: string | null
+  shop_delivery_fee: number
   updated_at: string
 }
 

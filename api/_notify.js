@@ -3,7 +3,7 @@
 // Email is optional: with no RESEND_API_KEY it quietly does nothing, so
 // the rest of the site works without it.
 import { createClient } from '@supabase/supabase-js'
-import { buildEmails, eventAllowed } from './_emails.js'
+import { buildEmails, buildOrderEmails, eventAllowed } from './_emails.js'
 
 const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.co.ke'
 
@@ -79,4 +79,49 @@ export async function sendBookingNotification({ event, bookingId, payment }) {
     if (markError) console.error('[notify] could not mark sent:', markError.message)
   }
   return { sent: guestSent, reason: guestSent ? undefined : 'send_failed' }
+}
+
+/**
+ * Receipt + admin alert for a shop order that has just been paid. Called only
+ * from the verified M-Pesa callback, right after the payment is first
+ * recorded, so it fires once per payment.
+ */
+export async function sendOrderNotification({ orderId, receipt }) {
+  const {
+    VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, MPESA_CALLBACK_SECRET,
+    RESEND_API_KEY, NOTIFY_FROM_EMAIL, NOTIFY_ADMIN_EMAIL,
+  } = process.env
+
+  if (!RESEND_API_KEY || !NOTIFY_FROM_EMAIL) return { sent: false, reason: 'email_not_configured' }
+  if (!VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY || !MPESA_CALLBACK_SECRET) {
+    console.error('[notify] Supabase / secret env vars missing')
+    return { sent: false, reason: 'not_configured' }
+  }
+
+  const supabase = createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const { data: ctx, error } = await supabase.rpc('order_notification_context', {
+    p_secret: MPESA_CALLBACK_SECRET,
+    p_order_id: orderId,
+  })
+  if (error || !ctx) {
+    console.error('[notify] order_notification_context failed:', error?.message ?? 'not found')
+    return { sent: false, reason: 'lookup_failed' }
+  }
+  // Only ever email about an order that really is paid (or further along).
+  if (!['paid', 'packed', 'completed'].includes(ctx.order.status)) return { sent: false, reason: 'not_paid' }
+
+  let guestSent = false
+  for (const mail of buildOrderEmails(ctx, { siteUrl: SITE_URL, receipt })) {
+    const to = mail.to === 'guest' ? ctx.order.customer_email : NOTIFY_ADMIN_EMAIL
+    if (!to) continue
+    try {
+      await sendViaResend({ apiKey: RESEND_API_KEY, from: NOTIFY_FROM_EMAIL, to, subject: mail.subject, html: mail.html, text: mail.text })
+      if (mail.to === 'guest') guestSent = true
+    } catch (err) {
+      console.error(`[notify] order email to ${mail.to} failed:`, err.message)
+    }
+  }
+  return { sent: guestSent }
 }

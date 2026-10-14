@@ -63,3 +63,66 @@ export function selfPayError({ booking, userId, payments, amount, now = Date.now
 
   return null
 }
+
+const ORDER_PAY_COOLDOWN_MS = 90 * 1000
+
+/**
+ * Rules for paying a shop order. Returns an error message, or null if a
+ * prompt may be sent. The AMOUNT is never an input: it is always order.total.
+ */
+export function orderPayError({ order, userId, payments, now = Date.now() }) {
+  if (!userId || order.customer_id !== userId) return 'This is not your order.'
+  if (order.status === 'paid' || order.status === 'packed' || order.status === 'completed') {
+    return 'This order is already paid.'
+  }
+  if (order.status !== 'pending_payment') return 'This order can no longer be paid. Please place it again.'
+  if (new Date(order.expires_at).getTime() <= now) return 'This order has expired. Please place it again.'
+
+  const recentPending = payments.some(
+    (p) => p.status === 'pending' && now - new Date(p.created_at).getTime() < ORDER_PAY_COOLDOWN_MS,
+  )
+  if (recentPending) return 'A payment prompt was just sent. Check your phone, or try again in a minute.'
+  return null
+}
+
+/**
+ * Asks Safaricom to send an STK Push prompt. `cfg` holds the MPESA_* settings.
+ * Returns { ok, stk, status }; throws if Safaricom cannot be reached or
+ * rejects our credentials. Used by the shop endpoint (the booking endpoint
+ * keeps its own copy so live booking payments are not touched).
+ */
+export async function requestStkPush({ cfg, amount, phone, reference, description, callbackUrl, fetchImpl = fetch }) {
+  const base = darajaBaseUrl(cfg.MPESA_ENV)
+  const basic = Buffer.from(`${cfg.MPESA_CONSUMER_KEY}:${cfg.MPESA_CONSUMER_SECRET}`).toString('base64')
+  const tokenRes = await fetchImpl(`${base}/oauth/v1/generate?grant_type=client_credentials`, {
+    headers: { Authorization: `Basic ${basic}` },
+  })
+  if (!tokenRes.ok) {
+    const detail = (await tokenRes.text().catch(() => '')).slice(0, 300)
+    console.error(`[mpesa] Daraja auth rejected: env=${cfg.MPESA_ENV || 'sandbox (default)'} status=${tokenRes.status} body=${detail}`)
+    throw new Error(`Daraja auth failed (${tokenRes.status})`)
+  }
+  const { access_token: accessToken } = await tokenRes.json()
+
+  const timestamp = darajaTimestamp()
+  const password = Buffer.from(`${cfg.MPESA_SHORTCODE}${cfg.MPESA_PASSKEY}${timestamp}`).toString('base64')
+  const stkRes = await fetchImpl(`${base}/mpesa/stkpush/v1/processrequest`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      BusinessShortCode: cfg.MPESA_SHORTCODE,
+      Password: password,
+      Timestamp: timestamp,
+      TransactionType: cfg.MPESA_TRANSACTION_TYPE || 'CustomerPayBillOnline',
+      Amount: amount,
+      PartyA: phone,
+      PartyB: cfg.MPESA_PARTY_B || cfg.MPESA_SHORTCODE,
+      PhoneNumber: phone,
+      CallBackURL: callbackUrl,
+      AccountReference: reference,
+      TransactionDesc: description,
+    }),
+  })
+  const stk = await stkRes.json().catch(() => ({}))
+  return { ok: stkRes.ok && String(stk.ResponseCode) === '0', stk, status: stkRes.status }
+}

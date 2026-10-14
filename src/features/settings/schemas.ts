@@ -10,6 +10,7 @@ export const businessSettingsSchema = z.object({
   facebook_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   hero_video_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   hero_image_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  shop_delivery_fee: z.number({ message: 'Enter a number' }).int('Whole shillings only').min(0, 'Cannot be negative').max(10000, 'That is too high'),
 })
 
 export type BusinessSettingsFormValues = z.infer<typeof businessSettingsSchema>

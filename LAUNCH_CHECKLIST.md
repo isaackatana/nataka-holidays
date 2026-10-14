@@ -3,7 +3,7 @@
 Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items marked **(you)** are done in a dashboard, not in code.
 
 ## 1. Database (Supabase SQL editor)
-- [ ] Run every file in `supabase/migrations/` in order, up to **`0015_clear_stuck_payments.sql`** (`0012` is the security fix: don't skip it).
+- [ ] Run every file in `supabase/migrations/` in order, up to **`0016_shop.sql`** (`0012` is the security fix: don't skip it).
 - [ ] **Check who is an admin.** Run: `select id, full_name, role from profiles where role = 'admin';`
       Before 0012, any signed-in user could promote themselves, so make sure every row is someone you know.
       Demote anyone unexpected: `update profiles set role = 'customer' where id = '...';`
@@ -14,7 +14,7 @@ Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items m
 - [ ] Store the callback secret: `insert into app_secrets (key, value) values ('mpesa_callback_secret', '<long random string>');`
 
 > The migrations and security rules were already dry-run on a scratch
-> PostgreSQL (90 checks pass, see `DEPLOYMENT.md` §16), so the list below
+> PostgreSQL (171 checks pass, see `DEPLOYMENT.md` §16), so the list below
 > is about your real Supabase project and live services.
 
 ## 2. Supabase dashboard settings (you)
@@ -38,7 +38,7 @@ Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items m
 - [ ] Sign out, send a booking enquiry as a guest. It saves, and you get the alert email.
 - [ ] Sign in as admin, confirm it. Guest gets the email, dates grey out on the property page.
 - [ ] Try confirming a second booking for the same nights: it must be refused.
-- [ ] M-Pesa **sandbox**: send a prompt to your own phone, enter the PIN, see Paid + receipt email.
+- [ ] M-Pesa **sandbox**: send a prompt to the test number `254708374149` (the sandbox never reaches a real phone), see Paid + receipt email.
 - [ ] Sign in as a normal customer and open `/admin`: you must be turned away.
 - [ ] Arrival reminder: confirm a booking starting in 2 days, run the `curl` command in `DEPLOYMENT.md` §10, check the email arrives.
 - [ ] Paste links into WhatsApp: a property link, and also the home page, `/holiday-homes`, `/about` and `/contact`. Each should show its own title and a picture. If one looks stale, add `?v=2` to the link (see `DEPLOYMENT.md`, Link previews).
@@ -55,3 +55,10 @@ Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items m
 - [ ] The admin Dashboard and Bookings pages now warn you when a payment has been **Waiting for PIN** for over 5 minutes. If you see it, check your M-Pesa statement, then Vercel → Logs → `pay-callback`. If no money was taken, tap **Mark as failed** on that payment.
 - [ ] Rotate `MPESA_CALLBACK_SECRET` (in Vercel **and** the `app_secrets` row) if you ever think it leaked. It appears in the callback URL, so it can show up in Vercel logs.
 - [ ] Before confirming a booking, glance at the total. It is now computed by the database from the property's price, but check it's right.
+
+## Shop
+
+- [ ] `0016_shop.sql` run in Supabase; Settings > Shop delivery fee set.
+- [ ] At least one product added with a photo, price and stock.
+- [ ] Test order on a phone: add to cart, check out, pay with M-Pesa, see **Paid** in My orders, see it under Admin > Shop orders, receipt email arrives.
+- [ ] Cancel an unpaid test order and check the stock goes back up.

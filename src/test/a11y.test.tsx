@@ -8,10 +8,22 @@ import { AvailabilityCalendar } from '@/components/property/AvailabilityCalendar
 import { InputField } from '@/components/ui/InputField'
 import { PayBookingPanel } from '@/features/bookings/PayBookingPanel'
 import { PaymentPanel } from '@/features/admin/payments/PaymentPanel'
+import { MemoryRouter } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
+import { ShopCartProvider } from '@/features/shop/ShopCartContext'
+import ShopCheckout from '@/pages/public/ShopCheckout'
+import AdminOrders from '@/pages/admin/Orders'
 
 // The Supabase client throws at import time without env vars; these panels
 // only call it inside mutations, which these tests never trigger.
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
+vi.mock('@/features/auth/AuthContext', () => ({ useAuth: () => ({ profile: { full_name: 'Amina Hassan', phone: '0712345678' }, user: { id: 'u1' } }) }))
+vi.mock('@/features/settings/queries', () => ({ useBusinessSettings: () => ({ data: { shop_delivery_fee: 300 } }) }))
+vi.mock('@/features/admin/shop/queries', () => ({
+  useAdminOrders: () => ({ data: [{ id: 'o1', customer_name: 'Amina', customer_phone: '254712345678', fulfilment: 'delivery', delivery_address: 'Beach Road', handover_note: null, delivery_fee: 300, subtotal: 1500, total: 1800, status: 'paid', admin_note: null, created_at: '2026-10-13T09:00:00Z', order_items: [{ id: 'i1', product_name: 'Kikoy cloth', unit_price: 1500, quantity: 1 }] }], isLoading: false, isError: false }),
+  useSetOrderStatus: () => ({ mutate: () => {}, isPending: false, error: null }),
+  useMarkOrderPaid: () => ({ mutate: () => {}, isPending: false, error: null }),
+}))
 
 afterEach(cleanup)
 
@@ -86,5 +98,24 @@ describe('accessibility (axe)', () => {
         />,
       ),
     ).toEqual([])
+  })
+
+  it('shop checkout form', async () => {
+    localStorage.setItem('nataka-shop-cart', JSON.stringify([{ productId: 'p1', name: 'Kikoy cloth', slug: 'kikoy', price: 1500, imagePath: null, quantity: 1, maxQuantity: 5 }]))
+    const out = await violations(
+      <HelmetProvider>
+        <MemoryRouter>
+          <ShopCartProvider>
+            <ShopCheckout />
+          </ShopCartProvider>
+        </MemoryRouter>
+      </HelmetProvider>,
+    )
+    localStorage.clear()
+    expect(out).toEqual([])
+  })
+
+  it('admin shop orders', async () => {
+    expect(await violations(<AdminOrders />)).toEqual([])
   })
 })

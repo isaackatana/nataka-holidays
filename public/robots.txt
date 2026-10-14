@@ -7,6 +7,8 @@ Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /favorites
 Disallow: /my-bookings
+Disallow: /my-orders
+Disallow: /shop/checkout
 Disallow: /profile
 Disallow: /trip
 

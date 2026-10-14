@@ -33,6 +33,7 @@ export default function AdminSettings() {
         facebook_url: settings.facebook_url ?? '',
         hero_video_url: settings.hero_video_url ?? '',
         hero_image_url: settings.hero_image_url ?? '',
+        shop_delivery_fee: settings.shop_delivery_fee ?? 300,
       })
     }
   }, [settings, reset])
@@ -48,6 +49,7 @@ export default function AdminSettings() {
       facebook_url: values.facebook_url || null,
       hero_video_url: values.hero_video_url || null,
       hero_image_url: values.hero_image_url || null,
+      shop_delivery_fee: values.shop_delivery_fee,
     })
   }
 
@@ -133,6 +135,25 @@ export default function AdminSettings() {
               error={errors.hero_image_url?.message}
               {...register('hero_image_url')}
             />
+          </div>
+        </div>
+
+        <div className="border-t border-sand-200 pt-5">
+          <h2 className="font-display text-lg font-medium text-teal-900">Shop</h2>
+          <div className="mt-4 max-w-xs">
+            <InputField
+              label="Delivery fee (KSh)"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              error={errors.shop_delivery_fee?.message}
+              {...register('shop_delivery_fee', { valueAsNumber: true })}
+            />
+            <p className="mt-1.5 text-xs text-charcoal-500">
+              One flat fee added to every shop order that is delivered. Hand-over at a guest's stay is free.
+              Orders already placed keep the fee they were charged.
+            </p>
           </div>
         </div>
 

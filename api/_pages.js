@@ -51,4 +51,11 @@ export const PAGES = {
     title: 'Packages',
     description: 'Custom stay and experience packages with Nataka Holidays, Diani Beach.',
   },
+  shop: {
+    path: '/shop',
+    file: 'Shop.tsx',
+    title: 'Shop',
+    description:
+      'Souvenirs and crafts from the Kenyan Coast. Handed to you during your stay or delivered, paid by M-Pesa.',
+  },
 }
