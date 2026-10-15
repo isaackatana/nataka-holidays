@@ -79,7 +79,7 @@ export default function Home() {
         />
 
         {/* Centered hero content */}
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center gap-4 text-center">
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col items-left gap-4 text-left">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-gold-400 sm:text-xs sm:tracking-[0.3em]">
             Diani &middot; Watamu &middot; Malindi &middot; Lamu
           </span>
