@@ -46,19 +46,8 @@ export default function Home() {
       />
 
       {/* ---------------- HERO ---------------- */}
-      <section className="relative flex min-h-[85svh] flex-col justify-end overflow-hidden px-4 pb-24 pt-10 text-sand-50 sm:pb-6 sm:pt-16">
+      <section className="relative flex min-h-[72svh] flex-col justify-center overflow-hidden px-4 py-12 text-sand-50 sm:min-h-[75svh] sm:py-16">
         {businessSettings?.hero_video_url && !prefersReducedMotion ? (
-          // Always a direct file URL, not a YouTube/Vimeo link (see the
-          // admin Settings guidance) — a background video needs to
-          // autoplay muted and loop seamlessly with no player chrome,
-          // which those platforms' iframe embeds aren't built for.
-          //
-          // Gated on !prefersReducedMotion: CSS's own reduced-motion
-          // media query (index.css) only affects animation/transition
-          // properties — it has no effect on a <video autoPlay> element,
-          // so a full-bleed autoplaying background video needs this
-          // explicit check. Falls back to the static poster/hero image
-          // below instead of just not rendering anything.
           <video
             autoPlay
             muted
@@ -79,37 +68,34 @@ export default function Home() {
           />
         ) : null}
 
-        {/* Solid gradient when there's no media actually rendered behind
-            it (the original design, unchanged) — translucent instead
-            when layered over a real video/image, so it still keeps the
-            text readable without hiding the media entirely. Checks the
-            same condition that decided what rendered above, not just
-            whether hero_video_url is set — a reduced-motion visitor
-            with only a hero video configured (no fallback image) has
-            nothing rendered behind this overlay, and a translucent
-            gradient over nothing would look broken, not just dimmer. */}
+        {/* Background overlay */}
         <div
           className={
-            (businessSettings?.hero_video_url && !prefersReducedMotion) || businessSettings?.hero_image_url
-              ? 'absolute inset-0 bg-gradient-to-b from-teal-950/90 via-teal-900/55 to-teal-800/35'
+            (businessSettings?.hero_video_url && !prefersReducedMotion) ||
+            businessSettings?.hero_image_url
+              ? 'absolute inset-0 bg-gradient-to-b from-teal-950/90 via-teal-900/60 to-teal-800/45'
               : 'absolute inset-0 bg-gradient-to-b from-teal-950 via-teal-900 to-teal-800'
           }
         />
 
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-3">
+        {/* Centered hero content */}
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center gap-4 text-center">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-gold-400 sm:text-xs sm:tracking-[0.3em]">
             Diani &middot; Watamu &middot; Malindi &middot; Lamu
           </span>
-          <h1 className="max-w-3xl text-balance font-display text-[2rem] font-medium leading-[1.1] sm:text-5xl sm:leading-[1.05] md:text-6xl">
+
+          <h1 className="max-w-3xl text-balance font-display text-3xl font-medium leading-tight sm:text-5xl sm:leading-[1.05] md:text-6xl">
             Holiday homes on Kenya's most celebrated coastline.
           </h1>
-          <p className="max-w-xl text-base text-sand-200 sm:text-lg">
-            Villas, apartments and beach houses the length of the coast — verified, locally managed,
-            and a real person on WhatsApp when you need one.
+
+          <p className="max-w-2xl text-base leading-relaxed text-sand-200 sm:text-lg">
+            Villas, apartments and beach houses the length of the coast — verified,
+            locally managed, and a real person on WhatsApp when you need one.
           </p>
         </div>
 
-        <div className="relative mx-auto mt-5 w-full max-w-5xl">
+        {/* Search bar */}
+        <div className="relative mx-auto mt-7 w-full max-w-5xl sm:mt-8">
           <SearchBar />
         </div>
       </section>
