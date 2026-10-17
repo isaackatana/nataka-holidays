@@ -9,6 +9,7 @@ import {
   usePopularProperties,
 } from '@/features/admin/queries'
 import { StuckPaymentsNotice } from '@/features/admin/payments/StuckPaymentsNotice'
+import { PendingReviewsNotice } from '@/features/admin/reviews/PendingReviewsNotice'
 import { formatDateRange } from '@/utils/dates'
 import { formatKES } from '@/utils/currency'
 
@@ -24,6 +25,7 @@ export default function Dashboard() {
       <p className="mt-1 text-sm text-charcoal-500">An overview of Nataka Holidays right now.</p>
 
       <StuckPaymentsNotice />
+      <PendingReviewsNotice />
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Total properties" value={stats?.totalProperties} icon={Home} loading={statsLoading} />

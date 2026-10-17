@@ -1,4 +1,4 @@
-// POST /api/notify  { event: 'enquiry' | 'confirmed' | 'cancelled', bookingId }
+// POST /api/notify  { event: 'enquiry' | 'confirmed' | 'cancelled' | 'review_submitted', bookingId }
 //
 // Public on purpose (a guest enquiry has no account), and safe because:
 // the recipient always comes from the booking row, never the request; the
@@ -8,7 +8,7 @@
 import { sendBookingNotification } from './_notify.js'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const EVENTS = new Set(['enquiry', 'confirmed', 'cancelled'])
+const EVENTS = new Set(['enquiry', 'confirmed', 'cancelled', 'review_submitted'])
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store')

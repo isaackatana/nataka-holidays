@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
  * plain public URL rather than a signed one.
  */
 export function getPublicImageUrl(
-  bucket: 'property-images' | 'experience-images' | 'product-images',
+  bucket: 'property-images' | 'experience-images' | 'product-images' | 'review-images',
   storagePath: string,
 ): string {
   return supabase.storage.from(bucket).getPublicUrl(storagePath).data.publicUrl
@@ -30,7 +30,7 @@ const TRANSFORMS_ENABLED = import.meta.env.VITE_IMAGE_TRANSFORMS === 'true'
 
 /** A copy of the image at roughly `width` pixels wide (or the original when transforms are off). */
 export function getResizedImageUrl(
-  bucket: 'property-images' | 'experience-images' | 'product-images',
+  bucket: 'property-images' | 'experience-images' | 'product-images' | 'review-images',
   storagePath: string,
   width: number,
 ): string {
@@ -41,7 +41,7 @@ export function getResizedImageUrl(
 
 /** `srcset` value for responsive loading, or undefined when transforms are off. */
 export function getImageSrcSet(
-  bucket: 'property-images' | 'experience-images' | 'product-images',
+  bucket: 'property-images' | 'experience-images' | 'product-images' | 'review-images',
   storagePath: string,
   widths: number[],
 ): string | undefined {

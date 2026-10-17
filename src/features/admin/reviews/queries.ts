@@ -3,6 +3,8 @@ import {
   getAllReviewsForAdmin,
   updateReviewStatus,
   deleteReview,
+  getPendingReviewCount,
+  setOwnerReply,
   type AdminReviewFilters,
 } from '@/services/admin/reviews.service'
 import type { ReviewStatus } from '@/types/domain'
@@ -38,5 +40,23 @@ export function useDeleteReview() {
   return useMutation({
     mutationFn: (id: string) => deleteReview(id),
     onSuccess: invalidate,
+  })
+}
+
+export function useSetOwnerReply() {
+  const invalidate = useInvalidateReviewCaches()
+  return useMutation({
+    mutationFn: ({ id, reply }: { id: string; reply: string }) => setOwnerReply(id, reply),
+    onSuccess: invalidate,
+  })
+}
+
+/** Reviews awaiting approval. Under the ['admin','reviews'] prefix, so approving,
+ * rejecting or deleting a review refreshes the count straight away. */
+export function usePendingReviewCount() {
+  return useQuery({
+    queryKey: ['admin', 'reviews', 'pending-count'],
+    queryFn: getPendingReviewCount,
+    refetchInterval: 60_000,
   })
 }

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { buildEmails, clockTime, eatDate, escapeHtml, eventAllowed, kes, reminderWindow } from './_emails.js'
+import {
+  buildEmails, clockTime, eatDate, escapeHtml, eventAllowed, kes, reminderWindow, reviewRequestWindow,
+} from './_emails.js'
 
 const now = new Date('2026-10-01T12:00:00Z').getTime()
 const booking = {
@@ -108,5 +110,65 @@ describe('reminders', () => {
     const [mail] = buildEmails('reminder', paidUp, opts)
     expect(mail.html).not.toContain('Balance due')
     expect(mail.html).not.toContain('google.com/maps')
+  })
+})
+
+describe('review requests', () => {
+  const t = new Date('2026-10-15T09:00:00Z').getTime()
+  const done = { ...booking, status: 'completed', check_in: '2026-10-10', check_out: '2026-10-13' }
+
+  it('looks back two weeks, in East Africa dates', () => {
+    expect(reviewRequestWindow(t)).toEqual({ from: '2026-10-01', to: '2026-10-15' })
+  })
+
+  it('only allows completed stays that ended recently', () => {
+    expect(eventAllowed('review_request', done, t)).toBe(true)
+    expect(eventAllowed('review_request', { ...done, check_out: '2026-09-20' }, t)).toBe(false) // too long ago
+    expect(eventAllowed('review_request', { ...done, check_out: '2026-10-20' }, t)).toBe(false) // not ended yet
+    expect(eventAllowed('review_request', { ...done, status: 'confirmed' }, t)).toBe(false)
+    expect(eventAllowed('review_request', { ...done, status: 'cancelled' }, t)).toBe(false)
+  })
+
+  it('sends one guest-only email linking to My bookings, with guest text escaped', () => {
+    const mails = buildEmails('review_request', { ...ctx, booking: done }, opts)
+    expect(mails.map((m) => m.to)).toEqual(['guest'])
+    expect(mails[0].subject).toContain('Beach Villa')
+    expect(mails[0].html).toContain('https://natakaholidays.co.ke/my-bookings')
+    expect(mails[0].html).not.toContain('<b>Hassan</b>')
+    expect(mails[0].text).toContain('/my-bookings')
+  })
+})
+
+describe('review_submitted alert', () => {
+  const done = { ...booking, status: 'completed' }
+  const reviewCtx = {
+    ...ctx,
+    booking: done,
+    review: { rating: 4, comment: 'Lovely <script>alert(1)</script>\nSee you soon', status: 'pending', photo_count: 2 },
+  }
+
+  it('is only allowed for a completed stay', () => {
+    expect(eventAllowed('review_submitted', done, now)).toBe(true)
+    expect(eventAllowed('review_submitted', booking, now)).toBe(false)
+  })
+
+  it('goes to the admin only, with stars, photo count and an admin link', () => {
+    const mails = buildEmails('review_submitted', reviewCtx, opts)
+    expect(mails.map((m) => m.to)).toEqual(['admin'])
+    expect(mails[0].subject).toContain('★★★★☆')
+    expect(mails[0].subject).toContain('Beach Villa')
+    expect(mails[0].html).toContain('https://natakaholidays.co.ke/admin/reviews')
+    expect(mails[0].html).toContain('>2<')
+  })
+
+  it("escapes the guest's text", () => {
+    const html = buildEmails('review_submitted', reviewCtx, opts)[0].html
+    expect(html).not.toContain('<script>')
+    expect(html).toContain('&lt;script&gt;')
+    expect(html).toContain('<br>See you soon')
+  })
+
+  it('sends nothing when there is no review', () => {
+    expect(buildEmails('review_submitted', { ...ctx, booking: done }, opts)).toEqual([])
   })
 })

@@ -246,6 +246,31 @@ any extras go out the next day.
 skipped and failed. You can also trigger it by hand with
 `curl -H "Authorization: Bearer <CRON_SECRET>" https://natakaholidays.co.ke/api/send-reminders`.
 
+**Review requests.** The same daily job also emails each guest once after a
+*Completed* stay, asking them to write a review (a link to My bookings). It
+looks back 14 days, only emails guests who booked while signed in (only they
+can write a review), and skips anyone who has already reviewed. To turn it on,
+run `0019_review_requests.sql` on Supabase; nothing else to set up. Reviews
+still start as *Pending* until you approve them in Admin → Reviews. Remember
+to mark a stay **Completed** in Admin → Bookings after checkout, or no email
+goes out. The job's log line shows a `reviewRequests` count.
+
+**New-review alert.** When a guest submits a review, the business email
+(`NOTIFY_ADMIN_EMAIL`) gets a message with the stars, comment and photo count
+and a link to Admin → Reviews. Run `0023_review_alert.sql` to turn it on. It's
+sent once per stay, after the guest's photos are in; later edits show up as the
+Reviews badge in the admin menu instead.
+
+**Guest review photos.** Guests can add up to 3 photos to a review
+(JPEG, PNG or WebP; shrunk in their browser before upload). Run
+`0022_review_photos.sql` once. Photos appear on the property page only after
+you approve the review, and adding or removing a photo on an approved review
+sends it back to Pending. In Admin → Reviews you see the photos and can open
+them full size before approving. Deleting a review also deletes its photo
+files. Photo files sit in a public storage bucket under random names, so a
+photo's link would work for someone who had it even before approval; they are
+not listed anywhere until approved.
+
 **Tip:** the email's content comes from each property's *Stay details*
 (check-in/out times, house rules) and map location in the admin editor,
 so fill those in properly.

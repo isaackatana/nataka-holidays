@@ -41,6 +41,7 @@ Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items m
 - [ ] M-Pesa **sandbox**: send a prompt to the test number `254708374149` (the sandbox never reaches a real phone), see Paid + receipt email.
 - [ ] Sign in as a normal customer and open `/admin`: you must be turned away.
 - [ ] Arrival reminder: confirm a booking starting in 2 days, run the `curl` command in `DEPLOYMENT.md` §10, check the email arrives.
+- [ ] Reviews (the database rules for 0018-0023 were also checked on a test Postgres; see `supabase/tests/README.md`): mark a test booking Completed, sign in as that guest, write a review in My bookings, approve it in Admin → Reviews, check it shows on the property page. Run the reminder `curl` and check the "How was your stay?" email arrives (needs `0019_review_requests.sql`). Star ratings on listing cards need `0020_property_rating_stats.sql`.
 - [ ] Paste links into WhatsApp: a property link, and also the home page, `/holiday-homes`, `/about` and `/contact`. Each should show its own title and a picture. If one looks stale, add `?v=2` to the link (see `DEPLOYMENT.md`, Link previews).
 - [ ] Open the site on a phone: calendar, booking form, My bookings. Tap a form field on an iPhone: the page must not zoom in.
 - [ ] Accessibility: tab through the booking form with only the keyboard, then run Lighthouse (Chrome DevTools → Accessibility) on the home page, a property page and the booking form. Aim for 95+.

@@ -1,4 +1,4 @@
-export type NotifyEvent = 'enquiry' | 'confirmed' | 'cancelled'
+export type NotifyEvent = 'enquiry' | 'confirmed' | 'cancelled' | 'review_submitted'
 
 /**
  * Asks the server to email the guest about a booking event. Fire-and-forget:

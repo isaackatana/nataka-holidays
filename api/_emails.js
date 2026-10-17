@@ -37,6 +37,15 @@ export function reminderWindow(now = Date.now()) {
   return { from, to }
 }
 
+export const REVIEW_REQUEST_DAYS_BACK = 14
+
+/** Stays that ended from N days ago up to today are due a review request. */
+export function reviewRequestWindow(now = Date.now()) {
+  const from = eatDate(now - REVIEW_REQUEST_DAYS_BACK * 24 * 60 * 60 * 1000)
+  const to = eatDate(now)
+  return { from, to }
+}
+
 /** '14:00:00' -> '2:00 PM' */
 export function clockTime(value) {
   const m = /^(\d{1,2}):(\d{2})/.exec(String(value ?? ''))
@@ -62,6 +71,12 @@ export function eventAllowed(event, booking, now = Date.now()) {
       const { from, to } = reminderWindow(now)
       return booking.status === 'confirmed' && booking.check_in >= from && booking.check_in <= to
     }
+    case 'review_request': {
+      const { from, to } = reviewRequestWindow(now)
+      return booking.status === 'completed' && booking.check_out >= from && booking.check_out <= to
+    }
+    case 'review_submitted':
+      return booking.status === 'completed' // _notify.js also requires a review to exist
     case 'payment':
       return true // only ever triggered server-side from the verified M-Pesa callback
     default:
@@ -237,6 +252,57 @@ export function buildEmails(event, ctx, { siteUrl, extra } = {}) {
         mapUrl ? `Map: ${mapUrl}` : '',
         balance > 0 ? `Balance due: ${kes(balance)}. Pay by M-Pesa under My bookings: ${siteUrl}/my-bookings` : '',
         rules ? `House rules:\n${rules}` : '',
+      ]),
+    }]
+  }
+
+  if (event === 'review_request') {
+    const reviewUrl = `${siteUrl}/my-bookings`
+    return [{
+      to: 'guest',
+      subject: `How was your stay at ${title}?`,
+      html: wrap(
+        'How was your stay?',
+        p(`Hi ${first}, thank you for staying with us at ${escapeHtml(title)}. We'd love to hear how it went.`) +
+          p('A short review helps future guests choose with confidence, and it helps us look after you better next time. It only takes a minute.') +
+          p(`<a href="${escapeHtml(reviewUrl)}" style="display:inline-block;background:#0f3d3e;color:#f7f2e9;text-decoration:none;padding:10px 22px;border-radius:999px;font-size:14px;font-weight:bold">Write a review</a>`) +
+          p('Sign in with the account you booked with, then open <strong>My bookings</strong>.') +
+          (contactLine ? p(contactLine) : ''),
+      ),
+      text: plain([
+        `Hi ${b.guest_name}, thank you for staying with us at ${title}. How was your stay?`,
+        `Write a short review here (sign in, then open My bookings): ${reviewUrl}`,
+      ]),
+    }]
+  }
+
+  if (event === 'review_submitted') {
+    const r = ctx.review
+    if (!r) return []
+    const rating = Math.max(0, Math.min(5, Math.round(Number(r.rating) || 0)))
+    const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating)
+    const photos = Number(r.photo_count) || 0
+    const reviewUrl = `${siteUrl}/admin/reviews`
+    const rows = [
+      ['Guest', b.guest_name],
+      ['Property', title],
+      ['Rating', `${stars} (${rating}/5)`],
+      ['Photos', photos > 0 ? String(photos) : null],
+    ]
+    return [{
+      to: 'admin',
+      subject: `New review to approve: ${stars} — ${title}`,
+      html: wrap(
+        'New review to approve',
+        p(`${escapeHtml(b.guest_name || 'A guest')} has reviewed ${escapeHtml(title)}. It stays hidden until you approve it.`) +
+          detailsTable(rows) +
+          (r.comment ? p(`<em>“${escapeHtml(r.comment).replace(/\r?\n/g, '<br>')}”</em>`) : '') +
+          p(`<a href="${escapeHtml(reviewUrl)}" style="display:inline-block;background:#0f3d3e;color:#f7f2e9;text-decoration:none;padding:10px 22px;border-radius:999px;font-size:14px;font-weight:bold">Review it</a>`),
+      ),
+      text: plain([
+        `${b.guest_name} reviewed ${title}: ${stars} (${rating}/5)${photos > 0 ? `, ${photos} photo${photos === 1 ? '' : 's'}` : ''}.`,
+        r.comment ? `"${r.comment}"` : '',
+        `Approve or reject it: ${reviewUrl}`,
       ]),
     }]
   }

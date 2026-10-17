@@ -1,10 +1,11 @@
 import { type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, BedDouble, Users, MapPin, Briefcase, Check } from 'lucide-react'
+import { Heart, BedDouble, Users, MapPin, Briefcase, Check, Star } from 'lucide-react'
 import type { Property } from '@/types/domain'
 import { getImageSrcSet, getPrimaryPropertyImagePath, getResizedImageUrl } from '@/utils/storage'
 import { formatKES } from '@/utils/currency'
 import { useTripCart } from '@/features/tripCart/TripCartContext'
+import { usePropertyRatings } from '@/features/reviews/queries'
 
 interface PropertyCardProps {
   property: Property
@@ -16,6 +17,8 @@ export function PropertyCard({ property, isFavorited, onToggleFavorite }: Proper
   const imagePath = getPrimaryPropertyImagePath(property.property_images)
   const { addProperty, removeProperty, isPropertyInCart } = useTripCart()
   const inTrip = isPropertyInCart(property.id)
+  const { data: ratings } = usePropertyRatings()
+  const rating = ratings?.[property.id]
 
   function handleToggleTrip(e: MouseEvent) {
     e.preventDefault()
@@ -93,6 +96,16 @@ export function PropertyCard({ property, isFavorited, onToggleFavorite }: Proper
           <h3 className="font-display text-lg font-medium leading-snug text-teal-900">
             {property.title}
           </h3>
+          {rating && (
+            <span
+              className="flex shrink-0 items-center gap-1 pt-1 text-sm"
+              aria-label={`Rated ${rating.average.toFixed(1)} out of 5 from ${rating.review_count} review${rating.review_count === 1 ? '' : 's'}`}
+            >
+              <Star className="h-4 w-4 fill-gold-500 text-gold-500" aria-hidden="true" />
+              <span className="font-figures font-medium text-teal-900">{rating.average.toFixed(1)}</span>
+              <span className="text-charcoal-500">({rating.review_count})</span>
+            </span>
+          )}
         </div>
 
         <p className="flex items-center gap-1 text-sm text-charcoal-500">

@@ -17,7 +17,7 @@ async function sendViaResend({ apiKey, from, to, subject, html, text }) {
 }
 
 /**
- * @param event 'enquiry' | 'confirmed' | 'cancelled' | 'payment' | 'reminder'
+ * @param event 'enquiry' | 'confirmed' | 'cancelled' | 'payment' | 'reminder' | 'review_request' | 'review_submitted'
  * @param payment  for 'payment': { id, amount, receipt }
  * @returns { sent: boolean, reason?: string }
  */
@@ -50,6 +50,7 @@ export async function sendBookingNotification({ event, bookingId, payment }) {
   const eventKey = event === 'payment' ? `payment:${payment?.id}` : event
   if ((ctx.sent_events ?? []).includes(eventKey)) return { sent: false, reason: 'already_sent' }
   if (!eventAllowed(event, ctx.booking)) return { sent: false, reason: 'not_allowed' }
+  if (event === 'review_submitted' && !ctx.review) return { sent: false, reason: 'not_allowed' }
 
   const emails = buildEmails(event, ctx, {
     siteUrl: SITE_URL,
@@ -57,20 +58,25 @@ export async function sendBookingNotification({ event, bookingId, payment }) {
   })
 
   let guestSent = false
+  let adminSent = false
   for (const mail of emails) {
     const to = mail.to === 'guest' ? ctx.booking.guest_email : NOTIFY_ADMIN_EMAIL
     if (!to) continue
     try {
       await sendViaResend({ apiKey: RESEND_API_KEY, from: NOTIFY_FROM_EMAIL, to, subject: mail.subject, html: mail.html, text: mail.text })
       if (mail.to === 'guest') guestSent = true
+      else adminSent = true
     } catch (err) {
       console.error(`[notify] ${event} email to ${mail.to} failed:`, err.message)
     }
   }
 
   // Mark as done once the guest has their email, so a retry can't double-send.
-  // (Admin-only copies are best effort.)
-  if (guestSent) {
+  // (Admin copies of guest emails are best effort.) An event that only ever
+  // goes to the business (a new review) is marked once that email is sent.
+  const adminOnly = emails.length > 0 && emails.every((m) => m.to === 'admin')
+  const delivered = adminOnly ? adminSent : guestSent
+  if (delivered) {
     const { error: markError } = await supabase.rpc('mark_notification_sent', {
       p_secret: MPESA_CALLBACK_SECRET,
       p_booking_id: bookingId,
@@ -78,7 +84,7 @@ export async function sendBookingNotification({ event, bookingId, payment }) {
     })
     if (markError) console.error('[notify] could not mark sent:', markError.message)
   }
-  return { sent: guestSent, reason: guestSent ? undefined : 'send_failed' }
+  return { sent: delivered, reason: delivered ? undefined : 'send_failed' }
 }
 
 /**

@@ -6,6 +6,8 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { useMyBookings } from '@/features/bookings/queries'
 import { usePayments } from '@/features/admin/payments/queries'
 import { PayBookingPanel } from '@/features/bookings/PayBookingPanel'
+import { ReviewBookingPanel } from '@/features/reviews/ReviewBookingPanel'
+import { useMyReviews } from '@/features/reviews/queries'
 import { formatDateRange } from '@/utils/dates'
 import { formatKES } from '@/utils/currency'
 import { sumPaid } from '@/utils/payments'
@@ -15,6 +17,7 @@ export default function MyBookings() {
   const { data: bookings, isLoading, isError } = useMyBookings(user?.id)
   // RLS limits this to payments on the signed-in customer's own bookings.
   const { data: payments } = usePayments()
+  const { data: myReviews } = useMyReviews(user?.id)
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-12">
@@ -110,6 +113,15 @@ export default function MyBookings() {
                   guestPhone={booking.guest_phone}
                   estimatedTotal={booking.estimated_total}
                   payments={(payments ?? []).filter((p) => p.booking_id === booking.id)}
+                />
+              )}
+
+              {booking.status === 'completed' && user && booking.properties && (
+                <ReviewBookingPanel
+                  customerId={user.id}
+                  bookingId={booking.id}
+                  propertyId={booking.property_id}
+                  review={myReviews?.find((r) => r.booking_id === booking.id)}
                 />
               )}
             </div>

@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { LayoutDashboard, Home, CalendarCheck, Users, Star, Compass, Settings, LogOut, Mail, Menu, X, ListChecks, BarChart3, ShoppingBag, Package } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
+import { usePendingReviewCount } from '@/features/admin/reviews/queries'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
 import { useRouteFocus } from '@/hooks/useRouteFocus'
@@ -34,6 +35,7 @@ export function AdminLayout() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
   const { data: unreadMessages } = useAdminContactMessages({ unreadOnly: true })
+  const { data: pendingReviews } = usePendingReviewCount()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const mobileNavRef = useDialogA11y<HTMLElement>(mobileNavOpen, () => setMobileNavOpen(false))
   useSwipeToToggle({
@@ -72,6 +74,14 @@ export function AdminLayout() {
           {to === '/admin/messages' && (unreadMessages?.length ?? 0) > 0 && (
             <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-pill bg-gold-600 px-1.5 font-mono text-[10px] text-sand-50">
               {unreadMessages!.length}
+            </span>
+          )}
+          {to === '/admin/reviews' && (pendingReviews ?? 0) > 0 && (
+            <span
+              className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-pill bg-gold-600 px-1.5 font-mono text-[10px] text-sand-50"
+              aria-label={`${pendingReviews} reviews waiting for approval`}
+            >
+              {pendingReviews}
             </span>
           )}
         </Link>
