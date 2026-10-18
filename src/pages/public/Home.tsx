@@ -8,13 +8,14 @@ import { SearchBar } from '@/components/property/SearchBar'
 import { PropertyCard } from '@/components/property/PropertyCard'
 import { PropertyCardSkeleton } from '@/components/property/PropertyCardSkeleton'
 import { ExperienceCard } from '@/components/property/ExperienceCard'
+import { GuestStories } from '@/components/home/GuestStories'
 import { useFeaturedProperties } from '@/features/properties/queries'
 import { useExperiences } from '@/features/experiences/queries'
 import { useFavoriteActions } from '@/features/favorites/useFavoriteActions'
 import { useBusinessSettings } from '@/features/settings/queries'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { DESTINATIONS, DESTINATION_REGIONS } from '@/data/destinations'
-import { WHY_CHOOSE_US, WHY_CHOOSE_US_ICONS, TESTIMONIALS } from '@/data/content'
+import { WHY_CHOOSE_US, WHY_CHOOSE_US_ICONS } from '@/data/content'
 import { buildWhatsAppLink } from '@/utils/whatsapp'
 
 export default function Home() {
@@ -253,15 +254,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------------- GUEST TESTIMONIALS ---------------- */}
-      <section className="mx-auto w-full max-w-7xl px-6 py-20">
-        <SectionHeading eyebrow="Guest stories" title="What guests are saying" align="center" />
-        <div className="mx-auto mt-10 flex max-w-2xl flex-col items-center gap-4 rounded-card bg-sand-100 p-8 text-center">
-          <p className="font-display text-lg italic text-charcoal-700">
-            "{TESTIMONIALS[0].quote}"
-          </p>
-        </div>
-      </section>
+      {/* ---------------- GUEST STORIES (real approved reviews; hidden when none) ---------------- */}
+      <GuestStories />
 
       {/* ---------------- CTA / WHATSAPP ---------------- */}
       <section className="mx-auto w-full max-w-7xl px-6 pb-20">

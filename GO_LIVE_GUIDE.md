@@ -79,7 +79,7 @@ When done: **Redeploy**, then open the live site and check it loads.
 ## Part B. Run the migrations
 
 Supabase → **SQL Editor**. Run every file in `supabase/migrations/` in number order, up to
-the highest (currently `0023_review_alert.sql`). Do not skip `0012`. Each should end
+the highest (currently `0024_reviewer_names.sql`). Do not skip `0012`. Each should end
 with "Success". If one errors, stop and send me the message.
 
 ---

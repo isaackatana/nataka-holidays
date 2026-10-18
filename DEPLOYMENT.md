@@ -259,6 +259,23 @@ still start as *Pending* until you approve them in Admin → Reviews. Remember
 to mark a stay **Completed** in Admin → Bookings after checkout, or no email
 goes out. The job's log line shows a `reviewRequests` count.
 
+**Home page "What guests are saying".** This shows your 3 most recent approved
+reviews that are 4 or 5 stars and have a written comment, with the guest's first
+name and last initial (for example "Amina K.") and a link to the property. With
+no such reviews yet, the whole section is hidden, so there is no placeholder
+text. Lower-rated reviews still appear on the property's own page. Run
+`0024_reviewer_names.sql` once: it stores that short name on each review
+(guest profiles stay private) and fills it in for existing reviews. Until it's
+run, reviews show as "Guest".
+
+**Order matters: migrations first, then deploy.** If the site is deployed before
+the review migrations (0018-0024) have run, guests still see reviews (the pages
+fall back to plain reviews), but the **admin Reviews page shows a "Could not
+find a relationship between 'reviews' and 'review_images'" error** until
+`0022` is run. To see which have run, paste `supabase/tests/which_migrations_ran.sql`
+into the Supabase SQL Editor and run any that show `false`, in number order
+(0021 before 0022).
+
 **New-review alert.** When a guest submits a review, the business email
 (`NOTIFY_ADMIN_EMAIL`) gets a message with the stars, comment and photo count
 and a link to Admin → Reviews. Run `0023_review_alert.sql` to turn it on. It's

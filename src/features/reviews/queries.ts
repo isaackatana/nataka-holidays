@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getApprovedReviews,
+  getFeaturedReviews,
   getMyReviews,
   getPropertyRatings,
   submitReview,
@@ -56,6 +57,16 @@ export function usePropertyRatings() {
     // Under the ['reviews'] prefix so approving/rejecting a review refreshes it.
     queryKey: ['reviews', 'ratings'],
     queryFn: getPropertyRatings,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  })
+}
+
+/** Good recent reviews for the home page. */
+export function useFeaturedReviews() {
+  return useQuery({
+    queryKey: ['reviews', 'featured'],
+    queryFn: () => getFeaturedReviews(3),
     staleTime: 5 * 60 * 1000,
     retry: false,
   })

@@ -71,7 +71,7 @@ export function ReviewsSection({ propertyId }: { propertyId: string }) {
                   >
                     <img
                       src={getResizedImageUrl('review-images', img.storage_path, 400)}
-                      alt={`Guest photo from ${review.profiles?.full_name ?? 'a guest'}'s stay`}
+                      alt={`Guest photo from ${review.reviewer_name ?? 'a guest'}'s stay`}
                       loading="lazy"
                       className="h-20 w-20 rounded-lg object-cover"
                     />
@@ -80,7 +80,7 @@ export function ReviewsSection({ propertyId }: { propertyId: string }) {
               </div>
             )}
             <span className="font-mono text-xs text-charcoal-500">
-              {review.profiles?.full_name ?? 'Guest'}
+              {review.reviewer_name ?? review.profiles?.full_name ?? 'Guest'}
             </span>
             {review.owner_reply && (
               <div className="mt-2 rounded-lg border-l-2 border-teal-700 bg-sand-50 p-3">

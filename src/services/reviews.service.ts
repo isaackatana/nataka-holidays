@@ -12,20 +12,73 @@ export interface Review {
   comment: string | null
   created_at: string
   owner_reply: string | null
+  reviewer_name?: string | null
   review_images: ReviewImage[]
   profiles: { full_name: string | null } | null
 }
 
-export async function getApprovedReviews(propertyId: string): Promise<Review[]> {
-  const { data, error } = await supabase
-    .from('reviews')
-    .select('id, rating, comment, created_at, owner_reply, review_images ( id, storage_path ), profiles ( full_name )')
-    .eq('property_id', propertyId)
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false })
+/**
+ * True when the database is missing something the newer review features use (the
+ * photos table or the reply column), i.e. a migration hasn't been run yet. The
+ * pages that guests see then fall back to plain reviews instead of breaking.
+ */
+function isMissingReviewFeature(error: { code?: string } | null): boolean {
+  return error?.code === 'PGRST200' || error?.code === 'PGRST204' || error?.code === '42703' || error?.code === '42P01'
+}
 
-  if (error) throw error
-  return (data ?? []) as unknown as Review[]
+export async function getApprovedReviews(propertyId: string): Promise<Review[]> {
+  const run = (columns: string) =>
+    supabase
+      .from('reviews')
+      .select(columns)
+      .eq('property_id', propertyId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+
+  const full = await run(
+    'id, rating, comment, created_at, owner_reply, reviewer_name, review_images ( id, storage_path ), profiles ( full_name )',
+  )
+  if (!full.error) return (full.data ?? []) as unknown as Review[]
+  if (!isMissingReviewFeature(full.error)) throw full.error
+
+  const basic = await run('id, rating, comment, created_at, profiles ( full_name )')
+  if (basic.error) throw basic.error
+  return ((basic.data ?? []) as unknown as Review[]).map((r) => ({ ...r, owner_reply: null, review_images: [] }))
+}
+
+export interface FeaturedReview {
+  id: string
+  rating: number
+  comment: string
+  created_at: string
+  reviewer_name: string | null
+  properties: { title: string; slug: string } | null
+}
+
+/** Recent good reviews (4-5 stars, with a written comment) from any property, for the home page. */
+export async function getFeaturedReviews(limit = 3): Promise<FeaturedReview[]> {
+  const run = (columns: string) =>
+    supabase
+      .from('reviews')
+      .select(columns)
+      .eq('status', 'approved')
+      .gte('rating', 4)
+      .not('comment', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+  const full = await run('id, rating, comment, created_at, reviewer_name, properties ( title, slug )')
+  let rows: unknown
+  if (!full.error) {
+    rows = full.data
+  } else if (isMissingReviewFeature(full.error)) {
+    const basic = await run('id, rating, comment, created_at, properties ( title, slug )')
+    if (basic.error) throw basic.error
+    rows = basic.data
+  } else {
+    throw full.error
+  }
+  return ((rows ?? []) as unknown as FeaturedReview[]).map((r) => ({ ...r, reviewer_name: r.reviewer_name ?? null }))
 }
 
 export const REVIEW_COMMENT_MAX = 1000
@@ -43,14 +96,18 @@ export interface MyReview {
 
 /** The signed-in guest's own reviews, any status (RLS allows own + approved). */
 export async function getMyReviews(customerId: string): Promise<MyReview[]> {
-  const { data, error } = await supabase
-    .from('reviews')
-    .select('id, booking_id, property_id, rating, comment, status, created_at, review_images ( id, storage_path )')
-    .eq('customer_id', customerId)
-    .order('created_at', { ascending: false })
+  const run = (columns: string) =>
+    supabase.from('reviews').select(columns).eq('customer_id', customerId).order('created_at', { ascending: false })
 
-  if (error) throw error
-  return (data ?? []) as unknown as MyReview[]
+  const full = await run(
+    'id, booking_id, property_id, rating, comment, status, created_at, review_images ( id, storage_path )',
+  )
+  if (!full.error) return (full.data ?? []) as unknown as MyReview[]
+  if (!isMissingReviewFeature(full.error)) throw full.error
+
+  const basic = await run('id, booking_id, property_id, rating, comment, status, created_at')
+  if (basic.error) throw basic.error
+  return ((basic.data ?? []) as unknown as MyReview[]).map((r) => ({ ...r, review_images: [] }))
 }
 
 export interface SubmitReviewInput {

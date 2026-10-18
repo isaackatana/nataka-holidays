@@ -38,25 +38,3 @@ export const WHY_CHOOSE_US: WhyChooseUsItem[] = [
     icon: 'sparkles',
   },
 ]
-
-export interface Testimonial {
-  name: string
-  quote: string
-  stayedAt: string
-}
-
-/**
- * PLACEHOLDER — swap for real guest quotes once the business has stays
- * completed and reviews collected. Attributing fabricated quotes to named
- * guests before the business has any real guests would be dishonest, so
- * these lead with "Placeholder" in the source comment as a flag to
- * replace before launch, not to ship as-is.
- */
-export const TESTIMONIALS: Testimonial[] = [
-  {
-    name: 'Guest testimonial coming soon',
-    quote:
-      'This section will show real guest reviews once bookings are completed — pulled from the reviews table where status = approved.',
-    stayedAt: '',
-  },
-]
