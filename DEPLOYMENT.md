@@ -16,6 +16,9 @@ half.
 
 ## 2. Environment variables
 
+> A single ordered walkthrough of every variable and the live tests is in
+> `GO_LIVE_GUIDE.md`.
+
 Set these in **Vercel → Project Settings → Environment Variables**. Add
 each to **Production**, **Preview**, and **Development** unless noted —
 Preview deployments (PRs, branches) need real values too or the build
@@ -27,6 +30,7 @@ fails (missing Supabase vars → the app throws at load, see
 | `VITE_SUPABASE_URL` | Browser app, `scripts/generate-sitemap.mjs`, `api/prerender.js` | Yes |
 | `VITE_SUPABASE_ANON_KEY` | Same as above | Yes |
 | `VITE_WHATSAPP_NUMBER` | Browser app (wa.me links) | Yes, or every WhatsApp button links nowhere useful |
+| `VITE_TURNSTILE_SITE_KEY` | Browser app (sign-in, register, forgot-password forms) | Optional. Cloudflare CAPTCHA site key; read `SUPABASE_SECURITY_GUIDE.md` §5 first |
 | `SITE_URL` | `scripts/generate-sitemap.mjs`, `api/prerender.js`, `vite.config.ts` | Optional — defaults to `https://natakaholidays.co.ke`, the real registered domain. Set it only to override (e.g. a staging domain). |
 
 Never add `SUPABASE_SERVICE_ROLE_KEY` here or anywhere in this project —

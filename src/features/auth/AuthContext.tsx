@@ -14,10 +14,10 @@ interface AuthContextValue {
   /** True while the profile row is being fetched for a known user. */
   profileLoading: boolean
   isAdmin: boolean
-  signUp: (email: string, password: string, fullName: string) => Promise<void>
-  signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, fullName: string, captchaToken?: string) => Promise<void>
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<void>
   signOut: () => Promise<void>
-  requestPasswordReset: (email: string) => Promise<void>
+  requestPasswordReset: (email: string, captchaToken?: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -52,17 +52,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: !!user,
   })
 
-  async function signUp(email: string, password: string, fullName: string) {
+  async function signUp(email: string, password: string, fullName: string, captchaToken?: string) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: fullName }, captchaToken },
     })
     if (error) throw error
   }
 
-  async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+  async function signIn(email: string, password: string, captchaToken?: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } })
     if (error) throw error
   }
 
@@ -76,9 +76,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ queryKey: ['my-bookings'] })
   }
 
-  async function requestPasswordReset(email: string) {
+  async function requestPasswordReset(email: string, captchaToken?: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
+      captchaToken,
     })
     if (error) throw error
   }

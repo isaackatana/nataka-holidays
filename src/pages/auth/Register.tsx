@@ -6,12 +6,15 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { registerSchema, type RegisterValues } from '@/features/auth/schemas'
 import { InputField } from '@/components/ui/InputField'
 import { Button } from '@/components/ui/Button'
+import { CAPTCHA_PROMPT, useTurnstile } from '@/features/auth/Turnstile'
 
 export default function Register() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
   const [formError, setFormError] = useState<string | null>(null)
   const [confirmationSent, setConfirmationSent] = useState(false)
+
+  const captcha = useTurnstile()
 
   const {
     register,
@@ -21,14 +24,19 @@ export default function Register() {
 
   async function onSubmit(values: RegisterValues) {
     setFormError(null)
+    if (captcha.required && !captcha.token) {
+      setFormError(CAPTCHA_PROMPT)
+      return
+    }
     try {
-      await signUp(values.email, values.password, values.fullName)
+      await signUp(values.email, values.password, values.fullName, captcha.token ?? undefined)
       // Supabase's default project settings require email confirmation
       // before a session is issued, so don't assume the user is logged
       // in yet — show a "check your inbox" state instead of redirecting.
       setConfirmationSent(true)
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Unable to create your account.')
+      captcha.reset() // a CAPTCHA token only works once
     }
   }
 
@@ -84,6 +92,8 @@ export default function Register() {
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />
+
+        {captcha.widget}
 
         {formError && <p className="text-sm text-coral-500">{formError}</p>}
 

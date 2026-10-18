@@ -6,11 +6,13 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { forgotPasswordSchema, type ForgotPasswordValues } from '@/features/auth/schemas'
 import { InputField } from '@/components/ui/InputField'
 import { Button } from '@/components/ui/Button'
+import { CAPTCHA_PROMPT, useTurnstile } from '@/features/auth/Turnstile'
 
 export default function ForgotPassword() {
   const { requestPasswordReset } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  const captcha = useTurnstile()
 
   const {
     register,
@@ -20,11 +22,16 @@ export default function ForgotPassword() {
 
   async function onSubmit(values: ForgotPasswordValues) {
     setFormError(null)
+    if (captcha.required && !captcha.token) {
+      setFormError(CAPTCHA_PROMPT)
+      return
+    }
     try {
-      await requestPasswordReset(values.email)
+      await requestPasswordReset(values.email, captcha.token ?? undefined)
       setSent(true)
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Unable to send reset link.')
+      captcha.reset() // a CAPTCHA token only works once
     }
   }
 
@@ -59,6 +66,8 @@ export default function ForgotPassword() {
           error={errors.email?.message}
           {...register('email')}
         />
+
+        {captcha.widget}
 
         {formError && <p className="text-sm text-coral-500">{formError}</p>}
 

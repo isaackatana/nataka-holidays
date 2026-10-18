@@ -6,12 +6,14 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { loginSchema, type LoginValues } from '@/features/auth/schemas'
 import { InputField } from '@/components/ui/InputField'
 import { Button } from '@/components/ui/Button'
+import { CAPTCHA_PROMPT, useTurnstile } from '@/features/auth/Turnstile'
 
 export default function Login() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [formError, setFormError] = useState<string | null>(null)
+  const captcha = useTurnstile()
 
   const redirectTo = (location.state as { redirectTo?: string } | null)?.redirectTo ?? '/'
 
@@ -23,11 +25,16 @@ export default function Login() {
 
   async function onSubmit(values: LoginValues) {
     setFormError(null)
+    if (captcha.required && !captcha.token) {
+      setFormError(CAPTCHA_PROMPT)
+      return
+    }
     try {
-      await signIn(values.email, values.password)
+      await signIn(values.email, values.password, captcha.token ?? undefined)
       navigate(redirectTo, { replace: true })
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Unable to sign in. Please try again.')
+      captcha.reset() // a CAPTCHA token only works once
     }
   }
 
@@ -53,6 +60,8 @@ export default function Login() {
           error={errors.password?.message}
           {...register('password')}
         />
+
+        {captcha.widget}
 
         {formError && <p className="text-sm text-coral-500">{formError}</p>}
 

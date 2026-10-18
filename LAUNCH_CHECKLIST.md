@@ -2,8 +2,10 @@
 
 Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items marked **(you)** are done in a dashboard, not in code.
 
+Step-by-step help: `SUPABASE_SECURITY_GUIDE.md` (Supabase settings) and `GO_LIVE_GUIDE.md` (Vercel variables, the live tests, switching M-Pesa to real money).
+
 ## 1. Database (Supabase SQL editor)
-- [ ] Run every file in `supabase/migrations/` in order, up to **`0016_shop.sql`** (`0012` is the security fix: don't skip it).
+- [ ] Run every file in `supabase/migrations/` in order, up to the highest-numbered one, currently **`0023_review_alert.sql`** (`0012` is the security fix: don't skip it).
 - [ ] **Check who is an admin.** Run: `select id, full_name, role from profiles where role = 'admin';`
       Before 0012, any signed-in user could promote themselves, so make sure every row is someone you know.
       Demote anyone unexpected: `update profiles set role = 'customer' where id = '...';`
@@ -20,7 +22,7 @@ Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items m
 ## 2. Supabase dashboard settings (you)
 - [ ] **Authentication → URL configuration:** set Site URL to `https://natakaholidays.co.ke` and add it (plus `/reset-password`) to Redirect URLs.
 - [ ] **Authentication → Providers → Email:** turn on "Confirm email" so people can't sign up with someone else's address.
-- [ ] **Authentication → Attack protection:** enable CAPTCHA (Cloudflare Turnstile is free) and leaked-password protection.
+- [ ] **Authentication → Attack protection:** CAPTCHA (Cloudflare Turnstile, free) and leaked-password protection (Pro plan only). **Follow `SUPABASE_SECURITY_GUIDE.md` §5 in order:** switching CAPTCHA on in Supabase before adding `VITE_TURNSTILE_SITE_KEY` in Vercel locks everyone out of signing in.
 - [ ] **Authentication → Sign In / Providers:** make sure anonymous sign-ins are OFF.
 - [ ] **Authentication → Rate limits:** leave the defaults or tighten them.
 - [ ] **Database → Backups:** confirm daily backups are on (point-in-time recovery needs a paid plan).
