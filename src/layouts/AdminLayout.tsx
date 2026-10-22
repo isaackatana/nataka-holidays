@@ -122,7 +122,7 @@ export function AdminLayout() {
       {/* Desktop sidebar — persistent, hidden below md */}
       <aside className="hidden w-64 flex-col border-r border-sand-200 bg-teal-950 text-sand-100 md:flex">
         <div className="px-6 py-6">
-          <span className="font-display text-lg">Nataka Holidays</span>
+          <img src="/favicon.svg" alt="Nataka Holidays Logo" width={50} />
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">{renderNavItems()}</nav>
       </aside>
