@@ -35,3 +35,27 @@ export function buildGuestStatusMessage(opts: {
       return `Hello ${first}, thanks for your enquiry about ${stay} with Nataka Holidays. `
   }
 }
+
+/** Ready-to-send WhatsApp text for an experience request, matching its current status. */
+export function buildExperienceRequestMessage(opts: {
+  guestName: string
+  experienceTitle: string
+  date: string
+  people: number
+  status: 'new' | 'confirmed' | 'declined' | 'cancelled' | 'completed'
+}): string {
+  const first = opts.guestName.trim().split(/\s+/)[0] || 'there'
+  const what = `${opts.experienceTitle} on ${opts.date} for ${opts.people} ${opts.people === 1 ? 'person' : 'people'}`
+  switch (opts.status) {
+    case 'confirmed':
+      return `Hello ${first}, good news: your request for ${what} with Nataka Holidays is confirmed. We'll share the meeting point and any last details here.`
+    case 'declined':
+      return `Hello ${first}, thank you for asking about ${opts.experienceTitle}. Unfortunately we can't do ${opts.date}. Would another date work for you?`
+    case 'cancelled':
+      return `Hello ${first}, your request for ${what} with Nataka Holidays has been cancelled. Let us know if you'd like to pick another date.`
+    case 'completed':
+      return `Hello ${first}, thank you for joining us for ${opts.experienceTitle}. We hope you enjoyed it!`
+    default:
+      return `Hello ${first}, thank you for your request for ${what} with Nataka Holidays. We're checking availability and will confirm shortly.`
+  }
+}

@@ -15,6 +15,7 @@ import {
 } from '@/features/admin/experiences/queries'
 import { experienceSchema, type ExperienceFormValues } from '@/features/admin/experiences/schemas'
 import { slugify } from '@/utils/slugify'
+import { EXPERIENCE_CATEGORIES } from '@/data/experienceOptions'
 import { ExperienceImageUploader } from '@/components/admin/ExperienceImageUploader'
 
 export default function ExperienceEditor() {
@@ -58,6 +59,15 @@ export default function ExperienceEditor() {
         price: existing.price ?? undefined,
         duration: existing.duration ?? '',
         video_url: existing.video_url ?? '',
+        price_type: existing.price_type ?? '',
+        category: (existing.category ?? '') as ExperienceFormValues['category'],
+        included: existing.included ?? '',
+        meeting_point: existing.meeting_point ?? '',
+        min_age: existing.min_age ?? undefined,
+        what_to_bring: existing.what_to_bring ?? '',
+        max_group_size: existing.max_group_size ?? undefined,
+        deposit_percent: existing.deposit_percent ?? undefined,
+        cancellation_policy: existing.cancellation_policy ?? '',
         is_published: existing.is_published,
       })
     }
@@ -72,6 +82,15 @@ export default function ExperienceEditor() {
       price: values.price ?? null,
       duration: values.duration || null,
       video_url: values.video_url || null,
+      price_type: values.price_type || null,
+      category: values.category || null,
+      included: values.included?.trim() || null,
+      meeting_point: values.meeting_point?.trim() || null,
+      min_age: values.min_age ?? null,
+      what_to_bring: values.what_to_bring?.trim() || null,
+      max_group_size: values.max_group_size ?? null,
+      deposit_percent: values.deposit_percent ?? null,
+      cancellation_policy: values.cancellation_policy?.trim() || null,
       is_published: values.is_published,
     }
 
@@ -124,6 +143,96 @@ export default function ExperienceEditor() {
             {...register('duration')}
           />
         </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="price_type" className="text-sm font-medium text-charcoal-700">
+              Price is
+            </label>
+            <select
+              id="price_type"
+              className="rounded-lg border border-sand-400 bg-sand-50 px-4 py-2.5 text-base text-charcoal-900 outline-none focus:border-teal-700 sm:text-sm"
+              {...register('price_type')}
+            >
+              <option value="">Not set (guests are told we confirm the total)</option>
+              <option value="per_person">Per person (total = price × people)</option>
+              <option value="per_group">Per group (one price for everyone)</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="category" className="text-sm font-medium text-charcoal-700">
+              Category
+            </label>
+            <select
+              id="category"
+              className="rounded-lg border border-sand-400 bg-sand-50 px-4 py-2.5 text-base text-charcoal-900 outline-none focus:border-teal-700 sm:text-sm"
+              {...register('category')}
+            >
+              <option value="">No category</option>
+              {EXPERIENCE_CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <InputField
+            label="Minimum age (optional)"
+            type="number"
+            min={0}
+            error={errors.min_age?.message}
+            {...register('min_age', { setValueAs: (v) => (v === '' || v === null ? undefined : Number(v)) })}
+          />
+          <InputField
+            label="Max people per booking (optional)"
+            type="number"
+            min={1}
+            error={errors.max_group_size?.message}
+            {...register('max_group_size', { setValueAs: (v) => (v === '' || v === null ? undefined : Number(v)) })}
+          />
+        </div>
+        <InputField
+          label="Online deposit % (optional)"
+          type="number"
+          min={1}
+          max={100}
+          error={errors.deposit_percent?.message}
+          {...register('deposit_percent', { setValueAs: (v) => (v === '' || v === null ? undefined : Number(v)) })}
+        />
+        <p className="-mt-2 text-xs text-charcoal-500">
+          Guests can pay this share by M-Pesa after you confirm their request, then the balance. Leave empty to keep
+          online payment off for this experience.
+        </p>
+        <InputField
+          label="Meeting point (optional)"
+          placeholder="Diani Beach jetty, opposite..."
+          error={errors.meeting_point?.message}
+          {...register('meeting_point')}
+        />
+        <TextareaField
+          label="What's included (optional)"
+          rows={3}
+          placeholder="Lunch, snorkel gear, guide, drinks..."
+          error={errors.included?.message}
+          {...register('included')}
+        />
+        <TextareaField
+          label="What to bring (optional)"
+          rows={2}
+          placeholder="Sunscreen, towel, hat..."
+          error={errors.what_to_bring?.message}
+          {...register('what_to_bring')}
+        />
+        <TextareaField
+          label="Cancellation terms (optional)"
+          rows={2}
+          placeholder="Free cancellation up to 48 hours before..."
+          error={errors.cancellation_policy?.message}
+          {...register('cancellation_policy')}
+        />
 
         <InputField
           label="Video URL (optional)"

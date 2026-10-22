@@ -404,3 +404,123 @@ export function buildOrderEmails(ctx, { siteUrl, receipt } = {}) {
     },
   ]
 }
+
+/**
+ * Emails for a new experience request. `ctx` is experience_request_context():
+ * { request, meeting_point, business }. One confirmation to the guest and one
+ * alert to the business. Nothing here promises the booking: it is a request.
+ */
+export function buildExperienceRequestEmails(ctx, { siteUrl } = {}) {
+  const r = ctx.request
+  const first = escapeHtml(String(r.guest_name || '').split(' ')[0] || 'there')
+  const when = longDate(r.preferred_date)
+  const people = `${r.people} ${r.people === 1 ? 'person' : 'people'}`
+  const total = r.estimated_total != null ? kes(r.estimated_total) : null
+  const wrap = (heading, bodyHtml) => layout({ business: ctx.business, heading, bodyHtml, siteUrl })
+  const contact = [ctx.business?.phone, ctx.business?.email].filter(Boolean).join(' · ')
+  const text = (lines) => lines.filter(Boolean).join('\n')
+  const rows = [
+    ['Experience', r.experience_title],
+    ['Preferred date', when],
+    ['Group', people],
+    ['Estimated total', total],
+  ]
+  const adminUrl = `${siteUrl}/admin/experience-requests`
+
+  return [
+    {
+      to: 'guest',
+      subject: `We've received your request: ${r.experience_title}`,
+      html: wrap(
+        'We have your request',
+        p(`Hi ${first}, thanks for asking about ${escapeHtml(r.experience_title)}. We'll check availability for your date and confirm by WhatsApp or email.`) +
+          detailsTable(rows) +
+          p('Nothing has been charged. This is a request, not a confirmed booking, and the final price is confirmed by us.') +
+          (contact ? p(`Questions? ${escapeHtml(contact)}`) : ''),
+      ),
+      text: text([
+        `Hi ${r.guest_name}, thanks for asking about ${r.experience_title}.`,
+        `Preferred date: ${when}. Group: ${people}.${total ? ` Estimated total: ${total}.` : ''}`,
+        "We'll check availability and confirm by WhatsApp or email. Nothing has been charged; this is a request, not a confirmed booking.",
+        contact,
+      ]),
+    },
+    {
+      to: 'admin',
+      subject: `New experience request: ${r.experience_title}, ${people}, ${when}`,
+      html: wrap(
+        'New experience request',
+        detailsTable([['Guest', r.guest_name], ['Phone', r.guest_phone], ['Email', r.guest_email], ...rows]) +
+          (r.message ? p(`<em>\u201c${escapeHtml(r.message).replace(/\r?\n/g, '<br>')}\u201d</em>`) : '') +
+          p(`<a href="${escapeHtml(adminUrl)}" style="display:inline-block;background:#0f3d3e;color:#f7f2e9;text-decoration:none;padding:10px 22px;border-radius:999px;font-size:14px;font-weight:bold">Open requests</a>`),
+      ),
+      text: text([
+        `${r.guest_name} (${r.guest_phone}, ${r.guest_email}) asked for ${r.experience_title}: ${people} on ${when}.${total ? ` Estimated ${total}.` : ''}`,
+        r.message ? `"${r.message}"` : '',
+        `Respond: ${adminUrl}`,
+      ]),
+    },
+  ]
+}
+
+/**
+ * Emails for a successful experience payment. `ctx` is experience_payment_context():
+ * { payment, request, business }. A receipt for the guest, an alert for the business.
+ */
+export function buildExperiencePaymentEmails(ctx, { siteUrl } = {}) {
+  const pay = ctx.payment
+  const r = ctx.request
+  const first = escapeHtml(String(r.guest_name || '').split(' ')[0] || 'there')
+  const when = longDate(r.preferred_date)
+  const people = `${r.people} ${r.people === 1 ? 'person' : 'people'}`
+  const wrap = (heading, bodyHtml) => layout({ business: ctx.business, heading, bodyHtml, siteUrl })
+  const text = (lines) => lines.filter(Boolean).join('\n')
+  const balance = r.total != null ? Math.max(Number(r.total) - Number(r.paid), 0) : null
+  const status =
+    balance === null ? null : balance > 0 ? `Balance still to pay: ${kes(balance)}` : 'Fully paid. Thank you!'
+  const contact = [ctx.business?.phone, ctx.business?.email].filter(Boolean).join(' · ')
+  const rows = [
+    ['Experience', r.experience_title],
+    ['Date', when],
+    ['Group', people],
+    ['Amount received', kes(pay.amount)],
+    ['M-Pesa receipt', pay.receipt],
+    ['Total paid so far', r.total != null ? `${kes(r.paid)} of ${kes(r.total)}` : kes(r.paid)],
+  ]
+  const adminUrl = `${siteUrl}/admin/experience-requests`
+
+  return [
+    {
+      to: 'guest',
+      subject: `Payment received: ${r.experience_title}`,
+      html: wrap(
+        'Payment received',
+        p(`Hi ${first}, we've received your payment of ${escapeHtml(kes(pay.amount))} for ${escapeHtml(r.experience_title)}. Thank you!`) +
+          detailsTable(rows) +
+          (status ? p(escapeHtml(status)) : '') +
+          (contact ? p(`Questions? ${escapeHtml(contact)}`) : ''),
+      ),
+      text: text([
+        `Hi ${r.guest_name}, we've received your payment of ${kes(pay.amount)} for ${r.experience_title} on ${when}.`,
+        pay.receipt ? `M-Pesa receipt: ${pay.receipt}.` : '',
+        status,
+        contact,
+      ]),
+    },
+    {
+      to: 'admin',
+      subject: `Experience payment: ${kes(pay.amount)} from ${r.guest_name}`,
+      html: wrap(
+        'Experience payment received',
+        detailsTable([['Guest', r.guest_name], ['Phone', r.guest_phone], ...rows]) +
+          (status ? p(escapeHtml(status)) : '') +
+          p(`<a href="${escapeHtml(adminUrl)}" style="display:inline-block;background:#0f3d3e;color:#f7f2e9;text-decoration:none;padding:10px 22px;border-radius:999px;font-size:14px;font-weight:bold">Open requests</a>`),
+      ),
+      text: text([
+        `${r.guest_name} paid ${kes(pay.amount)} for ${r.experience_title} on ${when}${pay.receipt ? ` (receipt ${pay.receipt})` : ''}.`,
+        status,
+        adminUrl,
+      ]),
+    },
+  ]
+}

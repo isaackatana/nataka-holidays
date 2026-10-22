@@ -78,6 +78,17 @@ export interface Experience {
   is_published: boolean
   created_at: string
   updated_at: string
+  /** Optional detail fields (migration 0025). Missing until it has been run. */
+  price_type?: 'per_person' | 'per_group' | null
+  category?: string | null
+  included?: string | null
+  meeting_point?: string | null
+  min_age?: number | null
+  what_to_bring?: string | null
+  max_group_size?: number | null
+  cancellation_policy?: string | null
+  /** Migration 0027: share of the total paid up front online; empty means online payment is off. */
+  deposit_percent?: number | null
   experience_images?: { id: string; storage_path: string; sort_order: number }[]
 }
 

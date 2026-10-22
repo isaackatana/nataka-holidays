@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { buildGuestStatusMessage, buildGuestWhatsAppLink, normalizeKenyanPhone } from './phone'
+import {
+  buildExperienceRequestMessage,
+  buildGuestStatusMessage,
+  buildGuestWhatsAppLink,
+  normalizeKenyanPhone,
+} from './phone'
 
 describe('normalizeKenyanPhone', () => {
   it('accepts common Kenyan formats', () => {
@@ -25,5 +30,24 @@ describe('guest WhatsApp helpers', () => {
     expect(buildGuestStatusMessage({ ...base, status: 'confirmed' })).toMatch(/^Hello Amina, .*confirmed/)
     expect(buildGuestStatusMessage({ ...base, status: 'cancelled' })).toMatch(/cancelled/)
     expect(buildGuestStatusMessage({ ...base, status: 'pending', propertyTitle: null })).toMatch(/your stay/)
+  })
+})
+
+describe('buildExperienceRequestMessage', () => {
+  const base = { guestName: 'Amina Kamau', experienceTitle: 'Dhow Trip', date: 'Tue, 1 Dec 2026', people: 3 }
+
+  it('greets by first name and describes the request', () => {
+    const msg = buildExperienceRequestMessage({ ...base, status: 'confirmed' })
+    expect(msg).toContain('Hello Amina')
+    expect(msg).toContain('Dhow Trip on Tue, 1 Dec 2026 for 3 people')
+    expect(msg).toContain('confirmed')
+  })
+
+  it('asks about another date when declined', () => {
+    expect(buildExperienceRequestMessage({ ...base, status: 'declined' })).toContain('another date')
+  })
+
+  it('uses the singular for one person', () => {
+    expect(buildExperienceRequestMessage({ ...base, people: 1, status: 'new' })).toContain('1 person')
   })
 })

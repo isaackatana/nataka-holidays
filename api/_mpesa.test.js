@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { darajaTimestamp, normalizeKenyanPhone, parseStkCallback, selfPayError } from './_mpesa.js'
+import {
+  darajaTimestamp,
+  experiencePayError,
+  normalizeKenyanPhone,
+  parseStkCallback,
+  selfPayError,
+} from './_mpesa.js'
 
 describe('normalizeKenyanPhone', () => {
   it.each([
@@ -93,5 +99,34 @@ describe('selfPayError', () => {
     expect(selfPayError({ ...base, payments: fresh })).toMatch(/just sent/)
     const stale = [{ status: 'pending', amount: 30000, paid_amount: null, created_at: '2026-10-01T11:50:00Z' }]
     expect(selfPayError({ ...base, payments: stale })).toBeNull()
+  })
+})
+
+describe('experiencePayError', () => {
+  const due = { payable: true, due_now: 3000, phase: 'deposit' }
+  const now = Date.parse('2026-12-01T10:00:00Z')
+
+  it('allows a payable request with nothing pending', () => {
+    expect(experiencePayError({ due, payments: [], now })).toBeNull()
+  })
+
+  it('explains each reason it cannot be paid', () => {
+    expect(experiencePayError({ due: { payable: false, reason: 'not_confirmed' }, payments: [], now })).toMatch(/once we have confirmed/)
+    expect(experiencePayError({ due: { payable: false, reason: 'not_offered' }, payments: [], now })).toMatch(/not available/)
+    expect(experiencePayError({ due: { payable: false, reason: 'no_total' }, payments: [], now })).toMatch(/final price/)
+    expect(experiencePayError({ due: { payable: false, reason: 'paid' }, payments: [], now })).toMatch(/fully paid/)
+    expect(experiencePayError({ due: { payable: false, reason: 'not_found' }, payments: [], now })).toMatch(/not found/)
+    expect(experiencePayError({ due: null, payments: [], now })).toMatch(/can not be paid/)
+  })
+
+  it('refuses a second prompt within 90 seconds but allows one after', () => {
+    const justNow = [{ status: 'pending', created_at: new Date(now - 30_000).toISOString() }]
+    const earlier = [{ status: 'pending', created_at: new Date(now - 200_000).toISOString() }]
+    expect(experiencePayError({ due, payments: justNow, now })).toMatch(/just sent/)
+    expect(experiencePayError({ due, payments: earlier, now })).toBeNull()
+  })
+
+  it('refuses when nothing is due', () => {
+    expect(experiencePayError({ due: { payable: true, due_now: 0 }, payments: [], now })).toMatch(/Nothing is due/)
   })
 })

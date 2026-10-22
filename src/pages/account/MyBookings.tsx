@@ -7,6 +7,7 @@ import { useMyBookings } from '@/features/bookings/queries'
 import { usePayments } from '@/features/admin/payments/queries'
 import { PayBookingPanel } from '@/features/bookings/PayBookingPanel'
 import { ReviewBookingPanel } from '@/features/reviews/ReviewBookingPanel'
+import { MyExperienceRequests } from '@/features/experienceRequests/MyExperienceRequests'
 import { useMyReviews } from '@/features/reviews/queries'
 import { formatDateRange } from '@/utils/dates'
 import { formatKES } from '@/utils/currency'
@@ -128,6 +129,8 @@ export default function MyBookings() {
           ))}
         </div>
       )}
+
+      <MyExperienceRequests />
     </div>
   )
 }

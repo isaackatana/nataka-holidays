@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Star, ImagePlus, X } from 'lucide-react'
+import { StarPicker } from '@/components/shared/StarPicker'
 import { Button } from '@/components/ui/Button'
 import { TextareaField } from '@/components/ui/TextareaField'
 import { useSubmitReview, useUpdateMyReview } from '@/features/reviews/queries'
@@ -26,28 +27,6 @@ const STATUS_COPY: Record<MyReview['status'], { label: string; className: string
   pending: { label: 'Awaiting approval', className: 'bg-gold-500/15 text-charcoal-700' },
   approved: { label: 'Published', className: 'bg-palm-green/15 text-palm-green' },
   rejected: { label: 'Not published', className: 'bg-coral-500/10 text-coral-500' },
-}
-
-function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
-  return (
-    <div role="radiogroup" aria-label="Rating" className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          role="radio"
-          aria-checked={value === n}
-          aria-label={`${n} star${n === 1 ? '' : 's'}`}
-          onClick={() => onChange(n)}
-          className="rounded p-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-700"
-        >
-          <Star
-            className={`h-7 w-7 ${n <= value ? 'fill-gold-500 text-gold-500' : 'text-sand-300'}`}
-          />
-        </button>
-      ))}
-    </div>
-  )
 }
 
 /** Shown to a signed-in guest on a completed stay. The database re-checks that

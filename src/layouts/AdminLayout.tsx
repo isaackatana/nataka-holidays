@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { LayoutDashboard, Home, CalendarCheck, Users, Star, Compass, Settings, LogOut, Mail, Menu, X, ListChecks, BarChart3, ShoppingBag, Package } from 'lucide-react'
+import { LayoutDashboard, Home, CalendarCheck, Users, Star, Compass, Settings, LogOut, Mail, Menu, X, ListChecks, BarChart3, ShoppingBag, Package, CalendarClock } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
 import { usePendingReviewCount } from '@/features/admin/reviews/queries'
+import { useNewExperienceRequestCount } from '@/features/admin/experienceRequests/queries'
+import { usePendingExperienceReviewCount } from '@/features/admin/experienceReviews/queries'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
 import { useRouteFocus } from '@/hooks/useRouteFocus'
@@ -19,6 +21,7 @@ const NAV_ITEMS = [
   { label: 'Customers', to: '/admin/customers', icon: Users },
   { label: 'Reviews', to: '/admin/reviews', icon: Star },
   { label: 'Experiences', to: '/admin/experiences', icon: Compass },
+  { label: 'Experience requests', to: '/admin/experience-requests', icon: CalendarClock },
   { label: 'Products', to: '/admin/products', icon: ShoppingBag },
   { label: 'Shop orders', to: '/admin/orders', icon: Package },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
@@ -35,7 +38,10 @@ export function AdminLayout() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
   const { data: unreadMessages } = useAdminContactMessages({ unreadOnly: true })
-  const { data: pendingReviews } = usePendingReviewCount()
+  const { data: pendingStayReviews } = usePendingReviewCount()
+  const { data: pendingExperienceReviews } = usePendingExperienceReviewCount()
+  const pendingReviews = (pendingStayReviews ?? 0) + (pendingExperienceReviews ?? 0)
+  const { data: newExperienceRequests } = useNewExperienceRequestCount()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const mobileNavRef = useDialogA11y<HTMLElement>(mobileNavOpen, () => setMobileNavOpen(false))
   useSwipeToToggle({
@@ -76,7 +82,15 @@ export function AdminLayout() {
               {unreadMessages!.length}
             </span>
           )}
-          {to === '/admin/reviews' && (pendingReviews ?? 0) > 0 && (
+          {to === '/admin/experience-requests' && (newExperienceRequests ?? 0) > 0 && (
+            <span
+              className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-pill bg-gold-600 px-1.5 font-mono text-[10px] text-sand-50"
+              aria-label={`${newExperienceRequests} new experience requests`}
+            >
+              {newExperienceRequests}
+            </span>
+          )}
+          {to === '/admin/reviews' && pendingReviews > 0 && (
             <span
               className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-pill bg-gold-600 px-1.5 font-mono text-[10px] text-sand-50"
               aria-label={`${pendingReviews} reviews waiting for approval`}

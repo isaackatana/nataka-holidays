@@ -79,7 +79,7 @@ When done: **Redeploy**, then open the live site and check it loads.
 ## Part B. Run the migrations
 
 Supabase → **SQL Editor**. Run every file in `supabase/migrations/` in number order, up to
-the highest (currently `0024_reviewer_names.sql`). Do not skip `0012`. Each should end
+the highest (currently `0027_experience_payments.sql`). Do not skip `0012`. Each should end
 with "Success". If one errors, stop and send me the message.
 
 ---
@@ -98,7 +98,10 @@ fails, fix it before the next one.
 | 5 | M-Pesa **sandbox**: Bookings → expand a confirmed booking → send a prompt to `254708374149` | Payment shows **Paid**; a receipt email goes out | Stuck on "Waiting for PIN": Vercel → Logs → `pay-callback`. "Invalid callback secret" = the two secrets differ |
 | 6 | Arrival reminder: confirm a booking starting in 2 days, then run in a terminal: `curl -H "Authorization: Bearer YOUR_CRON_SECRET" https://natakaholidays.co.ke/api/send-reminders` | JSON with `sent: 1`; the guest email arrives | 401: wrong `CRON_SECRET` (or not redeployed) |
 | 7 | Reviews: mark a test booking **Completed**, sign in as that guest, write a review with a photo on **My bookings** | You get the "new review" email; it appears under Admin → Reviews; after you approve it, it shows on the property page | See `LAUNCH_CHECKLIST.md` |
-| 8 | On a phone: calendar, booking form, My bookings; tap a form field on an iPhone | Page does not zoom in | Tell me which screen |
+| 8 | Experiences: in Admin → Experiences set **Price is** and a category on one, then on its public page send a **Request this experience** (a date in the future, 3 people) | "Request sent"; the guest gets a confirmation email and you get an alert; it shows under Admin → Experience requests with a gold badge; **Confirm** it and the **WhatsApp guest** button opens a ready message | No email: check test 1's causes. Error on send: run `0025_experience_requests.sql` |
+| 9 | Experience reviews: in Admin → Experience requests mark that test request **Completed**; sign in as that guest, open **My bookings → My experience requests** and submit a review; approve it in Admin → Reviews → Experiences | The review shows on the experience page, and the star average on its card | Error saving: run `0026_experience_reviews.sql`. No form: the request must be signed-in and marked Completed |
+| 10 | Experience deposit (do this in the M-Pesa **sandbox**, before real money): set **Online deposit %** on a test experience; as a signed-in guest send a request for it; **Confirm** it as admin; as the guest open **My bookings → My experience requests** and tap **Pay deposit**, enter the sandbox PIN | Status goes to paid, the button changes to **Pay balance**, both of you get a receipt email, and the admin card shows what was paid | No prompt: check M-Pesa variables (test 5). "Can not be paid online": the request isn't Confirmed, was sent while signed out, or the experience has no deposit % or price. Error saving: run `0027_experience_payments.sql` |
+| 11 | On a phone: calendar, booking form, My bookings; tap a form field on an iPhone | Page does not zoom in | Tell me which screen |
 
 Tip for test 6: for the "How was your stay?" email, mark a booking Completed with a
 check-out date in the last 2 weeks and run the same `curl`; look for `reviewRequests`

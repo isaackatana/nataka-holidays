@@ -1,16 +1,20 @@
 import { type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Clock, Briefcase, Check } from 'lucide-react'
+import { Clock, Briefcase, Check, Star } from 'lucide-react'
 import type { Experience } from '@/types/domain'
 import { getImageSrcSet, getResizedImageUrl } from '@/utils/storage'
 import { formatKES } from '@/utils/currency'
+import { categoryLabel, priceBasisLabel } from '@/data/experienceOptions'
 import { useTripCart } from '@/features/tripCart/TripCartContext'
+import { useExperienceRatings } from '@/features/experienceReviews/queries'
 
 export function ExperienceCard({ experience }: { experience: Experience }) {
   const primaryImage = experience.experience_images?.[0]
   const imagePath = primaryImage?.storage_path ?? null
   const { addExperience, removeExperience, isExperienceInCart } = useTripCart()
   const inTrip = isExperienceInCart(experience.id)
+  const { data: ratings } = useExperienceRatings()
+  const rating = ratings?.[experience.id]
 
   function handleToggleTrip(e: MouseEvent) {
     e.preventDefault()
@@ -60,6 +64,11 @@ export function ExperienceCard({ experience }: { experience: Experience }) {
         </button>
       </div>
       <div className="flex flex-col gap-1.5 p-4">
+        {categoryLabel(experience.category) && (
+          <span className="text-xs font-medium uppercase tracking-wide text-gold-600">
+            {categoryLabel(experience.category)}
+          </span>
+        )}
         <h3 className="font-display text-base font-medium text-teal-900">{experience.title}</h3>
         <div className="flex items-center gap-4 text-sm text-charcoal-500">
           {experience.duration && (
@@ -68,8 +77,23 @@ export function ExperienceCard({ experience }: { experience: Experience }) {
               {experience.duration}
             </span>
           )}
+          {rating && (
+            <span
+              className="flex items-center gap-1"
+              aria-label={`Rated ${rating.average.toFixed(1)} out of 5 from ${rating.review_count} review${rating.review_count === 1 ? '' : 's'}`}
+            >
+              <Star className="h-3.5 w-3.5 fill-gold-500 text-gold-500" aria-hidden="true" />
+              <span className="font-figures font-medium text-teal-900">{rating.average.toFixed(1)}</span>
+              <span>({rating.review_count})</span>
+            </span>
+          )}
           {experience.price !== null && (
-            <span className="font-figures">{formatKES(experience.price)}</span>
+            <span className="font-figures">
+              {formatKES(experience.price)}
+              {priceBasisLabel(experience.price_type) && (
+                <span className="font-sans text-xs text-charcoal-500"> {priceBasisLabel(experience.price_type)}</span>
+              )}
+            </span>
           )}
         </div>
       </div>

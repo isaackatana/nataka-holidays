@@ -6,7 +6,7 @@
 // logged instead.
 import { createClient } from '@supabase/supabase-js'
 import { parseStkCallback } from './_mpesa.js'
-import { sendBookingNotification, sendOrderNotification } from './_notify.js'
+import { sendBookingNotification, sendExperiencePaymentNotification, sendOrderNotification } from './_notify.js'
 
 const ACK = { ResultCode: 0, ResultDesc: 'Accepted' }
 
@@ -56,8 +56,10 @@ export default async function handler(req, res) {
     }
   }
 
-  // Not a booking payment? Then it may be for a shop order. (A replayed
-  // booking callback also lands here, and simply finds nothing to change.)
+  // Not a booking payment? Then it may be for a shop order, and if not that,
+  // an experience payment. (A replayed callback lands here too and simply
+  // finds nothing left to change.)
+  let handledAsOrder = false
   if (!error && !resolved?.id) {
     const { data: order, error: orderError } = await supabase.rpc('record_order_payment_result', {
       p_secret: secret,
@@ -69,11 +71,36 @@ export default async function handler(req, res) {
     })
     if (orderError) console.error('[pay-callback] Could not record order result:', parsed.checkoutRequestId, orderError.message)
 
+    handledAsOrder = Boolean(order?.id)
     if (!orderError && order?.id && order.status === 'success') {
       try {
         await sendOrderNotification({ orderId: order.order_id, receipt: order.mpesa_receipt })
       } catch (err) {
         console.error('[pay-callback] order email failed:', err)
+      }
+    }
+  }
+
+  // Experience payment? Only tried when it was neither a booking nor an order.
+  if (!error && !resolved?.id && !handledAsOrder) {
+    const { data: experiencePayment, error: experienceError } = await supabase.rpc('record_experience_payment_result', {
+      p_secret: secret,
+      p_checkout_request_id: parsed.checkoutRequestId,
+      p_result_code: parsed.resultCode,
+      p_result_desc: parsed.resultDesc,
+      p_receipt: parsed.receipt,
+      p_paid_amount: parsed.amount,
+    })
+    // Before migration 0027 this function doesn't exist; that just means nothing to do.
+    if (experienceError && experienceError.code !== 'PGRST202' && experienceError.code !== '42883') {
+      console.error('[pay-callback] Could not record experience result:', parsed.checkoutRequestId, experienceError.message)
+    }
+
+    if (!experienceError && experiencePayment?.id && experiencePayment.status === 'success') {
+      try {
+        await sendExperiencePaymentNotification({ paymentId: experiencePayment.id })
+      } catch (err) {
+        console.error('[pay-callback] experience payment email failed:', err)
       }
     }
   }

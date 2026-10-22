@@ -3,9 +3,10 @@ import { useSearchParams } from 'react-router-dom'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { ExperienceCard } from '@/components/property/ExperienceCard'
-import { useFilteredExperiences } from '@/features/experiences/queries'
+import { useExperienceCategories, useFilteredExperiences } from '@/features/experiences/queries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { DESTINATIONS, DESTINATION_REGIONS } from '@/data/destinations'
+import { EXPERIENCE_CATEGORIES } from '@/data/experienceOptions'
 import type { ExperienceFilters } from '@/services/experiences.service'
 
 const SORT_OPTIONS: { value: NonNullable<ExperienceFilters['sort']>; label: string }[] = [
@@ -22,6 +23,7 @@ function parseFilters(params: URLSearchParams): ExperienceFilters {
   return {
     search: params.get('search') ?? undefined,
     location: params.get('location') ?? undefined,
+    category: params.get('category') ?? undefined,
     minPrice: params.get('minPrice') ? Number(params.get('minPrice')) : undefined,
     maxPrice: params.get('maxPrice') ? Number(params.get('maxPrice')) : undefined,
     sort: (params.get('sort') as ExperienceFilters['sort']) ?? 'newest',
@@ -32,6 +34,7 @@ function filtersToParams(filters: ExperienceFilters): URLSearchParams {
   const params = new URLSearchParams()
   if (filters.search) params.set('search', filters.search)
   if (filters.location) params.set('location', filters.location)
+  if (filters.category) params.set('category', filters.category)
   if (filters.minPrice !== undefined) params.set('minPrice', String(filters.minPrice))
   if (filters.maxPrice !== undefined) params.set('maxPrice', String(filters.maxPrice))
   if (filters.sort && filters.sort !== 'newest') params.set('sort', filters.sort)
@@ -52,6 +55,7 @@ export default function Experiences() {
   )
 
   const { data: experiences, isLoading, isError } = useFilteredExperiences(effectiveFilters)
+  const { data: categoriesInUse } = useExperienceCategories()
 
   function update(next: ExperienceFilters) {
     setSearchParams(filtersToParams(next), { replace: true })
@@ -60,6 +64,7 @@ export default function Experiences() {
   const activeFilterCount = [
     filters.search,
     filters.location,
+    filters.category,
     filters.minPrice,
     filters.maxPrice,
   ].filter((v) => v !== undefined && v !== '').length
@@ -119,6 +124,38 @@ export default function Experiences() {
           ))}
         </select>
       </div>
+
+      {categoriesInUse && categoriesInUse.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Experience categories">
+          <button
+            type="button"
+            aria-pressed={!filters.category}
+            onClick={() => update({ ...filters, category: undefined })}
+            className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+              !filters.category
+                ? 'border-teal-900 bg-teal-900 text-sand-50'
+                : 'border-sand-300 bg-sand-50 text-charcoal-700 hover:border-teal-700'
+            }`}
+          >
+            All
+          </button>
+          {EXPERIENCE_CATEGORIES.filter((c) => categoriesInUse.includes(c.value)).map((c) => (
+            <button
+              key={c.value}
+              type="button"
+              aria-pressed={filters.category === c.value}
+              onClick={() => update({ ...filters, category: filters.category === c.value ? undefined : c.value })}
+              className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                filters.category === c.value
+                  ? 'border-teal-900 bg-teal-900 text-sand-50'
+                  : 'border-sand-300 bg-sand-50 text-charcoal-700 hover:border-teal-700'
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {filtersOpen && (
         <div className="mt-4 rounded-card border border-sand-200 bg-sand-50 p-5">

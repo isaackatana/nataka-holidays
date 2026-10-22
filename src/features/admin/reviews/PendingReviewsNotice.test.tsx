@@ -4,9 +4,13 @@ import { MemoryRouter } from 'react-router-dom'
 import { PendingReviewsNotice } from './PendingReviewsNotice'
 
 let count: number | undefined
+let experienceCount: number | undefined
 
 vi.mock('@/features/admin/reviews/queries', () => ({
   usePendingReviewCount: () => ({ data: count }),
+}))
+vi.mock('@/features/admin/experienceReviews/queries', () => ({
+  usePendingExperienceReviewCount: () => ({ data: experienceCount }),
 }))
 
 function renderNotice() {
@@ -18,7 +22,10 @@ function renderNotice() {
 }
 
 describe('PendingReviewsNotice', () => {
-  afterEach(() => cleanup())
+  afterEach(() => {
+    cleanup()
+    experienceCount = undefined
+  })
 
   it('links to the reviews page with the count', () => {
     count = 3
@@ -40,5 +47,12 @@ describe('PendingReviewsNotice', () => {
     cleanup()
     count = undefined
     expect(renderNotice().container.textContent).toBe('')
+  })
+
+  it('adds experience reviews to the count', () => {
+    count = 2
+    experienceCount = 1
+    renderNotice()
+    expect(screen.getByText('3 reviews')).toBeTruthy()
   })
 })

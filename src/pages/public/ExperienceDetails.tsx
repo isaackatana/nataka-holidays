@@ -4,11 +4,48 @@ import { SEO } from '@/components/shared/SEO'
 import { JsonLd } from '@/components/shared/JsonLd'
 import { Gallery } from '@/components/property/Gallery'
 import { VideoEmbed } from '@/components/shared/VideoEmbed'
+import { ExperienceRequestForm } from '@/components/property/ExperienceRequestForm'
+import { ExperienceReviewsSection } from '@/components/property/ExperienceReviewsSection'
+import { categoryLabel, priceBasisLabel } from '@/data/experienceOptions'
 import { useExperienceBySlug } from '@/features/experiences/queries'
 import { useTripCart } from '@/features/tripCart/TripCartContext'
 import { getPublicImageUrl } from '@/utils/storage'
 import { formatKES } from '@/utils/currency'
 import { buildWhatsAppLink, buildExperienceEnquiryMessage } from '@/utils/whatsapp'
+import type { Experience } from '@/types/domain'
+
+/** The practical details guests ask about; each line only appears when it has been filled in. */
+function ExperienceFacts({ experience }: { experience: Experience }) {
+  const quickFacts = [
+    experience.min_age ? `Minimum age: ${experience.min_age}` : null,
+    experience.max_group_size ? `Group size: up to ${experience.max_group_size}` : null,
+    experience.meeting_point ? `Meeting point: ${experience.meeting_point}` : null,
+  ].filter(Boolean) as string[]
+  const sections = [
+    { title: "What's included", text: experience.included },
+    { title: 'What to bring', text: experience.what_to_bring },
+    { title: 'Cancellation', text: experience.cancellation_policy },
+  ].filter((s) => s.text)
+  if (quickFacts.length === 0 && sections.length === 0) return null
+
+  return (
+    <div className="mt-8 flex flex-col gap-6">
+      {quickFacts.length > 0 && (
+        <ul className="grid grid-cols-1 gap-2 rounded-card bg-sand-100 p-5 text-sm text-charcoal-700 sm:grid-cols-2">
+          {quickFacts.map((fact) => (
+            <li key={fact}>{fact}</li>
+          ))}
+        </ul>
+      )}
+      {sections.map((section) => (
+        <div key={section.title}>
+          <h2 className="font-display text-xl font-medium text-teal-900">{section.title}</h2>
+          <p className="mt-2 whitespace-pre-line text-charcoal-700">{section.text}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function ExperienceDetails() {
   const { slug } = useParams()
@@ -99,11 +136,23 @@ export default function ExperienceDetails() {
           </span>
         )}
         {experience.price !== null && (
-          <span className="font-figures font-medium text-teal-900">{formatKES(experience.price)}</span>
+          <span className="font-figures font-medium text-teal-900">
+            {formatKES(experience.price)}
+            {priceBasisLabel(experience.price_type) && (
+              <span className="font-sans text-sm font-normal text-charcoal-500"> {priceBasisLabel(experience.price_type)}</span>
+            )}
+          </span>
+        )}
+        {categoryLabel(experience.category) && (
+          <span className="rounded-full bg-sand-100 px-3 py-0.5 text-xs font-medium text-teal-900">
+            {categoryLabel(experience.category)}
+          </span>
         )}
       </div>
 
       <p className="mt-6 whitespace-pre-line text-charcoal-700">{experience.description}</p>
+
+      <ExperienceFacts experience={experience} />
 
       {experience.video_url && (
         <div className="mt-8">
@@ -114,7 +163,14 @@ export default function ExperienceDetails() {
         </div>
       )}
 
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="mt-10">
+        <ExperienceRequestForm experience={experience} />
+      </div>
+
+      <ExperienceReviewsSection experienceId={experience.id} />
+
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <span className="text-sm text-charcoal-500">Prefer to chat?</span>
         <a
           href={buildWhatsAppLink(buildExperienceEnquiryMessage(experience.title, pageUrl))}
           target="_blank"

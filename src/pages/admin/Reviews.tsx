@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, Check, X, Trash2, MessageSquareReply } from 'lucide-react'
+import { Star, Check, X, Trash2 } from 'lucide-react'
 import {
   useAdminReviews,
   useUpdateReviewStatus,
   useDeleteReview,
   useSetOwnerReply,
+  usePendingReviewCount,
 } from '@/features/admin/reviews/queries'
-import { OWNER_REPLY_MAX } from '@/services/admin/reviews.service'
+import { ReviewReplyEditor } from '@/components/admin/ReviewReplyEditor'
+import { ExperienceReviewsPanel } from '@/components/admin/ExperienceReviewsPanel'
+import { usePendingExperienceReviewCount } from '@/features/admin/experienceReviews/queries'
 import { getPublicImageUrl, getResizedImageUrl } from '@/utils/storage'
 import type { ReviewStatus } from '@/types/domain'
 
@@ -31,94 +34,22 @@ function Stars({ rating }: { rating: number }) {
   )
 }
 
+/** Supplies the stay-review save hook to the shared reply editor. */
 function ReplyEditor({ reviewId, initial }: { reviewId: string; initial: string | null }) {
-  const [editing, setEditing] = useState(false)
-  const [text, setText] = useState(initial ?? '')
-  const [error, setError] = useState<string | null>(null)
   const save = useSetOwnerReply()
-
-  async function handleSave(value: string) {
-    setError(null)
-    try {
-      await save.mutateAsync({ id: reviewId, reply: value })
-      if (!value.trim()) setText('')
-      setEditing(false)
-    } catch {
-      setError("Couldn't save the reply. Please try again.")
-    }
-  }
-
-  if (!editing) {
-    return (
-      <div className="mt-3">
-        {initial && (
-          <div className="rounded-lg border-l-2 border-teal-700 bg-sand-100 p-3">
-            <p className="text-xs font-medium text-teal-900">Your public reply</p>
-            <p className="mt-1 whitespace-pre-line text-sm text-charcoal-700">{initial}</p>
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => {
-            setText(initial ?? '')
-            setEditing(true)
-          }}
-          className="mt-2 flex items-center gap-1.5 text-xs font-medium text-teal-800 hover:underline"
-        >
-          <MessageSquareReply className="h-3.5 w-3.5" />
-          {initial ? 'Edit reply' : 'Reply publicly'}
-        </button>
-      </div>
-    )
-  }
-
   return (
-    <div className="mt-3 flex flex-col gap-2">
-      <label htmlFor={`reply-${reviewId}`} className="text-xs font-medium text-charcoal-700">
-        Public reply (shown under the review)
-      </label>
-      <textarea
-        id={`reply-${reviewId}`}
-        rows={3}
-        maxLength={OWNER_REPLY_MAX}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="rounded-lg border border-sand-400 bg-sand-50 px-3 py-2 text-base text-charcoal-900 outline-none focus:border-teal-700 sm:text-sm"
-      />
-      {error && <p className="text-xs text-coral-500">{error}</p>}
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          disabled={save.isPending || !text.trim()}
-          onClick={() => handleSave(text)}
-          className="rounded-full bg-teal-900 px-4 py-1.5 text-xs font-medium text-sand-50 hover:bg-teal-800 disabled:opacity-60"
-        >
-          Save reply
-        </button>
-        <button
-          type="button"
-          disabled={save.isPending}
-          onClick={() => setEditing(false)}
-          className="rounded-full border border-sand-300 px-4 py-1.5 text-xs font-medium text-charcoal-700 hover:bg-sand-100"
-        >
-          Cancel
-        </button>
-        {initial && (
-          <button
-            type="button"
-            disabled={save.isPending}
-            onClick={() => handleSave('')}
-            className="rounded-full border border-sand-300 px-4 py-1.5 text-xs font-medium text-coral-500 hover:bg-coral-500/10"
-          >
-            Remove reply
-          </button>
-        )}
-      </div>
-    </div>
+    <ReviewReplyEditor
+      reviewId={reviewId}
+      initial={initial}
+      isSaving={save.isPending}
+      onSave={async (reply) => {
+        await save.mutateAsync({ id: reviewId, reply })
+      }}
+    />
   )
 }
 
-export default function AdminReviews() {
+function StayReviewsPanel() {
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | 'all'>('pending')
   const { data: reviews, isLoading } = useAdminReviews(
     statusFilter === 'all' ? {} : { status: statusFilter },
@@ -132,13 +63,12 @@ export default function AdminReviews() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-8 sm:py-8">
-      <h1 className="font-display text-2xl font-medium text-teal-900">Reviews</h1>
-      <p className="mt-1 text-sm text-charcoal-500">
+    <div>
+      <p className="text-sm text-charcoal-500">
         Only approved reviews show on property pages — new reviews start as pending.
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -244,6 +174,55 @@ export default function AdminReviews() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+type Section = 'stays' | 'experiences'
+
+function CountBadge({ count }: { count: number | undefined }) {
+  if (!count) return null
+  return (
+    <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-pill bg-gold-600 px-1.5 font-mono text-[10px] text-sand-50">
+      {count}
+    </span>
+  )
+}
+
+export default function AdminReviews() {
+  const [section, setSection] = useState<Section>('stays')
+  const { data: pendingStays } = usePendingReviewCount()
+  const { data: pendingExperiences } = usePendingExperienceReviewCount()
+
+  const sections: { value: Section; label: string; count: number | undefined }[] = [
+    { value: 'stays', label: 'Stays', count: pendingStays },
+    { value: 'experiences', label: 'Experiences', count: pendingExperiences },
+  ]
+
+  return (
+    <div className="px-4 py-6 sm:px-8 sm:py-8">
+      <h1 className="font-display text-2xl font-medium text-teal-900">Reviews</h1>
+
+      <div className="mt-4 flex gap-6 border-b border-sand-200" role="tablist" aria-label="Review type">
+        {sections.map((s) => (
+          <button
+            key={s.value}
+            role="tab"
+            aria-selected={section === s.value}
+            onClick={() => setSection(s.value)}
+            className={`-mb-px border-b-2 pb-2 text-sm font-medium ${
+              section === s.value
+                ? 'border-teal-900 text-teal-900'
+                : 'border-transparent text-charcoal-500 hover:text-teal-800'
+            }`}
+          >
+            {s.label}
+            <CountBadge count={s.count} />
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-5">{section === 'stays' ? <StayReviewsPanel /> : <ExperienceReviewsPanel />}</div>
     </div>
   )
 }

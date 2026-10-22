@@ -142,6 +142,10 @@ export const router = createBrowserRouter([
             path: 'experiences/:id/edit',
             element: withSuspense(lazyPage(() => import('@/pages/admin/ExperienceEditor'))),
           },
+          {
+            path: 'experience-requests',
+            element: withSuspense(lazyPage(() => import('@/pages/admin/ExperienceRequests'))),
+          },
           { path: 'products', element: withSuspense(lazyPage(() => import('@/pages/admin/Products'))) },
           { path: 'orders', element: withSuspense(lazyPage(() => import('@/pages/admin/Orders'))) },
           { path: 'settings', element: withSuspense(lazyPage(() => import('@/pages/admin/Settings'))) },

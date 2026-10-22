@@ -15,3 +15,17 @@ export function notifyBooking(event: NotifyEvent, bookingId: string): void {
     keepalive: true,
   }).catch(() => {})
 }
+
+/**
+ * Asks the server to email about a new experience request (a confirmation to the
+ * guest and an alert to the business). Fire-and-forget like notifyBooking: the
+ * server sends at most once per request and never fails the request itself.
+ */
+export function notifyExperienceRequest(requestId: string): void {
+  fetch('/api/notify-experience', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ requestId }),
+    keepalive: true,
+  }).catch(() => {})
+}

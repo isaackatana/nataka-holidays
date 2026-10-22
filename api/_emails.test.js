@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  buildEmails, clockTime, eatDate, escapeHtml, eventAllowed, kes, reminderWindow, reviewRequestWindow,
+  buildEmails, buildExperiencePaymentEmails, buildExperienceRequestEmails, clockTime, eatDate, escapeHtml, eventAllowed, kes, reminderWindow, reviewRequestWindow,
 } from './_emails.js'
 
 const now = new Date('2026-10-01T12:00:00Z').getTime()
@@ -170,5 +170,97 @@ describe('review_submitted alert', () => {
 
   it('sends nothing when there is no review', () => {
     expect(buildEmails('review_submitted', { ...ctx, booking: done }, opts)).toEqual([])
+  })
+})
+
+describe('experience request emails', () => {
+  const ctx = {
+    request: {
+      id: 'r1', experience_title: 'Dhow Trip', guest_name: 'Amina Kamau', guest_email: 'a@x.com',
+      guest_phone: '0712345678', preferred_date: '2026-12-01', people: 3, message: 'Vegetarian <b>please</b>',
+      price_type: 'per_person', unit_price: 5000, estimated_total: 15000, status: 'new', notified: false,
+    },
+    business: { name: 'Nataka Holidays', phone: '+254 700', email: 'hi@nataka.co.ke' },
+  }
+  const mails = buildExperienceRequestEmails(ctx, { siteUrl: 'https://natakaholidays.co.ke' })
+
+  it('sends one confirmation to the guest and one alert to the business', () => {
+    expect(mails.map((m) => m.to)).toEqual(['guest', 'admin'])
+  })
+
+  it('tells the guest it is a request, not a booking, with nothing charged', () => {
+    expect(mails[0].html).toContain('Nothing has been charged')
+    expect(mails[0].html).toContain('15,000')
+    expect(mails[0].subject).toContain('Dhow Trip')
+  })
+
+  it('gives the business the guest contact, group, date and a link to the requests page', () => {
+    expect(mails[1].subject).toContain('3 people')
+    expect(mails[1].html).toContain('0712345678')
+    expect(mails[1].html).toContain('https://natakaholidays.co.ke/admin/experience-requests')
+  })
+
+  it("escapes the guest's message", () => {
+    expect(mails[1].html).not.toContain('<b>please</b>')
+    expect(mails[1].html).toContain('&lt;b&gt;please&lt;/b&gt;')
+  })
+
+  it('omits the total when the price basis is not set', () => {
+    const noTotal = buildExperienceRequestEmails(
+      { ...ctx, request: { ...ctx.request, estimated_total: null } },
+      { siteUrl: 'https://natakaholidays.co.ke' },
+    )
+    expect(noTotal[0].html).not.toContain('Estimated total')
+  })
+
+  it('uses the singular for one person', () => {
+    const one = buildExperienceRequestEmails(
+      { ...ctx, request: { ...ctx.request, people: 1 } },
+      { siteUrl: 'https://natakaholidays.co.ke' },
+    )
+    expect(one[1].subject).toContain('1 person,')
+  })
+})
+
+describe('experience payment emails', () => {
+  const base = {
+    payment: { id: 'p1', amount: 3000, receipt: 'QWE123ABC', method: 'mpesa' },
+    request: {
+      id: 'r1', experience_title: 'Dhow Trip', guest_name: 'Amina Kamau', guest_email: 'a@x.com',
+      guest_phone: '0712345678', preferred_date: '2026-12-01', people: 3, total: 10000, paid: 3000,
+    },
+    business: { name: 'Nataka Holidays', phone: '+254 700', email: 'hi@nataka.co.ke' },
+  }
+  const opts = { siteUrl: 'https://natakaholidays.co.ke' }
+
+  it('sends a receipt to the guest and an alert to the business', () => {
+    const mails = buildExperiencePaymentEmails(base, opts)
+    expect(mails.map((m) => m.to)).toEqual(['guest', 'admin'])
+    expect(mails[0].subject).toContain('Dhow Trip')
+    expect(mails[0].html).toContain('QWE123ABC')
+    expect(mails[0].html).toContain('3,000')
+    expect(mails[1].subject).toContain('Amina Kamau')
+    expect(mails[1].html).toContain('https://natakaholidays.co.ke/admin/experience-requests')
+  })
+
+  it('shows the balance still to pay after a deposit', () => {
+    expect(buildExperiencePaymentEmails(base, opts)[0].html).toContain('Balance still to pay: KSh 7,000')
+  })
+
+  it('says fully paid when nothing is left', () => {
+    const paid = { ...base, request: { ...base.request, paid: 10000 } }
+    expect(buildExperiencePaymentEmails(paid, opts)[0].html).toContain('Fully paid')
+  })
+
+  it('does not claim a balance when the total is unknown', () => {
+    const noTotal = { ...base, request: { ...base.request, total: null } }
+    const html = buildExperiencePaymentEmails(noTotal, opts)[0].html
+    expect(html).not.toContain('Balance still to pay')
+    expect(html).not.toContain('Fully paid')
+  })
+
+  it("escapes the guest's name", () => {
+    const evil = { ...base, request: { ...base.request, guest_name: '<script>x</script> Amina' } }
+    expect(buildExperiencePaymentEmails(evil, opts)[1].html).not.toContain('<script>')
   })
 })

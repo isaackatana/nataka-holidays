@@ -126,3 +126,33 @@ export async function requestStkPush({ cfg, amount, phone, reference, descriptio
   const stk = await stkRes.json().catch(() => ({}))
   return { ok: stkRes.ok && String(stk.ResponseCode) === '0', stk, status: stkRes.status }
 }
+
+const EXPERIENCE_PAY_COOLDOWN_MS = 90 * 1000
+
+/** Plain-English reasons an experience can't be paid online yet (from experience_amount_due). */
+const EXPERIENCE_REASONS = {
+  not_found: 'This request was not found.',
+  no_total: 'We have not set the final price yet. We will message you with it.',
+  not_offered: 'Online payment is not available for this experience. We will share payment details when we confirm.',
+  no_account: 'Online payment needs a request made while signed in. Please contact us.',
+  not_confirmed: 'You can pay once we have confirmed your request.',
+  paid: 'This request is already fully paid.',
+}
+
+/**
+ * Rules for a guest paying an experience request. `due` is what the database
+ * says is owed (experience_amount_due); the AMOUNT is never an input, it is
+ * always due.due_now. Returns an error message, or null if a prompt may go out.
+ */
+export function experiencePayError({ due, payments, now = Date.now() }) {
+  if (!due || due.payable !== true) {
+    return EXPERIENCE_REASONS[due?.reason] ?? 'This request can not be paid online right now.'
+  }
+  if (!Number.isInteger(due.due_now) || due.due_now < 1) return 'Nothing is due on this request.'
+
+  const recentPending = (payments ?? []).some(
+    (p) => p.status === 'pending' && now - new Date(p.created_at).getTime() < EXPERIENCE_PAY_COOLDOWN_MS,
+  )
+  if (recentPending) return 'A payment prompt was just sent. Check your phone, or try again in a minute.'
+  return null
+}

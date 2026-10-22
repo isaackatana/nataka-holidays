@@ -4,6 +4,8 @@ import type { Experience } from '@/types/domain'
 const EXPERIENCE_SELECT = `
   id, title, slug, description, location, price, duration, video_url, is_published,
   created_at, updated_at,
+  price_type, category, included, meeting_point, min_age, what_to_bring, max_group_size, cancellation_policy,
+  deposit_percent,
   experience_images ( id, storage_path, sort_order )
 `
 
@@ -39,6 +41,15 @@ export interface ExperienceInput {
   price: number | null
   duration: string | null
   video_url: string | null
+  price_type: 'per_person' | 'per_group' | null
+  category: string | null
+  included: string | null
+  meeting_point: string | null
+  min_age: number | null
+  what_to_bring: string | null
+  max_group_size: number | null
+  cancellation_policy: string | null
+  deposit_percent: number | null
   is_published: boolean
 }
 

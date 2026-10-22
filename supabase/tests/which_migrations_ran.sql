@@ -11,4 +11,7 @@ select
   coalesce((select pg_get_functiondef(p.oid) like '%''review''%'
             from pg_proc p where p.proname = 'notification_context' limit 1), false)       as "0023_review_alert",
   exists (select 1 from information_schema.columns
-          where table_name = 'reviews' and column_name = 'reviewer_name')                  as "0024_reviewer_names";
+          where table_name = 'reviews' and column_name = 'reviewer_name')                  as "0024_reviewer_names",
+  to_regclass('public.experience_requests') is not null                                   as "0025_experience_requests",
+  to_regclass('public.experience_reviews') is not null                                    as "0026_experience_reviews",
+  to_regclass('public.experience_payments') is not null                                   as "0027_experience_payments";

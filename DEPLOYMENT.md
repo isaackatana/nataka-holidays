@@ -268,8 +268,50 @@ text. Lower-rated reviews still appear on the property's own page. Run
 (guest profiles stay private) and fills it in for existing reviews. Until it's
 run, reviews show as "Guest".
 
+**Experience requests and details.** Each experience page now has a **Request
+this experience** form (preferred date, number of people, contact details; no
+payment, no account needed). The guest gets a confirmation email and you get an
+alert at `NOTIFY_ADMIN_EMAIL`. Requests appear in **Admin → Experience requests**
+(gold badge for new ones), where you **Confirm** or **Decline** and message the
+guest with a ready-written **WhatsApp guest** button. Signed-in guests also see
+their requests and their status under **My bookings**. Run
+`0025_experience_requests.sql` once.
+
+In **Admin → Experiences → edit**, new optional fields: **Price is** (per
+person / per group), **Category** (shown as filter chips on the Experiences
+page), minimum age, max people, meeting point, what's included, what to bring
+and cancellation terms. **Set "Price is" on each existing experience:** until
+you do, the form tells guests you'll confirm the total instead of showing an
+estimate (older experiences have no price basis yet, and I didn't guess).
+
+**Experience reviews.** Once you mark a guest's experience request
+**Completed** (Admin → Experience requests), they see a "How was it?" form under
+**My bookings → My experience requests**. Their review goes to **Admin →
+Reviews → Experiences** (a gold count shows on both tabs and on the menu) where
+you approve, reject or reply, like stay reviews. Approved reviews appear on the
+experience page with a star breakdown, and the average shows on its card on the
+Experiences page. Only guests who made the request signed in can review it.
+Run `0026_experience_reviews.sql` once. (There is no email alert for experience
+reviews; the badge and the Dashboard notice tell you.)
+
+**Paying for experiences by M-Pesa.** In **Admin → Experiences → edit**, set
+**Online deposit %** (for example 30) on each experience you want to take
+payment for; leave it empty to keep online payment off (the default). After you
+**Confirm** a request, the guest sees **Pay deposit** under **My bookings → My
+experience requests** and gets an M-Pesa prompt for exactly that amount, then
+**Pay balance** for the rest. The amount is always worked out by the database
+from the request's price (the guest only enters their phone number). Both of you
+get an email receipt. On **Admin → Experience requests** each confirmed request
+shows what has been paid, lets you **Save an agreed total** (if the final price
+differs from the estimate) and **Record payment** for cash or bank money. If a
+guest paid and you then cancel or decline, a red note reminds you to refund via
+M-Pesa. Only requests the guest sent **while signed in** can be paid online
+(others: record the payment yourself). It uses the same M-Pesa settings as
+bookings and shop orders, so there is nothing new to configure. Run
+`0027_experience_payments.sql` once, before you deploy.
+
 **Order matters: migrations first, then deploy.** If the site is deployed before
-the review migrations (0018-0024) have run, guests still see reviews (the pages
+the review migrations (0018-0027) have run, guests still see reviews (the pages
 fall back to plain reviews), but the **admin Reviews page shows a "Could not
 find a relationship between 'reviews' and 'review_images'" error** until
 `0022` is run. To see which have run, paste `supabase/tests/which_migrations_ran.sql`

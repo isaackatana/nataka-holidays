@@ -3,7 +3,9 @@
 // Email is optional: with no RESEND_API_KEY it quietly does nothing, so
 // the rest of the site works without it.
 import { createClient } from '@supabase/supabase-js'
-import { buildEmails, buildOrderEmails, eventAllowed } from './_emails.js'
+import {
+  buildEmails, buildExperiencePaymentEmails, buildExperienceRequestEmails, buildOrderEmails, eventAllowed,
+} from './_emails.js'
 
 const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.co.ke'
 
@@ -130,4 +132,115 @@ export async function sendOrderNotification({ orderId, receipt }) {
     }
   }
   return { sent: guestSent }
+}
+
+/**
+ * Confirmation to the guest and an alert to the business for a new experience
+ * request. The database hands out the "send" permission to exactly one caller
+ * (claim_experience_request_notification), so repeated or simultaneous calls
+ * can never email twice. If nothing could be sent, the claim is released so a
+ * later attempt can try again.
+ */
+export async function sendExperienceRequestNotification({ requestId }) {
+  const {
+    VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, MPESA_CALLBACK_SECRET,
+    RESEND_API_KEY, NOTIFY_FROM_EMAIL, NOTIFY_ADMIN_EMAIL,
+  } = process.env
+
+  if (!RESEND_API_KEY || !NOTIFY_FROM_EMAIL) return { sent: false, reason: 'email_not_configured' }
+  if (!VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY || !MPESA_CALLBACK_SECRET) {
+    console.error('[notify] Supabase / secret env vars missing')
+    return { sent: false, reason: 'not_configured' }
+  }
+
+  const supabase = createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+
+  const { data: ctx, error } = await supabase.rpc('experience_request_context', {
+    p_secret: MPESA_CALLBACK_SECRET,
+    p_request_id: requestId,
+  })
+  if (error) {
+    console.error('[notify] experience_request_context failed:', error.message)
+    return { sent: false, reason: 'lookup_failed' }
+  }
+  if (!ctx) return { sent: false, reason: 'not_found' }
+  if (ctx.request.notified) return { sent: false, reason: 'already_sent' }
+  if (ctx.request.status !== 'new') return { sent: false, reason: 'not_allowed' }
+
+  const { data: claimed, error: claimError } = await supabase.rpc('claim_experience_request_notification', {
+    p_secret: MPESA_CALLBACK_SECRET,
+    p_request_id: requestId,
+  })
+  if (claimError) {
+    console.error('[notify] claim failed:', claimError.message)
+    return { sent: false, reason: 'lookup_failed' }
+  }
+  if (!claimed) return { sent: false, reason: 'already_sent' }
+
+  let anySent = false
+  for (const mail of buildExperienceRequestEmails(ctx, { siteUrl: SITE_URL })) {
+    const to = mail.to === 'guest' ? ctx.request.guest_email : NOTIFY_ADMIN_EMAIL
+    if (!to) continue
+    try {
+      await sendViaResend({ apiKey: RESEND_API_KEY, from: NOTIFY_FROM_EMAIL, to, subject: mail.subject, html: mail.html, text: mail.text })
+      anySent = true
+    } catch (err) {
+      console.error(`[notify] experience request email to ${mail.to} failed:`, err.message)
+    }
+  }
+
+  if (!anySent) {
+    await supabase.rpc('release_experience_request_notification', {
+      p_secret: MPESA_CALLBACK_SECRET,
+      p_request_id: requestId,
+    })
+    return { sent: false, reason: 'send_failed' }
+  }
+  return { sent: true }
+}
+
+/**
+ * Receipt to the guest and an alert to the business for a successful experience
+ * payment. Called once by the callback, when the payment was just resolved
+ * (a replayed callback finds nothing left to resolve), so it never double-sends.
+ */
+export async function sendExperiencePaymentNotification({ paymentId }) {
+  const {
+    VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, MPESA_CALLBACK_SECRET,
+    RESEND_API_KEY, NOTIFY_FROM_EMAIL, NOTIFY_ADMIN_EMAIL,
+  } = process.env
+
+  if (!RESEND_API_KEY || !NOTIFY_FROM_EMAIL) return { sent: false, reason: 'email_not_configured' }
+  if (!VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY || !MPESA_CALLBACK_SECRET) {
+    console.error('[notify] Supabase / secret env vars missing')
+    return { sent: false, reason: 'not_configured' }
+  }
+
+  const supabase = createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const { data: ctx, error } = await supabase.rpc('experience_payment_context', {
+    p_secret: MPESA_CALLBACK_SECRET,
+    p_payment_id: paymentId,
+  })
+  if (error) {
+    console.error('[notify] experience_payment_context failed:', error.message)
+    return { sent: false, reason: 'lookup_failed' }
+  }
+  if (!ctx) return { sent: false, reason: 'not_found' }
+
+  let anySent = false
+  for (const mail of buildExperiencePaymentEmails(ctx, { siteUrl: SITE_URL })) {
+    const to = mail.to === 'guest' ? ctx.request.guest_email : NOTIFY_ADMIN_EMAIL
+    if (!to) continue
+    try {
+      await sendViaResend({ apiKey: RESEND_API_KEY, from: NOTIFY_FROM_EMAIL, to, subject: mail.subject, html: mail.html, text: mail.text })
+      anySent = true
+    } catch (err) {
+      console.error(`[notify] experience payment email to ${mail.to} failed:`, err.message)
+    }
+  }
+  return { sent: anySent, reason: anySent ? undefined : 'send_failed' }
 }

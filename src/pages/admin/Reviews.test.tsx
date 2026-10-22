@@ -12,7 +12,16 @@ const reviews = [
     properties: { title: 'Beach Villa', slug: 'beach-villa' }, profiles: { full_name: 'Joe' } },
 ]
 
+vi.mock('@/features/admin/experienceReviews/queries', () => ({
+  usePendingExperienceReviewCount: () => ({ data: 0 }),
+  useAdminExperienceReviews: () => ({ data: [], isLoading: false, isError: false }),
+  useUpdateExperienceReviewStatus: () => ({ mutate: vi.fn() }),
+  useDeleteExperienceReview: () => ({ mutate: vi.fn() }),
+  useSetExperienceReviewReply: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}))
+
 vi.mock('@/features/admin/reviews/queries', () => ({
+  usePendingReviewCount: () => ({ data: 0 }),
   useAdminReviews: () => ({ data: reviews, isLoading: false }),
   useUpdateReviewStatus: () => ({ mutate: vi.fn() }),
   useDeleteReview: () => ({ mutate: vi.fn() }),

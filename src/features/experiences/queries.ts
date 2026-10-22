@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   getPublishedExperiences,
   getExperienceBySlug,
+  getExperienceCategoriesInUse,
   type ExperienceFilters,
 } from '@/services/experiences.service'
 
@@ -29,5 +30,14 @@ export function useExperienceBySlug(slug: string | undefined) {
     queryKey: ['experiences', 'detail', slug],
     queryFn: () => getExperienceBySlug(slug!),
     enabled: !!slug,
+  })
+}
+
+export function useExperienceCategories() {
+  return useQuery({
+    queryKey: ['experiences', 'categories'],
+    queryFn: getExperienceCategoriesInUse,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   })
 }

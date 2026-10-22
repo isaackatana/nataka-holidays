@@ -5,7 +5,7 @@ Work top to bottom (`SETUP_GUIDE.md` has the same steps in plain order). Items m
 Step-by-step help: `SUPABASE_SECURITY_GUIDE.md` (Supabase settings) and `GO_LIVE_GUIDE.md` (Vercel variables, the live tests, switching M-Pesa to real money).
 
 ## 1. Database (Supabase SQL editor)
-- [ ] Run every file in `supabase/migrations/` in order, up to the highest-numbered one, currently **`0024_reviewer_names.sql`** (`0012` is the security fix: don't skip it).
+- [ ] Run every file in `supabase/migrations/` in order, up to the highest-numbered one, currently **`0027_experience_payments.sql`** (`0012` is the security fix: don't skip it).
 - [ ] **Check who is an admin.** Run: `select id, full_name, role from profiles where role = 'admin';`
       Before 0012, any signed-in user could promote themselves, so make sure every row is someone you know.
       Demote anyone unexpected: `update profiles set role = 'customer' where id = '...';`
