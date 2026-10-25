@@ -13,7 +13,7 @@ interface GalleryProps {
   title: string
   /** Which Storage bucket these images live in — properties and
    * experiences use separate buckets (see supabase/migrations/0004_storage.sql). */
-  bucket: 'property-images' | 'experience-images'
+  bucket: 'property-images' | 'experience-images' | 'product-images'
 }
 
 export function Gallery({ images, title, bucket }: GalleryProps) {

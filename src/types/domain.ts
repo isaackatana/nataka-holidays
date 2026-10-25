@@ -100,9 +100,34 @@ export interface Product {
   price: number
   stock: number
   image_path: string | null
+  /** What the shop filter groups by, e.g. "Textiles". */
+  category: string
   is_active: boolean
   created_at: string
   updated_at: string
+  /** Only present on the shop list: how many options it has (to show "Choose colour"). */
+  product_variants?: { id: string }[]
+}
+
+export interface ProductImage {
+  id: string
+  product_id: string
+  storage_path: string
+  sort_order: number
+}
+
+/** A colour / option of a product, with its own stock. */
+export interface ProductVariant {
+  id: string
+  product_id: string
+  name: string
+  stock: number
+  sort_order: number
+}
+
+export interface ProductWithImages extends Product {
+  product_images: ProductImage[]
+  product_variants: ProductVariant[]
 }
 
 export type OrderStatus = 'pending_payment' | 'paid' | 'packed' | 'completed' | 'cancelled' | 'expired'
@@ -113,6 +138,8 @@ export interface OrderItem {
   order_id: string
   product_id: string | null
   product_name: string
+  variant_id?: string | null
+  variant_name?: string | null
   unit_price: number
   quantity: number
 }

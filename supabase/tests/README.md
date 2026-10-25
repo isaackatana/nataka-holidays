@@ -42,3 +42,14 @@ guests cannot write or edit payment rows, a second prompt within 90 seconds is
 refused, the M-Pesa result resolves a payment once (a replay changes nothing and
 a wrong secret is refused), a failed payment does not count, and the admin can
 set an agreed total and record cash while a guest cannot.
+
+## Shop colours / options check
+
+`shop_variants_rules.sql` (run it after all migrations, including 0028) checks
+that a product with colours sells only by colour, each colour has its own
+stock, the product's stock stays equal to the total, the database prices the
+order and names the colour on the order line, and stock goes back when an
+order is cancelled or expires (and is taken again if money arrives late).
+It also checks that a product without colours still works exactly as before.
+Run: `psql -d nataka_test -f supabase/tests/shop_variants_rules.sql`
+

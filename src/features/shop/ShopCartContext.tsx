@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   addToCart, cartCount, cartSubtotal, parseSavedCart, removeFromCart, setQuantity,
-  type CartLine, type CartProductInfo,
+  type CartLine, type CartProductInfo, type CartVariantInfo,
 } from '@/features/shop/cart'
 
 const STORAGE_KEY = 'nataka-shop-cart'
@@ -10,9 +10,9 @@ interface ShopCartValue {
   lines: CartLine[]
   count: number
   subtotal: number
-  add: (product: CartProductInfo, quantity?: number) => void
-  setQty: (productId: string, quantity: number) => void
-  remove: (productId: string) => void
+  add: (product: CartProductInfo, quantity?: number, variant?: CartVariantInfo) => void
+  setQty: (key: string, quantity: number) => void
+  remove: (key: string) => void
   clear: () => void
 }
 
@@ -37,7 +37,7 @@ export function ShopCartProvider({ children }: { children: ReactNode }) {
     }
   }, [lines])
 
-  const add = useCallback((product: CartProductInfo, quantity = 1) => setLines((l) => addToCart(l, product, quantity)), [])
+  const add = useCallback((product: CartProductInfo, quantity = 1, variant?: CartVariantInfo) => setLines((l) => addToCart(l, product, quantity, variant)), [])
   const setQty = useCallback((id: string, quantity: number) => setLines((l) => setQuantity(l, id, quantity)), [])
   const remove = useCallback((id: string) => setLines((l) => removeFromCart(l, id)), [])
   const clear = useCallback(() => setLines([]), [])

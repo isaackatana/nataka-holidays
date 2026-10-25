@@ -1,8 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { cancelMyOrder, getMyOrders, getShopProducts, payForOrder, placeOrder, type PlaceOrderInput } from '@/services/shop.service'
+import { cancelMyOrder, getMyOrders, getShopProduct, getShopProducts, payForOrder, placeOrder, type PlaceOrderInput } from '@/services/shop.service'
 
 export function useShopProducts() {
   return useQuery({ queryKey: ['shop', 'products'], queryFn: getShopProducts })
+}
+
+export function useShopProduct(slug: string | undefined) {
+  return useQuery({
+    queryKey: ['shop', 'product', slug],
+    queryFn: () => getShopProduct(slug as string),
+    enabled: !!slug,
+  })
 }
 
 export function usePlaceOrder() {

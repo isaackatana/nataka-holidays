@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addToCart, cartCount, cartSubtotal, parseSavedCart, previewTotal, removeFromCart, setQuantity } from './cart'
+import { addToCart, cartCount, cartSubtotal, orderItems, parseSavedCart, previewTotal, removeFromCart, setQuantity } from './cart'
 
 const kikoy = { id: 'p1', name: 'Kikoy cloth', slug: 'kikoy', price: 1500, image_path: null, stock: 5 }
 const basket = { id: 'p2', name: 'Sisal basket', slug: 'basket', price: 800, image_path: 'a.webp', stock: 2 }
@@ -56,5 +56,46 @@ describe('parseSavedCart', () => {
   it('drops lines with impossible values', () => {
     const bad = [{ ...addToCart([], kikoy)[0], quantity: 500 }, { ...addToCart([], basket)[0], price: -5 }]
     expect(parseSavedCart(JSON.stringify(bad))).toEqual([])
+  })
+})
+
+describe('cart with colours / options', () => {
+  const blue = { id: 'v-blue', name: 'Blue', stock: 2 }
+  const red = { id: 'v-red', name: 'Red', stock: 5 }
+
+  it('keeps each colour of a product on its own line', () => {
+    let c = addToCart([], kikoy, 1, blue)
+    c = addToCart(c, kikoy, 1, red)
+    c = addToCart(c, kikoy, 1, blue)
+    expect(c.map((l) => [l.variantName, l.quantity])).toEqual([['Blue', 2], ['Red', 1]])
+  })
+  it('limits a colour by that colour\'s own stock, not the product total', () => {
+    const c = addToCart([], { ...kikoy, stock: 7 }, 5, blue)
+    expect(c[0].quantity).toBe(2)
+  })
+  it('ignores a sold-out colour', () => {
+    expect(addToCart([], kikoy, 1, { ...blue, stock: 0 })).toEqual([])
+  })
+  it('changes and removes a colour line by its key', () => {
+    const c = addToCart(addToCart([], kikoy, 1, blue), kikoy, 1, red)
+    expect(setQuantity(c, 'v-red', 3).map((l) => l.quantity)).toEqual([1, 3])
+    expect(removeFromCart(c, 'v-blue').map((l) => l.variantName)).toEqual(['Red'])
+  })
+  it('sends the colour to the database with each line', () => {
+    const c = addToCart(addToCart([], kikoy, 2, red), basket)
+    expect(orderItems(c)).toEqual([
+      { product_id: 'p1', variant_id: 'v-red', quantity: 2 },
+      { product_id: 'p2', variant_id: null, quantity: 1 },
+    ])
+  })
+  it('reads a cart saved before colours existed', () => {
+    const old = [{ productId: 'p1', name: 'Kikoy cloth', slug: 'kikoy', price: 1500, imagePath: null, quantity: 1, maxQuantity: 5 }]
+    const c = parseSavedCart(JSON.stringify(old))
+    expect(c).toHaveLength(1)
+    expect(c[0]).toMatchObject({ key: 'p1', variantId: null, variantName: null })
+  })
+  it('round-trips a cart with a colour', () => {
+    const c = addToCart([], kikoy, 1, blue)
+    expect(parseSavedCart(JSON.stringify(c))).toEqual(c)
   })
 })

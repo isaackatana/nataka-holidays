@@ -20,7 +20,7 @@ afterEach(() => {
 
 const product = (over: Partial<Product>): Product => ({
   id: 'p1', name: 'Kikoy cloth', slug: 'kikoy', description: 'Soft cotton.', price: 1500, stock: 5,
-  image_path: null, is_active: true, created_at: '', updated_at: '', ...over,
+  image_path: null, category: 'Textiles', is_active: true, created_at: '', updated_at: '', ...over,
 })
 
 function CartProbe() {
@@ -72,5 +72,45 @@ describe('Shop page', () => {
   it('says so when there is nothing for sale yet', async () => {
     renderShop([])
     expect(await screen.findByText(/being stocked/i)).toBeTruthy()
+  })
+
+  it('filters by category and by search, and can be cleared', async () => {
+    renderShop([
+      product({}),
+      product({ id: 'p2', name: 'Sisal basket', slug: 'basket', category: 'Baskets', price: 800 }),
+    ])
+    expect(await screen.findByText('Sisal basket')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /^Baskets/ }))
+    expect(screen.queryByText('Kikoy cloth')).toBeNull()
+    expect(screen.getByText('Sisal basket')).toBeTruthy()
+
+    fireEvent.change(screen.getByRole('searchbox', { name: /search the shop/i }), { target: { value: 'zzz' } })
+    expect(screen.getByText(/nothing matches/i)).toBeTruthy()
+
+    fireEvent.click(screen.getAllByRole('button', { name: /clear filters/i })[0])
+    expect(screen.getByText('Kikoy cloth')).toBeTruthy()
+    expect(screen.getByText('Sisal basket')).toBeTruthy()
+  })
+
+  it('hides sold-out products with the in-stock filter', async () => {
+    renderShop([product({}), product({ id: 'p2', name: 'Sisal basket', slug: 'basket', stock: 0 })])
+    expect(await screen.findByText('Sisal basket')).toBeTruthy()
+    fireEvent.click(screen.getByLabelText(/in stock only/i))
+    expect(screen.queryByText('Sisal basket')).toBeNull()
+    expect(screen.getByText('Kikoy cloth')).toBeTruthy()
+  })
+
+  it('links each product to its own page', async () => {
+    renderShop([product({})])
+    const link = await screen.findByRole('link', { name: 'Kikoy cloth' })
+    expect(link.getAttribute('href')).toBe('/shop/kikoy')
+  })
+
+  it('sends products with colours to their page instead of adding straight to the cart', async () => {
+    renderShop([product({ product_variants: [{ id: 'v1' }, { id: 'v2' }] })])
+    const link = await screen.findByRole('link', { name: /choose colour/i })
+    expect(link.getAttribute('href')).toBe('/shop/kikoy')
+    expect(screen.queryByRole('button', { name: /add to cart/i })).toBeNull()
   })
 })

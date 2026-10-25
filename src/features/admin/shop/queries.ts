@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  createProduct, deleteProduct, getAllOrdersForAdmin, getAllProductsForAdmin, markOrderPaid,
-  removeProductImage, setOrderStatus, updateProduct, uploadProductImage, type ProductInput,
+  addProductVariant, deleteProductVariant, updateProductVariant,
+  createProduct, deleteProduct, deleteProductImage, getAllOrdersForAdmin, getAllProductsForAdmin, markOrderPaid,
+  reorderProductImages, setOrderStatus, updateProduct, uploadProductImage, type ProductInput,
 } from '@/services/admin/shop.service'
-import type { Product } from '@/types/domain'
+import type { ProductImage, ProductWithImages } from '@/types/domain'
 
 function useInvalidateShop() {
   const queryClient = useQueryClient()
@@ -14,42 +15,56 @@ export function useAdminProducts() {
   return useQuery({ queryKey: ['admin', 'shop', 'products'], queryFn: getAllProductsForAdmin })
 }
 
-export interface SaveProductArgs {
-  id?: string
-  input: Omit<ProductInput, 'image_path'>
-  /** A newly chosen photo, if any. */
-  file?: File | null
-  /** The photo already on the product (kept unless `removeImage` or a new `file`). */
-  currentImagePath: string | null
-  removeImage?: boolean
-}
-
 export function useSaveProduct() {
   const invalidate = useInvalidateShop()
   return useMutation({
-    mutationFn: async ({ id, input, file, currentImagePath, removeImage }: SaveProductArgs) => {
-      let image_path = removeImage ? null : currentImagePath
-      let uploaded: string | null = null
-      if (file) {
-        uploaded = await uploadProductImage(file)
-        image_path = uploaded
-      }
-      try {
-        const saved = id ? await updateProduct(id, { ...input, image_path }) : await createProduct({ ...input, image_path })
-        if (currentImagePath && currentImagePath !== image_path) await removeProductImage(currentImagePath)
-        return saved
-      } catch (err) {
-        if (uploaded) await removeProductImage(uploaded) // don't leave an orphan file behind
-        throw err
-      }
-    },
+    mutationFn: ({ id, input }: { id?: string; input: ProductInput }) => (id ? updateProduct(id, input) : createProduct(input)),
     onSuccess: invalidate,
   })
 }
 
+export function useUploadProductImage(productId: string) {
+  const invalidate = useInvalidateShop()
+  return useMutation({
+    mutationFn: ({ file, currentCount }: { file: File; currentCount: number }) => uploadProductImage(productId, file, currentCount),
+    onSuccess: invalidate,
+  })
+}
+
+export function useAddVariant(productId: string) {
+  const invalidate = useInvalidateShop()
+  return useMutation({
+    mutationFn: ({ name, stock, sortOrder }: { name: string; stock: number; sortOrder: number }) => addProductVariant(productId, name, stock, sortOrder),
+    onSuccess: invalidate,
+  })
+}
+
+export function useUpdateVariant() {
+  const invalidate = useInvalidateShop()
+  return useMutation({
+    mutationFn: ({ id, name, stock }: { id: string; name: string; stock: number }) => updateProductVariant(id, name, stock),
+    onSuccess: invalidate,
+  })
+}
+
+export function useDeleteVariant() {
+  const invalidate = useInvalidateShop()
+  return useMutation({ mutationFn: (id: string) => deleteProductVariant(id), onSuccess: invalidate })
+}
+
+export function useDeleteProductImage() {
+  const invalidate = useInvalidateShop()
+  return useMutation({ mutationFn: (image: ProductImage) => deleteProductImage(image), onSuccess: invalidate })
+}
+
+export function useReorderProductImages(productId: string) {
+  const invalidate = useInvalidateShop()
+  return useMutation({ mutationFn: (ids: string[]) => reorderProductImages(productId, ids), onSuccess: invalidate })
+}
+
 export function useDeleteProduct() {
   const invalidate = useInvalidateShop()
-  return useMutation({ mutationFn: (p: Product) => deleteProduct(p), onSuccess: invalidate })
+  return useMutation({ mutationFn: (p: ProductWithImages) => deleteProduct(p), onSuccess: invalidate })
 }
 
 export function useAdminOrders() {

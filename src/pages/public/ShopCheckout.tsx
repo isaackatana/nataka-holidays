@@ -7,7 +7,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { useBusinessSettings } from '@/features/settings/queries'
 import { usePayForOrder, usePlaceOrder } from '@/features/shop/queries'
 import { useShopCart } from '@/features/shop/ShopCartContext'
-import { previewTotal } from '@/features/shop/cart'
+import { orderItems, previewTotal } from '@/features/shop/cart'
 import { formatKES } from '@/utils/currency'
 import type { Fulfilment } from '@/types/domain'
 
@@ -59,7 +59,7 @@ export default function ShopCheckout() {
 
     try {
       const order = await place.mutateAsync({
-        items: cart.lines.map((l) => ({ product_id: l.productId, quantity: l.quantity })),
+        items: orderItems(cart.lines),
         fulfilment,
         name: name.trim(),
         phone: msisdn,
@@ -98,22 +98,22 @@ export default function ShopCheckout() {
 
       <ul className="mt-6 divide-y divide-sand-200 rounded-card bg-sand-50 shadow-card">
         {cart.lines.map((l) => (
-          <li key={l.productId} className="flex flex-wrap items-center gap-3 p-4">
+          <li key={l.key} className="flex flex-wrap items-center gap-3 p-4">
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-charcoal-900">{l.name}</p>
+              <p className="font-medium text-charcoal-900">{l.name}{l.variantName && <span className="font-normal text-charcoal-500"> · {l.variantName}</span>}</p>
               <p className="font-figures text-sm text-charcoal-500">{formatKES(l.price)} each</p>
             </div>
             <div className="flex items-center gap-2" role="group" aria-label={`Quantity of ${l.name}`}>
-              <button type="button" aria-label="One fewer" onClick={() => cart.setQty(l.productId, l.quantity - 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-sand-300 text-charcoal-700 hover:bg-sand-200">
+              <button type="button" aria-label="One fewer" onClick={() => cart.setQty(l.key, l.quantity - 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-sand-300 text-charcoal-700 hover:bg-sand-200">
                 <Minus className="h-4 w-4" />
               </button>
               <span className="w-6 text-center font-figures">{l.quantity}</span>
-              <button type="button" aria-label="One more" disabled={l.quantity >= Math.min(l.maxQuantity, 20)} onClick={() => cart.setQty(l.productId, l.quantity + 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-sand-300 text-charcoal-700 hover:bg-sand-200 disabled:opacity-40">
+              <button type="button" aria-label="One more" disabled={l.quantity >= Math.min(l.maxQuantity, 20)} onClick={() => cart.setQty(l.key, l.quantity + 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-sand-300 text-charcoal-700 hover:bg-sand-200 disabled:opacity-40">
                 <Plus className="h-4 w-4" />
               </button>
             </div>
             <p className="w-24 text-right font-figures text-charcoal-900">{formatKES(l.price * l.quantity)}</p>
-            <button type="button" aria-label={`Remove ${l.name}`} onClick={() => cart.remove(l.productId)} className="flex h-9 w-9 items-center justify-center rounded-full text-charcoal-500 hover:bg-coral-500/10 hover:text-coral-500">
+            <button type="button" aria-label={`Remove ${l.name}${l.variantName ? ` (${l.variantName})` : ''}`} onClick={() => cart.remove(l.key)} className="flex h-9 w-9 items-center justify-center rounded-full text-charcoal-500 hover:bg-coral-500/10 hover:text-coral-500">
               <Trash2 className="h-4 w-4" />
             </button>
           </li>

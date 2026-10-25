@@ -51,6 +51,7 @@ export const router = createBrowserRouter([
       { path: '/contact', element: withSuspense(lazyPage(() => import('@/pages/public/Contact'))) },
       { path: '/trip', element: withSuspense(lazyPage(() => import('@/pages/public/Trip'))) },
       { path: '/shop', element: withSuspense(lazyPage(() => import('@/pages/public/Shop'))) },
+      { path: '/shop/:slug', element: withSuspense(lazyPage(() => import('@/pages/public/ShopProduct'))) },
       {
         // Customer-only pages — redirect to /login (with a return path) if
         // there's no session at all. Role isn't checked here since any

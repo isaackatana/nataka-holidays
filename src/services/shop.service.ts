@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Fulfilment, Order, Product } from '@/types/domain'
+import type { Fulfilment, Order, Product, ProductWithImages } from '@/types/domain'
 
 const ORDER_SELECT = '*, order_items ( id, order_id, product_id, product_name, unit_price, quantity ), order_payments ( id, order_id, amount, status, created_at )'
 
@@ -8,15 +8,34 @@ export async function getShopProducts(): Promise<Product[]> {
   await supabase.rpc('release_expired_orders' as never)
   const { data, error } = await supabase
     .from('products')
-    .select('*')
+    .select('*, product_variants ( id )')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as unknown as Product[]
 }
 
+/** One active product with all its photos, or null when the address is wrong or the product is hidden. */
+export async function getShopProduct(slug: string): Promise<ProductWithImages | null> {
+  await supabase.rpc('release_expired_orders' as never)
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, product_images ( id, product_id, storage_path, sort_order ), product_variants ( id, product_id, name, stock, sort_order )')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  const product = data as unknown as ProductWithImages
+  return {
+    ...product,
+    product_images: [...(product.product_images ?? [])].sort((a, b) => a.sort_order - b.sort_order),
+    product_variants: [...(product.product_variants ?? [])].sort((a, b) => a.sort_order - b.sort_order),
+  }
+}
+
 export interface PlaceOrderInput {
-  items: { product_id: string; quantity: number }[]
+  items: { product_id: string; variant_id: string | null; quantity: number }[]
   fulfilment: Fulfilment
   name: string
   /** Normalised 2547XXXXXXXX. */

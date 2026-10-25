@@ -20,3 +20,12 @@ export function buildPropertyEnquiryMessage(propertyTitle: string, propertyUrl: 
 export function buildExperienceEnquiryMessage(experienceTitle: string, experienceUrl: string): string {
   return `Hello Nataka Holidays, I am interested in the ${experienceTitle} experience. ${experienceUrl}`
 }
+
+export function buildProductEnquiryMessage(productName: string, productUrl: string): string {
+  return `Hello Nataka Holidays, I have a question about ${productName} from the shop. ${productUrl}`
+}
+
+/** A wa.me link with no number: opens WhatsApp's own "choose a contact" screen to send the text on. */
+export function buildWhatsAppShareLink(message: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`
+}

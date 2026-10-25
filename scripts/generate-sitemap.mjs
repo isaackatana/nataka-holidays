@@ -93,6 +93,19 @@ async function main() {
         entries.push(urlEntry(`/experiences/${e.slug}`, e.updated_at?.slice(0, 10), 'monthly', 0.6))
       }
     }
+
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select('slug, updated_at')
+      .eq('is_active', true)
+
+    if (productsError) {
+      console.warn('[sitemap] Failed to fetch shop products, continuing without them:', productsError.message)
+    } else {
+      for (const p of products ?? []) {
+        entries.push(urlEntry(`/shop/${p.slug}`, p.updated_at?.slice(0, 10), 'monthly', 0.5))
+      }
+    }
   }
 
   const xml = [
