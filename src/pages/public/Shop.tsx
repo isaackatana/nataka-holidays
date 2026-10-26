@@ -4,6 +4,9 @@ import { ShoppingBag, Plus, Check, Search, X } from 'lucide-react'
 import { SEO } from '@/components/shared/SEO'
 import { useShopProducts } from '@/features/shop/queries'
 import { useShopCart } from '@/features/shop/ShopCartContext'
+import { useProductRatings } from '@/features/productReviews/queries'
+import { RatingBadge } from '@/components/shop/RatingBadge'
+import type { ProductRating } from '@/services/shopReviews.service'
 import {
   categoryCounts, DEFAULT_FILTERS, filterProducts, hasActiveFilters, SORT_LABELS, type ShopFilters, type ShopSort,
 } from '@/features/shop/filter'
@@ -11,7 +14,7 @@ import { formatKES } from '@/utils/currency'
 import { getResizedImageUrl } from '@/utils/storage'
 import type { Product } from '@/types/domain'
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, rating }: { product: Product; rating?: ProductRating }) {
   const cart = useShopCart()
   const inCart = cart.lines.find((l) => l.productId === product.id)?.quantity ?? 0
   const soldOut = product.stock < 1
@@ -39,6 +42,7 @@ function ProductCard({ product }: { product: Product }) {
         <h2 className="font-display text-lg font-medium text-teal-900">
           <Link to={`/shop/${product.slug}`} className="hover:underline">{product.name}</Link>
         </h2>
+        <RatingBadge rating={rating} />
         {product.description && <p className="line-clamp-3 text-sm text-charcoal-500">{product.description}</p>}
         <p className="mt-auto pt-2 font-figures text-lg text-teal-900">{formatKES(product.price)}</p>
         <p className="text-xs text-charcoal-500">
@@ -73,6 +77,7 @@ const selectClass =
 export default function Shop() {
   const { data: products, isLoading, isError } = useShopProducts()
   const cart = useShopCart()
+  const { data: ratings } = useProductRatings()
   const [filters, setFilters] = useState<ShopFilters>(DEFAULT_FILTERS)
 
   const categories = useMemo(() => categoryCounts(products ?? []), [products])
@@ -180,7 +185,7 @@ export default function Shop() {
       {!isError && (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {isLoading && Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-80 animate-pulse rounded-card bg-sand-200" />)}
-          {visible.map((p) => <ProductCard key={p.id} product={p} />)}
+          {visible.map((p) => <ProductCard key={p.id} product={p} rating={ratings?.[p.id]} />)}
         </div>
       )}
 

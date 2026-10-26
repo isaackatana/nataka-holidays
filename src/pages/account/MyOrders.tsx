@@ -5,6 +5,9 @@ import { SEO } from '@/components/shared/SEO'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useCancelMyOrder, useMyOrders, usePayForOrder } from '@/features/shop/queries'
+import { useMyProductReviews } from '@/features/productReviews/queries'
+import { ReviewProductPanel } from '@/features/productReviews/ReviewProductPanel'
+import type { MyProductReview } from '@/services/shopReviews.service'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES, isAwaitingPayment } from '@/features/shop/orderStatus'
 import { formatKES } from '@/utils/currency'
 import type { Order } from '@/types/domain'
@@ -48,11 +51,38 @@ function PayPanel({ order, autoSent }: { order: Order; autoSent: boolean }) {
   )
 }
 
+/** One review box per distinct product in an order the guest has received. */
+function OrderReviews({ order, customerId, reviews }: { order: Order; customerId: string; reviews: MyProductReview[] }) {
+  const seen = new Set<string>()
+  const items = (order.order_items ?? []).filter((i) => {
+    if (!i.product_id || seen.has(i.product_id)) return false
+    seen.add(i.product_id)
+    return true
+  })
+  if (items.length === 0) return null
+  return (
+    <div className="mt-3 flex flex-col gap-3">
+      {items.map((i) => (
+        <div key={i.id}>
+          <p className="text-sm font-medium text-teal-900">Review {i.product_name.replace(/ \(.*\)$/, '')}</p>
+          <ReviewProductPanel
+            customerId={customerId}
+            productId={i.product_id as string}
+            orderId={order.id}
+            review={reviews.find((r) => r.product_id === i.product_id)}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function MyOrders() {
   const { user } = useAuth()
   const location = useLocation()
   const justPlaced = (location.state as { justPlaced?: string } | null)?.justPlaced
   const { data: orders, isLoading, isError } = useMyOrders(user?.id)
+  const { data: myReviews } = useMyProductReviews(user?.id)
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-12">
@@ -91,6 +121,7 @@ export default function MyOrders() {
                     <span className="font-figures">{formatKES(i.unit_price * i.quantity)}</span>
                   </li>
                 ))}
+                {o.discount_amount > 0 && <li className="flex justify-between py-0.5"><span>Discount ({o.discount_code})</span><span className="font-figures">−{formatKES(o.discount_amount)}</span></li>}
                 {o.delivery_fee > 0 && <li className="flex justify-between py-0.5"><span>Delivery</span><span className="font-figures">{formatKES(o.delivery_fee)}</span></li>}
               </ul>
               <p className="mt-2 flex justify-between border-t border-sand-200 pt-2 font-medium text-teal-900">
@@ -100,6 +131,7 @@ export default function MyOrders() {
                 {o.fulfilment === 'delivery' ? `Delivery to: ${o.delivery_address}` : `Hand-over at: ${o.handover_note}`}
               </p>
               {isAwaitingPayment(o) && <PayPanel order={o} autoSent={justPlaced === o.id} />}
+              {o.status === 'completed' && user && <OrderReviews order={o} customerId={user.id} reviews={myReviews ?? []} />}
               {o.status === 'expired' && <p className="mt-3 text-sm text-charcoal-500">This order wasn't paid in time, so the items were released. You're welcome to order again.</p>}
             </article>
           ))}

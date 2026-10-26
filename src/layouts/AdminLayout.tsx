@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { LayoutDashboard, Home, CalendarCheck, Users, Star, Compass, Settings, LogOut, Mail, Menu, X, ListChecks, BarChart3, ShoppingBag, Package, CalendarClock } from 'lucide-react'
+import { LayoutDashboard, Home, CalendarCheck, Users, Star, Compass, Settings, LogOut, Mail, Menu, X, ListChecks, BarChart3, ShoppingBag, Package, CalendarClock, Ticket } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
 import { usePendingReviewCount } from '@/features/admin/reviews/queries'
 import { useNewExperienceRequestCount } from '@/features/admin/experienceRequests/queries'
 import { usePendingExperienceReviewCount } from '@/features/admin/experienceReviews/queries'
+import { usePendingProductReviewCount } from '@/features/admin/productReviews/queries'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 import { useSwipeToToggle } from '@/hooks/useSwipeToToggle'
 import { useRouteFocus } from '@/hooks/useRouteFocus'
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { label: 'Experience requests', to: '/admin/experience-requests', icon: CalendarClock },
   { label: 'Products', to: '/admin/products', icon: ShoppingBag },
   { label: 'Shop orders', to: '/admin/orders', icon: Package },
+  { label: 'Discounts', to: '/admin/discounts', icon: Ticket },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
 ]
 
@@ -40,7 +42,8 @@ export function AdminLayout() {
   const { data: unreadMessages } = useAdminContactMessages({ unreadOnly: true })
   const { data: pendingStayReviews } = usePendingReviewCount()
   const { data: pendingExperienceReviews } = usePendingExperienceReviewCount()
-  const pendingReviews = (pendingStayReviews ?? 0) + (pendingExperienceReviews ?? 0)
+  const { data: pendingProductReviews } = usePendingProductReviewCount()
+  const pendingReviews = (pendingStayReviews ?? 0) + (pendingExperienceReviews ?? 0) + (pendingProductReviews ?? 0)
   const { data: newExperienceRequests } = useNewExperienceRequestCount()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const mobileNavRef = useDialogA11y<HTMLElement>(mobileNavOpen, () => setMobileNavOpen(false))
@@ -120,7 +123,7 @@ export function AdminLayout() {
       </Helmet>
 
       {/* Desktop sidebar — persistent, hidden below md */}
-      <aside className="hidden w-64 flex-col border-r border-sand-200 bg-teal-950 text-sand-100 md:flex">
+      <aside className="admin-chrome hidden w-64 flex-col border-r border-sand-200 bg-teal-950 text-sand-100 md:flex">
         <div className="px-6 py-6">
           <img src="/favicon.svg" alt="Nataka Holidays Logo" width={50} />
         </div>
@@ -132,7 +135,7 @@ export function AdminLayout() {
           drawer, for consistency across the app. */}
       {mobileNavOpen && (
         <div
-          className="fixed inset-0 z-50 bg-charcoal-900/40 md:hidden"
+          className="admin-chrome fixed inset-0 z-50 bg-charcoal-900/40 md:hidden"
           onClick={() => setMobileNavOpen(false)}
           aria-hidden="true"
         />
@@ -142,7 +145,7 @@ export function AdminLayout() {
         role="dialog"
         aria-modal="true"
         aria-label="Admin navigation"
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-teal-950 text-sand-100 transition-transform duration-300 md:hidden ${
+        className={`admin-chrome fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-teal-950 text-sand-100 transition-transform duration-300 md:hidden ${
           mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -160,7 +163,7 @@ export function AdminLayout() {
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="flex items-center justify-between border-b border-sand-200 bg-sand-50 px-4 py-4 sm:px-8">
+        <header className="admin-chrome flex items-center justify-between border-b border-sand-200 bg-sand-50 px-4 py-4 sm:px-8">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileNavOpen(true)}

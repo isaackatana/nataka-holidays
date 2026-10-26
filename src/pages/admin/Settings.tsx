@@ -34,6 +34,7 @@ export default function AdminSettings() {
         hero_video_url: settings.hero_video_url ?? '',
         hero_image_url: settings.hero_image_url ?? '',
         shop_delivery_fee: settings.shop_delivery_fee ?? 300,
+        shop_low_stock_threshold: settings.shop_low_stock_threshold ?? 2,
       })
     }
   }, [settings, reset])
@@ -50,6 +51,7 @@ export default function AdminSettings() {
       hero_video_url: values.hero_video_url || null,
       hero_image_url: values.hero_image_url || null,
       shop_delivery_fee: values.shop_delivery_fee,
+      shop_low_stock_threshold: values.shop_low_stock_threshold,
     })
   }
 
@@ -153,6 +155,21 @@ export default function AdminSettings() {
             <p className="mt-1.5 text-xs text-charcoal-500">
               One flat fee added to every shop order that is delivered. Hand-over at a guest's stay is free.
               Orders already placed keep the fee they were charged.
+            </p>
+          </div>
+          <div className="mt-5 max-w-xs">
+            <InputField
+              label="Low-stock alert at (items left)"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              error={errors.shop_low_stock_threshold?.message}
+              {...register('shop_low_stock_threshold', { valueAsNumber: true })}
+            />
+            <p className="mt-1.5 text-xs text-charcoal-500">
+              You get one email a day when a product (or a colour) has this many or fewer left, and again only when the
+              list changes. Products list a "Low" tag too. Set 0 to switch the emails off.
             </p>
           </div>
         </div>

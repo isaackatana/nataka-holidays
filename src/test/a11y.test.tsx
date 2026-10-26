@@ -116,6 +116,6 @@ describe('accessibility (axe)', () => {
   })
 
   it('admin shop orders', async () => {
-    expect(await violations(<AdminOrders />)).toEqual([])
+    expect(await violations(<MemoryRouter><AdminOrders /></MemoryRouter>)).toEqual([])
   })
 })

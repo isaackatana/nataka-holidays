@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { orderPayError, requestStkPush } from './_mpesa.js'
-import { buildOrderEmails } from './_emails.js'
+import { buildLowStockEmail, buildOrderEmails } from './_emails.js'
 
 const now = new Date('2026-10-13T12:00:00Z').getTime()
 const order = (over = {}) => ({
@@ -113,10 +113,48 @@ describe('buildOrderEmails', () => {
     expect(admin.subject).toContain('Amina Hassan')
     expect(admin.html).toContain('254712345678')
   })
+  it('shows the discount line only when a code was used', () => {
+    const [withCode] = buildOrderEmails({ ...ctx, order: { ...ctx.order, discount_code: 'WELCOME10', discount_amount: 400 } }, { siteUrl: 'https://x.test' })
+    expect(withCode.html).toContain('Discount (WELCOME10)')
+    expect(withCode.html).toContain('KSh 400')
+    expect(guest.html).not.toContain('Discount (')
+  })
   it('uses the hand-over note for hand-over orders', () => {
     const [g] = buildOrderEmails({ ...ctx, order: { ...ctx.order, fulfilment: 'handover', handover_note: 'Beach Villa', delivery_fee: 0 } }, { siteUrl: 'https://x.test' })
     expect(g.html).toContain('Hand-over at')
     expect(g.html).toContain('Beach Villa')
     expect(g.html).not.toContain('Delivery fee')
+  })
+})
+
+
+describe('buildLowStockEmail', () => {
+  const business = { name: 'Nataka Holidays', phone: '0700 000 000', email: 'hi@natakaholidays.co.ke' }
+
+  it('sends nothing when nothing is low', () => {
+    expect(buildLowStockEmail({ threshold: 2, items: [], business })).toBeNull()
+  })
+  it('names a single item in the subject', () => {
+    const m = buildLowStockEmail({ threshold: 2, items: [{ name: 'Kikoy cloth', option: 'Blue', stock: 1 }], business }, { siteUrl: 'https://x.test' })
+    expect(m.to).toBe('admin')
+    expect(m.subject).toBe('Low stock: Kikoy cloth (Blue) (1 left)')
+  })
+  it('counts several items and how many are sold out', () => {
+    const m = buildLowStockEmail(
+      { threshold: 2, items: [{ name: 'Sisal basket', option: null, stock: 0 }, { name: 'Kikoy cloth', option: 'Red', stock: 2 }], business },
+      { siteUrl: 'https://natakaholidays.co.ke' },
+    )
+    expect(m.subject).toBe('Low stock: 2 shop items need restocking (1 sold out)')
+    expect(m.html).toContain('Sisal basket')
+    expect(m.html).toContain('Sold out')
+    expect(m.html).toContain('Kikoy cloth (Red)')
+    expect(m.html).toContain('2 left')
+    expect(m.html).toContain('https://natakaholidays.co.ke/admin/products')
+    expect(m.text).toContain('Sisal basket: Sold out')
+  })
+  it('escapes product names', () => {
+    const m = buildLowStockEmail({ threshold: 2, items: [{ name: '<b>Bold</b>', option: null, stock: 1 }], business }, { siteUrl: 'https://x.test' })
+    expect(m.html).toContain('&lt;b&gt;Bold&lt;/b&gt;')
+    expect(m.html).not.toContain('<b>Bold</b>')
   })
 })

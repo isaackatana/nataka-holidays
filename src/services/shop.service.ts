@@ -42,6 +42,8 @@ export interface PlaceOrderInput {
   phone: string
   handoverNote: string
   address: string
+  /** Optional; the database checks it and works out the discount. */
+  discountCode?: string
 }
 
 /** Creates the order. The database prices it, checks stock and reserves it. */
@@ -53,9 +55,22 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     p_phone: input.phone,
     p_handover_note: input.fulfilment === 'handover' ? input.handoverNote : null,
     p_address: input.fulfilment === 'delivery' ? input.address : null,
+    p_discount_code: input.discountCode?.trim() || null,
   } as never)
   if (error) throw new Error(error.message)
   return data as unknown as Order
+}
+
+export type DiscountCheck = { ok: true; code: string; amount: number } | { ok: false; message: string }
+
+/** Asks the database what a code would take off these items. Places nothing. */
+export async function checkDiscountCode(code: string, subtotal: number): Promise<DiscountCheck> {
+  const { data, error } = await supabase.rpc('check_discount_code' as never, { p_code: code, p_subtotal: subtotal } as never)
+  if (error) throw new Error(error.message)
+  const r = data as unknown as { ok: boolean; code?: string; amount?: number; message?: string }
+  return r.ok
+    ? { ok: true, code: r.code as string, amount: Number(r.amount) }
+    : { ok: false, message: r.message ?? 'That code is not valid.' }
 }
 
 export async function getMyOrders(): Promise<Order[]> {

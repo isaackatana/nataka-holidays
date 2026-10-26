@@ -11,6 +11,8 @@ import {
 import { ReviewReplyEditor } from '@/components/admin/ReviewReplyEditor'
 import { ExperienceReviewsPanel } from '@/components/admin/ExperienceReviewsPanel'
 import { usePendingExperienceReviewCount } from '@/features/admin/experienceReviews/queries'
+import { ProductReviewsPanel } from '@/components/admin/ProductReviewsPanel'
+import { usePendingProductReviewCount } from '@/features/admin/productReviews/queries'
 import { getPublicImageUrl, getResizedImageUrl } from '@/utils/storage'
 import type { ReviewStatus } from '@/types/domain'
 
@@ -178,7 +180,7 @@ function StayReviewsPanel() {
   )
 }
 
-type Section = 'stays' | 'experiences'
+type Section = 'stays' | 'experiences' | 'shop'
 
 function CountBadge({ count }: { count: number | undefined }) {
   if (!count) return null
@@ -193,10 +195,12 @@ export default function AdminReviews() {
   const [section, setSection] = useState<Section>('stays')
   const { data: pendingStays } = usePendingReviewCount()
   const { data: pendingExperiences } = usePendingExperienceReviewCount()
+  const { data: pendingProducts } = usePendingProductReviewCount()
 
   const sections: { value: Section; label: string; count: number | undefined }[] = [
     { value: 'stays', label: 'Stays', count: pendingStays },
     { value: 'experiences', label: 'Experiences', count: pendingExperiences },
+    { value: 'shop', label: 'Shop', count: pendingProducts },
   ]
 
   return (
@@ -222,7 +226,7 @@ export default function AdminReviews() {
         ))}
       </div>
 
-      <div className="mt-5">{section === 'stays' ? <StayReviewsPanel /> : <ExperienceReviewsPanel />}</div>
+      <div className="mt-5">{section === 'stays' ? <StayReviewsPanel /> : section === 'experiences' ? <ExperienceReviewsPanel /> : <ProductReviewsPanel />}</div>
     </div>
   )
 }

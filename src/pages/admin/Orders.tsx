@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Printer } from 'lucide-react'
 import { useAdminOrders, useMarkOrderPaid, useSetOrderStatus } from '@/features/admin/shop/queries'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from '@/features/shop/orderStatus'
 import { formatKES } from '@/utils/currency'
@@ -43,7 +45,8 @@ function OrderCard({ order }: { order: Order }) {
             <span className="font-figures">{formatKES(i.unit_price * i.quantity)}</span>
           </li>
         ))}
-        {order.delivery_fee > 0 && <li className="flex justify-between py-0.5"><span>Delivery</span><span className="font-figures">{formatKES(order.delivery_fee)}</span></li>}
+        {order.discount_amount > 0 && <li className="flex justify-between py-0.5"><span>Discount ({order.discount_code})</span><span className="font-figures">−{formatKES(order.discount_amount)}</span></li>}
+                {order.delivery_fee > 0 && <li className="flex justify-between py-0.5"><span>Delivery</span><span className="font-figures">{formatKES(order.delivery_fee)}</span></li>}
       </ul>
       <p className="mt-2 flex justify-between border-t border-sand-200 pt-2 font-medium text-teal-900"><span>Total</span><span className="font-figures">{formatKES(order.total)}</span></p>
 
@@ -56,6 +59,11 @@ function OrderCard({ order }: { order: Order }) {
       <div className="mt-4 flex flex-wrap gap-2">
         {order.status === 'pending_payment' && (
           <button type="button" disabled={markPaid.isPending} onClick={() => { if (window.confirm('Mark this order as paid in cash?')) markPaid.mutate({ orderId: order.id, via: 'cash' }) }} className="rounded-full bg-teal-900 px-4 py-2 text-xs font-medium text-sand-50 hover:bg-teal-800 disabled:opacity-60">Paid in cash</button>
+        )}
+        {(order.status === 'paid' || order.status === 'packed') && (
+          <Link to={`/admin/orders/print?ids=${order.id}`} className="inline-flex items-center gap-1.5 rounded-full border border-teal-900 px-4 py-2 text-xs font-medium text-teal-900 hover:bg-teal-900 hover:text-sand-50">
+            <Printer className="h-3.5 w-3.5" aria-hidden="true" /> Packing slip
+          </Link>
         )}
         {order.status === 'paid' && (
           <button type="button" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ orderId: order.id, status: 'packed' })} className="rounded-full bg-teal-900 px-4 py-2 text-xs font-medium text-sand-50 hover:bg-teal-800 disabled:opacity-60">Mark packed</button>
@@ -86,6 +94,11 @@ export default function AdminOrders() {
       <p className="mt-1 text-sm text-charcoal-500">
         {toPack > 0 ? `${toPack} paid order${toPack === 1 ? '' : 's'} waiting to be packed.` : 'Nothing waiting to be packed.'}
       </p>
+      {toPack > 0 && (
+        <Link to="/admin/orders/print" className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-teal-900 px-4 py-2 text-xs font-medium text-sand-50 hover:bg-teal-800">
+          <Printer className="h-3.5 w-3.5" aria-hidden="true" /> Print all {toPack} packing slip{toPack === 1 ? '' : 's'}
+        </Link>
+      )}
 
       <div className="mt-4 flex gap-2" role="group" aria-label="Filter orders">
         {([['action', 'Open orders'], ['all', 'All orders']] as const).map(([value, label]) => (

@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom'
 import { Star } from 'lucide-react'
 import { usePendingReviewCount } from '@/features/admin/reviews/queries'
 import { usePendingExperienceReviewCount } from '@/features/admin/experienceReviews/queries'
+import { usePendingProductReviewCount } from '@/features/admin/productReviews/queries'
 
-/** Dashboard heads-up when guest reviews of stays or experiences (or edited reviews/photos) await approval. */
+/** Dashboard heads-up when guest reviews of stays, experiences or shop products (or edited reviews/photos) await approval. */
 export function PendingReviewsNotice() {
   const { data: stays } = usePendingReviewCount()
   const { data: experiences } = usePendingExperienceReviewCount()
-  const count = (stays ?? 0) + (experiences ?? 0)
+  const { data: products } = usePendingProductReviewCount()
+  const count = (stays ?? 0) + (experiences ?? 0) + (products ?? 0)
   if (!count) return null
 
   return (

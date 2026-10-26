@@ -10,6 +10,7 @@ export const businessSettingsSchema = z.object({
   facebook_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   hero_video_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   hero_image_url: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  shop_low_stock_threshold: z.number({ message: 'Enter a number' }).int('Whole numbers only').min(0, 'Cannot be negative').max(100, 'That is too high'),
   shop_delivery_fee: z.number({ message: 'Enter a number' }).int('Whole shillings only').min(0, 'Cannot be negative').max(10000, 'That is too high'),
 })
 

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { cancelMyOrder, getMyOrders, getShopProduct, getShopProducts, payForOrder, placeOrder, type PlaceOrderInput } from '@/services/shop.service'
+import { cancelMyOrder, checkDiscountCode, getMyOrders, getShopProduct, getShopProducts, payForOrder, placeOrder, type PlaceOrderInput } from '@/services/shop.service'
 
 export function useShopProducts() {
   return useQuery({ queryKey: ['shop', 'products'], queryFn: getShopProducts })
@@ -11,6 +11,10 @@ export function useShopProduct(slug: string | undefined) {
     queryFn: () => getShopProduct(slug as string),
     enabled: !!slug,
   })
+}
+
+export function useCheckDiscountCode() {
+  return useMutation({ mutationFn: ({ code, subtotal }: { code: string; subtotal: number }) => checkDiscountCode(code, subtotal) })
 }
 
 export function usePlaceOrder() {

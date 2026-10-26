@@ -3,6 +3,7 @@ import { Pencil, Plus, Trash2, Eye, EyeOff, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ProductVariantsEditor } from '@/components/admin/ProductVariantsEditor'
 import { ProductImageUploader } from '@/components/admin/ProductImageUploader'
+import { useBusinessSettings } from '@/features/settings/queries'
 import { useAdminProducts, useDeleteProduct, useSaveProduct } from '@/features/admin/shop/queries'
 import { slugify } from '@/features/admin/shop/slug'
 import { formatKES } from '@/utils/currency'
@@ -27,6 +28,8 @@ const inputClass =
 
 export default function AdminProducts() {
   const { data: products, isLoading } = useAdminProducts()
+  const { data: settings } = useBusinessSettings()
+  const lowAt = settings?.shop_low_stock_threshold ?? 2
   const save = useSaveProduct()
   const remove = useDeleteProduct()
   const [form, setForm] = useState<FormState | null>(null)
@@ -189,7 +192,11 @@ export default function AdminProducts() {
                 </td>
                 <td className="px-4 py-3 text-charcoal-700">{p.category}</td>
                 <td className="px-4 py-3 font-figures text-charcoal-700">{formatKES(p.price)}</td>
-                <td className={`px-4 py-3 font-figures ${p.stock === 0 ? 'text-coral-500' : 'text-charcoal-700'}`}>{p.stock === 0 ? 'Sold out' : p.stock}</td>
+                <td className={`px-4 py-3 font-figures ${p.stock === 0 ? 'text-coral-500' : 'text-charcoal-700'}`}>
+                  {p.stock === 0 ? 'Sold out' : p.stock}
+                  {p.stock > 0 && lowAt > 0 && p.stock <= lowAt && <span className="ml-2 rounded-full bg-gold-500/20 px-2 py-0.5 font-sans text-[11px] text-charcoal-900">Low</span>}
+                  {p.product_variants.some((v) => lowAt > 0 && v.stock <= lowAt && p.stock > lowAt) && <span className="ml-2 rounded-full bg-gold-500/20 px-2 py-0.5 font-sans text-[11px] text-charcoal-900">A colour is low</span>}
+                </td>
                 <td className="px-4 py-3">
                   <span className={`inline-flex items-center gap-1.5 rounded-pill px-3 py-1 text-xs font-medium ${p.is_active ? 'bg-teal-900/10 text-teal-800' : 'bg-charcoal-500/10 text-charcoal-500'}`}>
                     {p.is_active ? <Eye className="h-3 w-3" aria-hidden="true" /> : <EyeOff className="h-3 w-3" aria-hidden="true" />}

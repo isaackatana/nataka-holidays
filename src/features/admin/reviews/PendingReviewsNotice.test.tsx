@@ -13,6 +13,10 @@ vi.mock('@/features/admin/experienceReviews/queries', () => ({
   usePendingExperienceReviewCount: () => ({ data: experienceCount }),
 }))
 
+vi.mock('@/features/admin/productReviews/queries', () => ({
+  usePendingProductReviewCount: () => ({ data: 0 }),
+}))
+
 function renderNotice() {
   return render(
     <MemoryRouter>

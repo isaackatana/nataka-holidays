@@ -20,6 +20,14 @@ vi.mock('@/features/admin/experienceReviews/queries', () => ({
   useSetExperienceReviewReply: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }))
 
+vi.mock('@/features/admin/productReviews/queries', () => ({
+  usePendingProductReviewCount: () => ({ data: 0 }),
+  useAdminProductReviews: () => ({ data: [], isLoading: false, isError: false }),
+  useUpdateProductReviewStatus: () => ({ mutate: vi.fn() }),
+  useDeleteProductReview: () => ({ mutate: vi.fn() }),
+  useSetProductReviewReply: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}))
+
 vi.mock('@/features/admin/reviews/queries', () => ({
   usePendingReviewCount: () => ({ data: 0 }),
   useAdminReviews: () => ({ data: reviews, isLoading: false }),

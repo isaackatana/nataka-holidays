@@ -5,7 +5,7 @@ import { SEO } from '@/components/shared/SEO'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useBusinessSettings } from '@/features/settings/queries'
-import { usePayForOrder, usePlaceOrder } from '@/features/shop/queries'
+import { useCheckDiscountCode, usePayForOrder, usePlaceOrder } from '@/features/shop/queries'
 import { useShopCart } from '@/features/shop/ShopCartContext'
 import { orderItems, previewTotal } from '@/features/shop/cart'
 import { formatKES } from '@/utils/currency'
@@ -28,6 +28,7 @@ export default function ShopCheckout() {
   const { data: settings } = useBusinessSettings()
   const place = usePlaceOrder()
   const pay = usePayForOrder()
+  const checkCode = useCheckDiscountCode()
 
   const [fulfilment, setFulfilment] = useState<Fulfilment>('handover')
   const [name, setName] = useState('')
@@ -35,6 +36,9 @@ export default function ShopCheckout() {
   const [handoverNote, setHandoverNote] = useState('')
   const [address, setAddress] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
+  const [codeInput, setCodeInput] = useState('')
+  const [codeMessage, setCodeMessage] = useState<string | null>(null)
+  const [applied, setApplied] = useState<{ code: string; amount: number } | null>(null)
 
   // Fill in what we already know, once, without overwriting anything typed.
   useEffect(() => {
@@ -45,8 +49,47 @@ export default function ShopCheckout() {
   }, [profile])
 
   const fee = settings?.shop_delivery_fee ?? 0
-  const total = previewTotal(cart.lines, fulfilment, fee)
+  const total = previewTotal(cart.lines, fulfilment, fee, applied?.amount ?? 0)
   const busy = place.isPending || pay.isPending
+
+  // If the items change after a code was applied, ask again so the preview stays honest.
+  const appliedCode = applied?.code
+  useEffect(() => {
+    if (!appliedCode) return
+    let live = true
+    checkCode
+      .mutateAsync({ code: appliedCode, subtotal: cart.subtotal })
+      .then((r) => {
+        if (!live) return
+        if (r.ok) setApplied({ code: r.code, amount: r.amount })
+        else {
+          setApplied(null)
+          setCodeMessage(r.message)
+        }
+      })
+      .catch(() => live && setApplied(null))
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart.subtotal])
+
+  async function onApplyCode() {
+    setCodeMessage(null)
+    const code = codeInput.trim()
+    if (!code) return
+    try {
+      const r = await checkCode.mutateAsync({ code, subtotal: cart.subtotal })
+      if (r.ok) {
+        setApplied({ code: r.code, amount: r.amount })
+        setCodeInput('')
+      } else {
+        setCodeMessage(r.message)
+      }
+    } catch {
+      setCodeMessage("We couldn't check that code. Please try again.")
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -65,6 +108,7 @@ export default function ShopCheckout() {
         phone: msisdn,
         handoverNote: handoverNote.trim(),
         address: address.trim(),
+        discountCode: applied?.code,
       })
       // The order now exists (and its stock is held), so the cart has done its job.
       cart.clear()
@@ -160,8 +204,34 @@ export default function ShopCheckout() {
           </label>
         )}
 
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="discount-code" className="text-sm font-medium text-charcoal-700">Discount code</label>
+          {applied ? (
+            <p className="flex items-center justify-between rounded-lg bg-teal-900/10 px-4 py-2.5 text-sm text-teal-900">
+              <span><strong>{applied.code}</strong> applied: {formatKES(applied.amount)} off</span>
+              <button type="button" onClick={() => { setApplied(null); setCodeMessage(null) }} className="underline">Remove</button>
+            </p>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                id="discount-code"
+                className={inputClass}
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void onApplyCode() } }}
+                placeholder="Have a code?"
+                autoCapitalize="characters"
+                maxLength={30}
+              />
+              <Button type="button" variant="secondary" loading={checkCode.isPending} disabled={!codeInput.trim()} onClick={() => void onApplyCode()}>Apply</Button>
+            </div>
+          )}
+          {codeMessage && <p role="alert" className="text-sm text-coral-500">{codeMessage}</p>}
+        </div>
+
         <dl className="rounded-card bg-sand-100 p-4 text-sm">
           <div className="flex justify-between py-1"><dt className="text-charcoal-500">Items</dt><dd className="font-figures">{formatKES(cart.subtotal)}</dd></div>
+          {applied && <div className="flex justify-between py-1"><dt className="text-charcoal-500">Discount ({applied.code})</dt><dd className="font-figures">−{formatKES(applied.amount)}</dd></div>}
           {fulfilment === 'delivery' && <div className="flex justify-between py-1"><dt className="text-charcoal-500">Delivery</dt><dd className="font-figures">{formatKES(fee)}</dd></div>}
           <div className="flex justify-between border-t border-sand-300 pt-2 text-base font-medium text-teal-900"><dt>Total</dt><dd className="font-figures">{formatKES(total)}</dd></div>
         </dl>

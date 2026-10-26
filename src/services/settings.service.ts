@@ -11,6 +11,7 @@ export interface BusinessSettings {
   hero_video_url: string | null
   hero_image_url: string | null
   shop_delivery_fee: number
+  shop_low_stock_threshold: number
   updated_at: string
 }
 

@@ -5,6 +5,9 @@
 // ahead (not exactly N days) means a missed run, or a booking confirmed at
 // the last minute, is still picked up. Each booking gets one reminder.
 //
+// The same run also e-mails the business when shop items are running low (only when the
+// list of low items has changed since the last e-mail).
+//
 // The same run also sends each guest ONE "how was your stay?" email after a
 // COMPLETED stay (ended within the last two weeks, signed-in guests only,
 // no review written yet).
@@ -14,7 +17,7 @@
 // configured the endpoint refuses to run rather than being open to anyone.
 import { createClient } from '@supabase/supabase-js'
 import { reminderWindow, reviewRequestWindow } from './_emails.js'
-import { sendBookingNotification } from './_notify.js'
+import { sendBookingNotification, sendLowStockDigest } from './_notify.js'
 
 const MAX_PER_RUN = 20 // stays inside the function time limit; leftovers go out next run
 const PAUSE_MS = 500 // email providers rate-limit bursts
@@ -83,11 +86,21 @@ export default async function handler(req, res) {
     max: 10, // keeps the whole run inside the function time limit
   })
 
+  // Low stock is best effort too (a failure here must not hide the results above).
+  let lowStock
+  try {
+    lowStock = await sendLowStockDigest()
+  } catch (err) {
+    console.error('[send-reminders] low-stock digest failed:', err)
+    lowStock = { sent: false, reason: 'error' }
+  }
+
   const tally = {
     due: reminders.due, sent: reminders.sent, skipped: reminders.skipped, failed: reminders.failed,
     reviewRequests: reviews.error
       ? { error: true }
       : { due: reviews.due, sent: reviews.sent, skipped: reviews.skipped, failed: reviews.failed },
+    lowStock,
   }
 
   console.log('[send-reminders]', JSON.stringify(tally))

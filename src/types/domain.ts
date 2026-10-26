@@ -152,6 +152,20 @@ export interface OrderPayment {
   created_at: string
 }
 
+export interface DiscountCode {
+  id: string
+  code: string
+  kind: 'percent' | 'amount'
+  value: number
+  min_subtotal: number
+  max_uses: number | null
+  uses: number
+  once_per_guest: boolean
+  expires_at: string | null
+  is_active: boolean
+  created_at: string
+}
+
 export interface Order {
   id: string
   customer_id: string | null
@@ -163,6 +177,8 @@ export interface Order {
   delivery_address: string | null
   subtotal: number
   delivery_fee: number
+  discount_code: string | null
+  discount_amount: number
   total: number
   status: OrderStatus
   expires_at: string

@@ -6,6 +6,9 @@ import { JsonLd } from '@/components/shared/JsonLd'
 import { Gallery } from '@/components/property/Gallery'
 import { useShopProduct, useShopProducts } from '@/features/shop/queries'
 import { useShopCart } from '@/features/shop/ShopCartContext'
+import { useProductRatings } from '@/features/productReviews/queries'
+import { RatingBadge } from '@/components/shop/RatingBadge'
+import { ProductReviewsSection } from '@/components/shop/ProductReviewsSection'
 import { MAX_PER_LINE } from '@/features/shop/cart'
 import { formatKES } from '@/utils/currency'
 import { getPublicImageUrl, getResizedImageUrl } from '@/utils/storage'
@@ -186,6 +189,7 @@ function RelatedProducts({ product }: { product: Product }) {
 export default function ShopProduct() {
   const { slug } = useParams()
   const { data: product, isLoading, isError } = useShopProduct(slug)
+  const { data: ratings } = useProductRatings()
 
   if (isLoading) {
     return <div className="mx-auto max-w-6xl px-6 py-24 text-charcoal-500">Loading...</div>
@@ -223,6 +227,13 @@ export default function ShopProduct() {
     description,
     category: product.category,
     ...(images.length > 0 && { image: images.map((i) => getPublicImageUrl('product-images', i.storage_path)) }),
+    ...(ratings?.[product.id] && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: ratings[product.id].average,
+        reviewCount: ratings[product.id].review_count,
+      },
+    }),
     offers: {
       '@type': 'Offer',
       url: `${SITE_ORIGIN}/shop/${product.slug}`,
@@ -250,6 +261,7 @@ export default function ShopProduct() {
         <div>
           <p className="text-xs uppercase tracking-wide text-charcoal-500">{product.category}</p>
           <h1 className="mt-1 font-display text-3xl font-medium text-teal-900 md:text-4xl">{product.name}</h1>
+          <div className="mt-2"><RatingBadge rating={ratings?.[product.id]} /></div>
           <p className="mt-3 font-figures text-2xl text-teal-900">{formatKES(product.price)}</p>
           <p className={`mt-1 text-sm ${product.stock < 1 ? 'text-coral-500' : 'text-charcoal-500'}`}>{stockLabel(product.stock)}</p>
 
@@ -276,6 +288,8 @@ export default function ShopProduct() {
           </ul>
         </div>
       </div>
+
+      <ProductReviewsSection productId={product.id} />
 
       <RelatedProducts product={product} />
     </div>

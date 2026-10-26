@@ -153,3 +153,13 @@ body {
   outline: 2px solid var(--color-gold-500);
   outline-offset: 2px;
 }
+
+/* Printing (e.g. shop packing slips): hide the admin navigation and header. */
+@media print {
+  .admin-chrome {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+}

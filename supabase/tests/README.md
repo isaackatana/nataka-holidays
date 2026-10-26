@@ -53,3 +53,31 @@ order is cancelled or expires (and is taken again if money arrives late).
 It also checks that a product without colours still works exactly as before.
 Run: `psql -d nataka_test -f supabase/tests/shop_variants_rules.sql`
 
+
+## Shop product reviews check
+
+`product_reviews_rules.sql` (run after all migrations including 0029, and after
+`shop_variants_rules.sql`, whose sample shopper and products it reuses) checks
+that only a guest whose order you marked Completed, and that contained the
+product, can review it; one review per guest per product; every review and
+every edit starts Pending; guests cannot forge a reply, name or approval; the
+public sees only approved reviews and the rating summary.
+
+## Shop discount codes check
+
+`discount_codes_rules.sql` (run after all migrations including 0030, on a
+database where no other shop test data conflicts) checks: percentage and fixed
+codes, any letter case, delivery fee never discounted, an order can never be
+free, minimum spend, expiry / switched-off / unknown codes, once-per-guest,
+total-uses limit, the use being given back when an order is cancelled or
+expires (and taken again if payment arrives late), guess throttling at the
+checkout box, guests being unable to list codes, and the e-mail data carrying
+the discount.
+
+## Shop low-stock alerts check
+
+`low_stock_rules.sql` (run after all migrations including 0031) checks which
+items count as low (colours listed one by one, hidden products ignored),
+that the same list is not e-mailed twice but a change in stock makes a new
+e-mail due, that threshold 0 switches the e-mails off, that the two server
+functions refuse a wrong secret, and that guests cannot change the threshold.

@@ -4,7 +4,7 @@
 // the rest of the site works without it.
 import { createClient } from '@supabase/supabase-js'
 import {
-  buildEmails, buildExperiencePaymentEmails, buildExperienceRequestEmails, buildOrderEmails, eventAllowed,
+  buildEmails, buildExperiencePaymentEmails, buildLowStockEmail, buildExperienceRequestEmails, buildOrderEmails, eventAllowed,
 } from './_emails.js'
 
 const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.co.ke'
@@ -243,4 +243,43 @@ export async function sendExperiencePaymentNotification({ paymentId }) {
     }
   }
   return { sent: anySent, reason: anySent ? undefined : 'send_failed' }
+}
+
+/**
+ * The daily "running low" e-mail. Sends only when something is low AND the
+ * list differs from the one last e-mailed, so the same reminder does not
+ * arrive every morning.
+ */
+export async function sendLowStockDigest() {
+  const {
+    VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, MPESA_CALLBACK_SECRET,
+    RESEND_API_KEY, NOTIFY_FROM_EMAIL, NOTIFY_ADMIN_EMAIL,
+  } = process.env
+
+  if (!RESEND_API_KEY || !NOTIFY_FROM_EMAIL || !NOTIFY_ADMIN_EMAIL) return { sent: false, reason: 'email_not_configured' }
+  if (!VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY || !MPESA_CALLBACK_SECRET) return { sent: false, reason: 'not_configured' }
+
+  const supabase = createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const { data: ctx, error } = await supabase.rpc('low_stock_items', { p_secret: MPESA_CALLBACK_SECRET })
+  if (error || !ctx) {
+    // e.g. migration 0031 not run yet
+    console.error('[low-stock] lookup failed:', error?.message ?? 'no data')
+    return { sent: false, reason: 'lookup_failed' }
+  }
+  if (!ctx.digest) return { sent: false, reason: 'nothing_low' }
+  if (ctx.digest === ctx.last_digest) return { sent: false, reason: 'already_sent' }
+
+  const mail = buildLowStockEmail(ctx, { siteUrl: SITE_URL })
+  if (!mail) return { sent: false, reason: 'nothing_low' }
+  try {
+    await sendViaResend({ apiKey: RESEND_API_KEY, from: NOTIFY_FROM_EMAIL, to: NOTIFY_ADMIN_EMAIL, subject: mail.subject, html: mail.html, text: mail.text })
+  } catch (err) {
+    console.error('[low-stock] email failed:', err.message)
+    return { sent: false, reason: 'send_failed' }
+  }
+  const { error: markError } = await supabase.rpc('mark_low_stock_sent', { p_secret: MPESA_CALLBACK_SECRET, p_digest: ctx.digest })
+  if (markError) console.error('[low-stock] could not mark sent:', markError.message)
+  return { sent: true, count: ctx.items.length }
 }

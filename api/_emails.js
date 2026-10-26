@@ -359,6 +359,7 @@ export function buildOrderEmails(ctx, { siteUrl, receipt } = {}) {
       : ['Hand-over at', o.handover_note]
   const rows = [
     ...itemRows,
+    o.discount_amount > 0 ? [`Discount (${o.discount_code})`, `−${kes(o.discount_amount)}`] : null,
     o.delivery_fee > 0 ? ['Delivery fee', kes(o.delivery_fee)] : null,
     ['Total paid', kes(o.total)],
     receipt ? ['M-Pesa receipt', receipt] : null,
@@ -523,4 +524,37 @@ export function buildExperiencePaymentEmails(ctx, { siteUrl } = {}) {
       ]),
     },
   ]
+}
+
+/**
+ * Daily "running low" e-mail to the business. `ctx` is low_stock_items():
+ * { threshold, items: [{ name, option, stock }], business }. Returns one
+ * admin e-mail, or null when nothing is low.
+ */
+export function buildLowStockEmail(ctx, { siteUrl } = {}) {
+  const items = ctx?.items ?? []
+  if (items.length === 0) return null
+  const label = (i) => (i.option ? `${i.name} (${i.option})` : i.name)
+  const left = (n) => (n <= 0 ? 'Sold out' : `${n} left`)
+  const soldOut = items.filter((i) => i.stock <= 0).length
+  const subject =
+    items.length === 1
+      ? `Low stock: ${label(items[0])}${items[0].stock <= 0 ? ' is sold out' : ` (${items[0].stock} left)`}`
+      : `Low stock: ${items.length} shop items need restocking${soldOut ? ` (${soldOut} sold out)` : ''}`
+  const adminUrl = `${String(siteUrl || '').replace(/\/$/, '')}/admin/products`
+  const html = layout({
+    business: ctx.business,
+    heading: 'Shop stock is running low',
+    siteUrl: siteUrl || '',
+    bodyHtml:
+      `<p style="margin:0 0 12px;font-size:15px;line-height:1.5">These items have ${escapeHtml(ctx.threshold)} or fewer left.</p>` +
+      detailsTable(items.map((i) => [label(i), left(i.stock)])) +
+      `<p style="margin:0 0 12px;font-size:15px;line-height:1.5"><a href="${escapeHtml(adminUrl)}" style="color:#0f3d3e">Open Products to update stock</a></p>`,
+  })
+  const text = [
+    `These shop items have ${ctx.threshold} or fewer left:`,
+    ...items.map((i) => `${label(i)}: ${left(i.stock)}`),
+    `Update stock: ${adminUrl}`,
+  ].join('\n')
+  return { to: 'admin', subject, html, text }
 }
