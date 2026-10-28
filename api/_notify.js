@@ -4,7 +4,7 @@
 // the rest of the site works without it.
 import { createClient } from '@supabase/supabase-js'
 import {
-  buildEmails, buildExperiencePaymentEmails, buildLowStockEmail, buildExperienceRequestEmails, buildOrderEmails, eventAllowed,
+  buildEmails, buildExperiencePaymentEmails, buildLowStockEmail, buildBackInStockEmail, buildExperienceRequestEmails, buildOrderEmails, eventAllowed,
 } from './_emails.js'
 
 const SITE_URL = process.env.SITE_URL || 'https://natakaholidays.co.ke'
@@ -282,4 +282,45 @@ export async function sendLowStockDigest() {
   const { error: markError } = await supabase.rpc('mark_low_stock_sent', { p_secret: MPESA_CALLBACK_SECRET, p_digest: ctx.digest })
   if (markError) console.error('[low-stock] could not mark sent:', markError.message)
   return { sent: true, count: ctx.items.length }
+}
+
+/**
+ * "It's back" e-mails: one per guest, listing everything of theirs that is in
+ * stock again. The waiting requests are removed only after the e-mail was
+ * accepted, so a failed send is simply tried again on the next run.
+ */
+export async function sendBackInStockEmails() {
+  const { VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, MPESA_CALLBACK_SECRET, RESEND_API_KEY, NOTIFY_FROM_EMAIL } = process.env
+
+  if (!RESEND_API_KEY || !NOTIFY_FROM_EMAIL) return { sent: 0, failed: 0, reason: 'email_not_configured' }
+  if (!VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY || !MPESA_CALLBACK_SECRET) return { sent: 0, failed: 0, reason: 'not_configured' }
+
+  const supabase = createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const { data: ctx, error } = await supabase.rpc('back_in_stock_due', { p_secret: MPESA_CALLBACK_SECRET })
+  if (error || !ctx) {
+    // e.g. migration 0032 not run yet
+    console.error('[back-in-stock] lookup failed:', error?.message ?? 'no data')
+    return { sent: 0, failed: 0, reason: 'lookup_failed' }
+  }
+
+  let sent = 0
+  let failed = 0
+  for (const guest of ctx.guests ?? []) {
+    const mail = guest.email ? buildBackInStockEmail(guest, ctx.business, { siteUrl: SITE_URL }) : null
+    if (!mail) continue
+    try {
+      await sendViaResend({ apiKey: RESEND_API_KEY, from: NOTIFY_FROM_EMAIL, to: guest.email, subject: mail.subject, html: mail.html, text: mail.text })
+    } catch (err) {
+      console.error('[back-in-stock] email failed:', err.message)
+      failed += 1
+      continue
+    }
+    sent += 1
+    const ids = guest.items.map((i) => i.request_id)
+    const { error: markError } = await supabase.rpc('mark_back_in_stock_notified', { p_secret: MPESA_CALLBACK_SECRET, p_ids: ids })
+    if (markError) console.error('[back-in-stock] could not clear requests:', markError.message)
+  }
+  return { sent, failed }
 }

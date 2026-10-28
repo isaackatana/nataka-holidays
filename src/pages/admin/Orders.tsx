@@ -46,6 +46,7 @@ function OrderCard({ order }: { order: Order }) {
           </li>
         ))}
         {order.discount_amount > 0 && <li className="flex justify-between py-0.5"><span>Discount ({order.discount_code})</span><span className="font-figures">−{formatKES(order.discount_amount)}</span></li>}
+                {order.gift_wrap && <li className="flex justify-between py-0.5"><span>Gift wrap</span><span className="font-figures">{formatKES(order.gift_wrap_fee)}</span></li>}
                 {order.delivery_fee > 0 && <li className="flex justify-between py-0.5"><span>Delivery</span><span className="font-figures">{formatKES(order.delivery_fee)}</span></li>}
       </ul>
       <p className="mt-2 flex justify-between border-t border-sand-200 pt-2 font-medium text-teal-900"><span>Total</span><span className="font-figures">{formatKES(order.total)}</span></p>

@@ -9,11 +9,14 @@ import { checkDiscountCode, placeOrder } from '@/services/shop.service'
 
 vi.mock('@/lib/supabase', () => ({ supabase: { storage: { from: () => ({ getPublicUrl: (p: string) => ({ data: { publicUrl: p } }) }) } } }))
 vi.mock('@/features/auth/AuthContext', () => ({ useAuth: () => ({ profile: { full_name: 'Amina Hassan', phone: '0712345678' }, user: { id: 'u1' } }) }))
-vi.mock('@/features/settings/queries', () => ({ useBusinessSettings: () => ({ data: { shop_delivery_fee: 300 } }) }))
+let wrapFee = 250
+vi.mock('@/features/settings/queries', () => ({ useBusinessSettings: () => ({ data: { shop_delivery_fee: 300, shop_gift_wrap_fee: wrapFee } }) }))
 vi.mock('@/services/shop.service', () => ({
   checkDiscountCode: vi.fn(),
   placeOrder: vi.fn(),
   payForOrder: vi.fn(),
+  getRelatedProducts: vi.fn().mockResolvedValue([]),
+  getShopProducts: vi.fn().mockResolvedValue([]),
 }))
 
 const line = {
@@ -25,6 +28,7 @@ beforeEach(() => {
   localStorage.setItem('nataka-shop-cart', JSON.stringify([line]))
 })
 afterEach(() => {
+  wrapFee = 250
   cleanup()
   localStorage.clear()
   vi.clearAllMocks()
@@ -88,5 +92,32 @@ describe('Shop checkout discount code', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Remove' }))
     expect(screen.queryByText(/Discount \(/)).toBeNull()
     expect(screen.getByText('Total').nextSibling?.textContent).toMatch(/2,000/)
+  })
+
+  describe('gift wrap', () => {
+    it('adds the fee to the total when ticked and sends the message with the order', async () => {
+      vi.mocked(placeOrder).mockRejectedValue(new Error('stop here'))
+      renderCheckout()
+      fireEvent.click(screen.getByLabelText(/gift wrap my order/i))
+      fireEvent.change(screen.getByLabelText(/gift message/i), { target: { value: 'Happy birthday!' } })
+      expect(screen.getByText('Total').nextSibling?.textContent).toMatch(/2,250/)
+      fireEvent.change(screen.getByPlaceholderText(/Beach Villa/), { target: { value: 'Beach Villa, 12-16 Nov' } })
+      fireEvent.click(screen.getByRole('button', { name: /place order/i }))
+      await waitFor(() => expect(placeOrder).toHaveBeenCalled())
+      const sent = vi.mocked(placeOrder).mock.calls[0][0]
+      expect(sent.giftWrap).toBe(true)
+      expect(sent.giftMessage).toBe('Happy birthday!')
+    })
+
+    it('leaves the total alone when not ticked', () => {
+      renderCheckout()
+      expect(screen.getByText('Total').nextSibling?.textContent).toMatch(/2,000/)
+    })
+
+    it('is not offered at all when the fee is 0', () => {
+      wrapFee = 0
+      renderCheckout()
+      expect(screen.queryByLabelText(/gift wrap my order/i)).toBeNull()
+    })
   })
 })

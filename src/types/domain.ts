@@ -109,6 +109,14 @@ export interface Product {
   product_variants?: { id: string }[]
 }
 
+export interface BackInStockRequest {
+  id: string
+  customer_id: string
+  product_id: string
+  variant_id: string | null
+  created_at: string
+}
+
 export interface ProductImage {
   id: string
   product_id: string
@@ -179,6 +187,9 @@ export interface Order {
   delivery_fee: number
   discount_code: string | null
   discount_amount: number
+  gift_wrap: boolean
+  gift_wrap_fee: number
+  gift_message: string | null
   total: number
   status: OrderStatus
   expires_at: string

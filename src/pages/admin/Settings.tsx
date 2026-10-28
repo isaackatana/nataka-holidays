@@ -35,6 +35,7 @@ export default function AdminSettings() {
         hero_image_url: settings.hero_image_url ?? '',
         shop_delivery_fee: settings.shop_delivery_fee ?? 300,
         shop_low_stock_threshold: settings.shop_low_stock_threshold ?? 2,
+        shop_gift_wrap_fee: settings.shop_gift_wrap_fee ?? 0,
       })
     }
   }, [settings, reset])
@@ -52,6 +53,7 @@ export default function AdminSettings() {
       hero_image_url: values.hero_image_url || null,
       shop_delivery_fee: values.shop_delivery_fee,
       shop_low_stock_threshold: values.shop_low_stock_threshold,
+      shop_gift_wrap_fee: values.shop_gift_wrap_fee,
     })
   }
 
@@ -155,6 +157,20 @@ export default function AdminSettings() {
             <p className="mt-1.5 text-xs text-charcoal-500">
               One flat fee added to every shop order that is delivered. Hand-over at a guest's stay is free.
               Orders already placed keep the fee they were charged.
+            </p>
+          </div>
+          <div className="mt-5 max-w-xs">
+            <InputField
+              label="Gift wrap fee (KSh, per order)"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              error={errors.shop_gift_wrap_fee?.message}
+              {...register('shop_gift_wrap_fee', { valueAsNumber: true })}
+            />
+            <p className="mt-1.5 text-xs text-charcoal-500">
+              Guests can tick "Gift wrap" at checkout, with a short message. One fee per order, never discounted. Set 0 to not offer gift wrapping.
             </p>
           </div>
           <div className="mt-5 max-w-xs">

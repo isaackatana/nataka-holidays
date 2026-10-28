@@ -6,6 +6,7 @@ import { JsonLd } from '@/components/shared/JsonLd'
 import { Gallery } from '@/components/property/Gallery'
 import { useShopProduct, useShopProducts } from '@/features/shop/queries'
 import { useShopCart } from '@/features/shop/ShopCartContext'
+import { NotifyMe } from '@/features/backInStock/NotifyMe'
 import { useProductRatings } from '@/features/productReviews/queries'
 import { RatingBadge } from '@/components/shop/RatingBadge'
 import { ProductReviewsSection } from '@/components/shop/ProductReviewsSection'
@@ -54,9 +55,8 @@ function Buy({ product }: { product: ProductWithImages }) {
                   type="button"
                   role="radio"
                   aria-checked={on}
-                  disabled={out}
                   onClick={() => { setVariantId(v.id); setQty(1) }}
-                  className={`rounded-full border px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:line-through disabled:opacity-50 ${
+                  className={`rounded-full border px-4 py-2 text-sm transition-colors ${out ? 'opacity-60' : ''} ${
                     on ? 'border-teal-900 bg-teal-900 text-sand-50' : 'border-sand-400 text-charcoal-700 hover:border-teal-800'
                   }`}
                 >
@@ -100,7 +100,7 @@ function Buy({ product }: { product: ProductWithImages }) {
 
       <button
         type="button"
-        disabled={soldOut || room < 1}
+        disabled={soldOut || room < 1 || (!!variant && variant.stock < 1)}
         onClick={() => {
           cart.add(product, wanted, variant ? { id: variant.id, name: variant.name, stock: variant.stock } : undefined)
           setQty(1)
@@ -108,14 +108,25 @@ function Buy({ product }: { product: ProductWithImages }) {
         className="inline-flex items-center justify-center gap-2 rounded-full bg-teal-900 px-6 py-3 text-sm font-medium text-sand-50 transition-colors hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {inCart > 0 ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
-        {soldOut
+        {soldOut && needsChoice
           ? 'Sold out'
           : needsChoice
             ? 'Choose a colour'
-            : room < 1
+            : available < 1
+              ? 'Sold out'
+              : room < 1
               ? 'All available are in your cart'
               : inCart > 0 ? `In cart (${inCart}) · add ${wanted} more` : 'Add to cart'}
       </button>
+
+      {((!hasOptions && product.stock < 1) || (variant && variant.stock < 1)) && (
+        <NotifyMe
+          productId={product.id}
+          variantId={variant?.id ?? null}
+          what={variant ? variant.name : 'this product'}
+          returnTo={`/shop/${product.slug}`}
+        />
+      )}
 
       {cart.count > 0 && (
         <Link to="/shop/checkout" className="text-sm font-medium text-teal-800 underline">

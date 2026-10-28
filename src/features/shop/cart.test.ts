@@ -59,6 +59,15 @@ describe('parseSavedCart', () => {
   })
 })
 
+describe('previewTotal with a discount and gift wrap', () => {
+  it('takes the discount off the items only, then adds delivery and gift wrap', () => {
+    const c = addToCart([], kikoy, 2)
+    expect(previewTotal(c, 'delivery', 300, 200, 250)).toBe(3000 - 200 + 300 + 250)
+    expect(previewTotal(c, 'handover', 300, 0, 250)).toBe(3000 + 250)
+    expect(previewTotal(c, 'handover', 300)).toBe(3000)
+  })
+})
+
 describe('cart with colours / options', () => {
   const blue = { id: 'v-blue', name: 'Blue', stock: 2 }
   const red = { id: 'v-red', name: 'Red', stock: 5 }

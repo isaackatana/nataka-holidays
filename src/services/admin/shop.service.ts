@@ -3,7 +3,7 @@ import { prepareImageForUpload } from '@/utils/image'
 import type { Order, OrderStatus, Product, ProductImage, ProductVariant, ProductWithImages } from '@/types/domain'
 
 const BUCKET = 'product-images'
-const ORDER_SELECT = '*, order_items ( id, order_id, product_id, product_name, unit_price, quantity ), order_payments ( id, order_id, amount, status, created_at )'
+const ORDER_SELECT = '*, order_items ( id, order_id, product_id, product_name, variant_name, unit_price, quantity ), order_payments ( id, order_id, amount, status, created_at )'
 
 const IMAGE_SELECT = 'product_images ( id, product_id, storage_path, sort_order ), product_variants ( id, product_id, name, stock, sort_order )'
 
@@ -147,4 +147,18 @@ export async function setOrderStatus(orderId: string, status: Exclude<OrderStatu
 export async function markOrderPaid(orderId: string, via: 'cash' | 'other'): Promise<void> {
   const { error } = await supabase.rpc('admin_mark_order_paid' as never, { p_order_id: orderId, p_via: via } as never)
   if (error) throw new Error(error.message)
+}
+
+/** Orders that count as sales (paid, being packed, or finished) whose payment landed in [from, to). No row limit. */
+export async function getSalesOrders(fromIso: string, toIso: string): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(ORDER_SELECT)
+    .in('status', ['paid', 'packed', 'completed'])
+    .gte('paid_at', fromIso)
+    .lt('paid_at', toIso)
+    .order('paid_at', { ascending: true })
+    .limit(5000)
+  if (error) throw error
+  return (data ?? []) as unknown as Order[]
 }

@@ -122,6 +122,7 @@ export default function MyOrders() {
                   </li>
                 ))}
                 {o.discount_amount > 0 && <li className="flex justify-between py-0.5"><span>Discount ({o.discount_code})</span><span className="font-figures">−{formatKES(o.discount_amount)}</span></li>}
+                {o.gift_wrap && <li className="flex justify-between py-0.5"><span>Gift wrap</span><span className="font-figures">{formatKES(o.gift_wrap_fee)}</span></li>}
                 {o.delivery_fee > 0 && <li className="flex justify-between py-0.5"><span>Delivery</span><span className="font-figures">{formatKES(o.delivery_fee)}</span></li>}
               </ul>
               <p className="mt-2 flex justify-between border-t border-sand-200 pt-2 font-medium text-teal-900">

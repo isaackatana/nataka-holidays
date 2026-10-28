@@ -150,6 +150,7 @@ export const router = createBrowserRouter([
           { path: 'products', element: withSuspense(lazyPage(() => import('@/pages/admin/Products'))) },
           { path: 'orders', element: withSuspense(lazyPage(() => import('@/pages/admin/Orders'))) },
           { path: 'orders/print', element: withSuspense(lazyPage(() => import('@/pages/admin/PackingSlips'))) },
+          { path: 'shop-sales', element: withSuspense(lazyPage(() => import('@/pages/admin/ShopReport'))) },
           { path: 'discounts', element: withSuspense(lazyPage(() => import('@/pages/admin/Discounts'))) },
           { path: 'settings', element: withSuspense(lazyPage(() => import('@/pages/admin/Settings'))) },
         ],

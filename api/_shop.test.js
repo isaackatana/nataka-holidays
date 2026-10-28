@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { orderPayError, requestStkPush } from './_mpesa.js'
-import { buildLowStockEmail, buildOrderEmails } from './_emails.js'
+import { buildBackInStockEmail, buildLowStockEmail, buildOrderEmails } from './_emails.js'
 
 const now = new Date('2026-10-13T12:00:00Z').getTime()
 const order = (over = {}) => ({
@@ -119,6 +119,13 @@ describe('buildOrderEmails', () => {
     expect(withCode.html).toContain('KSh 400')
     expect(guest.html).not.toContain('Discount (')
   })
+  it('shows the gift wrap and message only when chosen', () => {
+    const [withWrap] = buildOrderEmails({ ...ctx, order: { ...ctx.order, gift_wrap: true, gift_wrap_fee: 250, gift_message: 'Happy birthday!' } }, { siteUrl: 'https://x.test' })
+    expect(withWrap.html).toContain('Gift wrap')
+    expect(withWrap.html).toContain('KSh 250')
+    expect(withWrap.html).toContain('Happy birthday!')
+    expect(guest.html).not.toContain('Gift wrap')
+  })
   it('uses the hand-over note for hand-over orders', () => {
     const [g] = buildOrderEmails({ ...ctx, order: { ...ctx.order, fulfilment: 'handover', handover_note: 'Beach Villa', delivery_fee: 0 } }, { siteUrl: 'https://x.test' })
     expect(g.html).toContain('Hand-over at')
@@ -156,5 +163,37 @@ describe('buildLowStockEmail', () => {
     const m = buildLowStockEmail({ threshold: 2, items: [{ name: '<b>Bold</b>', option: null, stock: 1 }], business }, { siteUrl: 'https://x.test' })
     expect(m.html).toContain('&lt;b&gt;Bold&lt;/b&gt;')
     expect(m.html).not.toContain('<b>Bold</b>')
+  })
+})
+
+
+describe('buildBackInStockEmail', () => {
+  const business = { name: 'Nataka Holidays', phone: '0700 000 000', email: 'hi@natakaholidays.co.ke' }
+
+  it('sends nothing without items', () => {
+    expect(buildBackInStockEmail({ name: 'Amina', items: [] }, business)).toBeNull()
+  })
+  it('names one item and links to its page', () => {
+    const m = buildBackInStockEmail({ name: 'Amina Hassan', items: [{ name: 'Kikoy cloth', option: 'Blue', slug: 'kikoy', stock: 3 }] }, business, { siteUrl: 'https://natakaholidays.co.ke/' })
+    expect(m.subject).toBe('Back in stock: Kikoy cloth (Blue)')
+    expect(m.html).toContain('Hello Amina')
+    expect(m.html).toContain('href="https://natakaholidays.co.ke/shop/kikoy"')
+    expect(m.text).toContain('Kikoy cloth (Blue): https://natakaholidays.co.ke/shop/kikoy')
+  })
+  it('lists several items in one e-mail', () => {
+    const m = buildBackInStockEmail(
+      { name: '', items: [{ name: 'A', option: null, slug: 'a', stock: 1 }, { name: 'B', option: null, slug: 'b', stock: 2 }] },
+      business,
+      { siteUrl: 'https://x.test' },
+    )
+    expect(m.subject).toBe('2 items you wanted are back in stock')
+    expect(m.html).toContain('/shop/a')
+    expect(m.html).toContain('/shop/b')
+    expect(m.html).not.toContain('Hello ')
+  })
+  it('escapes names', () => {
+    const m = buildBackInStockEmail({ name: '<i>x</i>', items: [{ name: '<b>Bold</b>', option: null, slug: 'b', stock: 1 }] }, business, { siteUrl: 'https://x.test' })
+    expect(m.html).not.toContain('<b>Bold</b>')
+    expect(m.html).not.toContain('<i>x</i>')
   })
 })

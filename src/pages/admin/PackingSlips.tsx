@@ -58,6 +58,17 @@ function Slip({ order, business }: { order: Order; business: { name: string; pho
         </tbody>
       </table>
 
+      {order.gift_wrap && (
+        <section className="mt-5 border-2 border-charcoal-900 p-4" aria-label="Gift wrap">
+          <p className="font-mono text-sm font-medium uppercase tracking-wide">Gift wrap</p>
+          {order.gift_message ? (
+            <p className="mt-1 whitespace-pre-line text-lg italic">“{order.gift_message}”</p>
+          ) : (
+            <p className="mt-1 text-sm text-charcoal-600">No message.</p>
+          )}
+        </section>
+      )}
+
       {order.admin_note && (
         <p className="mt-5 border border-charcoal-900 p-3 text-sm"><strong>Note:</strong> {order.admin_note}</p>
       )}

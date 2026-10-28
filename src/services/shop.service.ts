@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import type { Fulfilment, Order, Product, ProductWithImages } from '@/types/domain'
 
-const ORDER_SELECT = '*, order_items ( id, order_id, product_id, product_name, unit_price, quantity ), order_payments ( id, order_id, amount, status, created_at )'
+const ORDER_SELECT = '*, order_items ( id, order_id, product_id, product_name, variant_name, unit_price, quantity ), order_payments ( id, order_id, amount, status, created_at )'
 
 /** Active products. Releases stock held by orders nobody paid for first, so the numbers are honest. */
 export async function getShopProducts(): Promise<Product[]> {
@@ -44,6 +44,8 @@ export interface PlaceOrderInput {
   address: string
   /** Optional; the database checks it and works out the discount. */
   discountCode?: string
+  giftWrap?: boolean
+  giftMessage?: string
 }
 
 /** Creates the order. The database prices it, checks stock and reserves it. */
@@ -56,6 +58,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     p_handover_note: input.fulfilment === 'handover' ? input.handoverNote : null,
     p_address: input.fulfilment === 'delivery' ? input.address : null,
     p_discount_code: input.discountCode?.trim() || null,
+    p_gift_wrap: input.giftWrap ?? false,
+    p_gift_message: input.giftWrap ? input.giftMessage?.trim() || null : null,
   } as never)
   if (error) throw new Error(error.message)
   return data as unknown as Order
@@ -71,6 +75,19 @@ export async function checkDiscountCode(code: string, subtotal: number): Promise
   return r.ok
     ? { ok: true, code: r.code as string, amount: Number(r.amount) }
     : { ok: false, message: r.message ?? 'That code is not valid.' }
+}
+
+export interface RelatedProduct {
+  product_id: string
+  /** In how many paid orders it was bought together with something in the cart (0 = suggested for other reasons). */
+  together: number
+}
+
+/** Suggestions for a cart, best first: bought together, then same category, then newest. */
+export async function getRelatedProducts(productIds: string[], limit = 4): Promise<RelatedProduct[]> {
+  const { data, error } = await supabase.rpc('related_products' as never, { p_product_ids: productIds, p_limit: limit } as never)
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as unknown as RelatedProduct[]).map((r) => ({ product_id: r.product_id, together: Number(r.together) }))
 }
 
 export async function getMyOrders(): Promise<Order[]> {

@@ -12,6 +12,7 @@ export interface BusinessSettings {
   hero_image_url: string | null
   shop_delivery_fee: number
   shop_low_stock_threshold: number
+  shop_gift_wrap_fee: number
   updated_at: string
 }
 

@@ -6,16 +6,23 @@ import { HelmetProvider } from 'react-helmet-async'
 import ShopProduct from '@/pages/public/ShopProduct'
 import { ShopCartProvider, useShopCart } from '@/features/shop/ShopCartContext'
 import { getShopProduct, getShopProducts } from '@/services/shop.service'
+import { cancelBackInStock, getMyBackInStock, requestBackInStock } from '@/services/backInStock.service'
 import type { ProductWithImages } from '@/types/domain'
 
 vi.mock('@/lib/supabase', () => ({
   supabase: { storage: { from: () => ({ getPublicUrl: (p: string) => ({ data: { publicUrl: `https://img.test/${p}` } }) }) } },
 }))
 vi.mock('@/services/shop.service', () => ({ getShopProduct: vi.fn(), getShopProducts: vi.fn() }))
+vi.mock('@/services/backInStock.service', () => ({ getMyBackInStock: vi.fn(), requestBackInStock: vi.fn(), cancelBackInStock: vi.fn() }))
+
+let signedIn: { id: string } | null = null
+vi.mock('@/features/auth/AuthContext', () => ({ useAuth: () => ({ user: signedIn, profile: null }) }))
 
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  signedIn = null
+  vi.clearAllMocks()
 })
 
 const product = (over: Partial<ProductWithImages> = {}): ProductWithImages => ({
@@ -112,7 +119,7 @@ describe('Shop product page', () => {
       renderPage(withColours())
       const button = (await screen.findByRole('button', { name: /choose a colour/i })) as HTMLButtonElement
       expect(button.disabled).toBe(true)
-      expect((screen.getByRole('radio', { name: /red \(sold out\)/i }) as HTMLButtonElement).disabled).toBe(true)
+      expect(screen.getByRole('radio', { name: /red \(sold out\)/i })).toBeTruthy()
     })
 
     it('adds the chosen colour, limited by that colour\'s own stock', async () => {
@@ -133,6 +140,63 @@ describe('Shop product page', () => {
       fireEvent.click(screen.getByRole('button', { name: /add to cart/i }))
       expect(screen.getByTestId('cart').textContent).toBe('2/3000')
       expect(JSON.parse(localStorage.getItem('nataka-shop-cart') ?? '[]')).toHaveLength(2)
+    })
+  })
+
+  describe('back in stock', () => {
+    const soldOutPlain = () => product({ stock: 0 })
+
+    it('asks a visitor to sign in first', async () => {
+      renderPage(soldOutPlain())
+      const link = await screen.findByRole('link', { name: 'Sign in' })
+      expect(link.getAttribute('href')).toBe('/login')
+      expect(screen.queryByRole('button', { name: /email me when/i })).toBeNull()
+    })
+
+    it('lets a signed-in guest ask to be emailed, and stop again', async () => {
+      signedIn = { id: 'u1' }
+      vi.mocked(getMyBackInStock).mockResolvedValue([])
+      vi.mocked(requestBackInStock).mockResolvedValue()
+      renderPage(soldOutPlain())
+      fireEvent.click(await screen.findByRole('button', { name: /email me when it's back/i }))
+      await vi.waitFor(() => expect(requestBackInStock).toHaveBeenCalledWith('u1', 'p1', null))
+    })
+
+    it('shows that the guest is already waiting, with a way to stop', async () => {
+      signedIn = { id: 'u1' }
+      vi.mocked(getMyBackInStock).mockResolvedValue([{ id: 'r1', customer_id: 'u1', product_id: 'p1', variant_id: null, created_at: '' }])
+      vi.mocked(cancelBackInStock).mockResolvedValue()
+      renderPage(soldOutPlain())
+      expect(await screen.findByText(/we'll email you when this product is back/i)).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: /stop/i }))
+      await vi.waitFor(() => expect(cancelBackInStock).toHaveBeenCalledWith('r1'))
+    })
+
+    it('does not offer it for something that is in stock', async () => {
+      signedIn = { id: 'u1' }
+      vi.mocked(getMyBackInStock).mockResolvedValue([])
+      renderPage(product())
+      await screen.findByRole('heading', { name: 'Kikoy cloth' })
+      expect(screen.queryByRole('button', { name: /email me when/i })).toBeNull()
+    })
+
+    it('works per colour: choosing a sold-out colour offers it for that colour only', async () => {
+      signedIn = { id: 'u1' }
+      vi.mocked(getMyBackInStock).mockResolvedValue([])
+      vi.mocked(requestBackInStock).mockResolvedValue()
+      renderPage(product({
+        stock: 3,
+        product_variants: [
+          { id: 'v1', product_id: 'p1', name: 'Blue', stock: 3, sort_order: 0 },
+          { id: 'v2', product_id: 'p1', name: 'Red', stock: 0, sort_order: 1 },
+        ],
+      }))
+      await screen.findByRole('heading', { name: 'Kikoy cloth' })
+      expect(screen.queryByRole('button', { name: /email me when/i })).toBeNull()
+      fireEvent.click(screen.getByRole('radio', { name: /red \(sold out\)/i }))
+      expect((screen.getByRole('button', { name: 'Sold out' }) as HTMLButtonElement).disabled).toBe(true)
+      fireEvent.click(await screen.findByRole('button', { name: /email me when it's back/i }))
+      await vi.waitFor(() => expect(requestBackInStock).toHaveBeenCalledWith('u1', 'p1', 'v2'))
     })
   })
 })

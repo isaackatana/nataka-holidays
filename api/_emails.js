@@ -361,6 +361,8 @@ export function buildOrderEmails(ctx, { siteUrl, receipt } = {}) {
     ...itemRows,
     o.discount_amount > 0 ? [`Discount (${o.discount_code})`, `−${kes(o.discount_amount)}`] : null,
     o.delivery_fee > 0 ? ['Delivery fee', kes(o.delivery_fee)] : null,
+    o.gift_wrap ? ['Gift wrap', kes(o.gift_wrap_fee)] : null,
+    o.gift_wrap && o.gift_message ? ['Gift message', o.gift_message] : null,
     ['Total paid', kes(o.total)],
     receipt ? ['M-Pesa receipt', receipt] : null,
     how,
@@ -557,4 +559,41 @@ export function buildLowStockEmail(ctx, { siteUrl } = {}) {
     `Update stock: ${adminUrl}`,
   ].join('\n')
   return { to: 'admin', subject, html, text }
+}
+
+/**
+ * "It's back" e-mail for one guest. `guest` is one entry of back_in_stock_due():
+ * { name, email, items: [{ name, option, slug, stock }] }. The caller sends it
+ * to guest.email.
+ */
+export function buildBackInStockEmail(guest, business, { siteUrl } = {}) {
+  const items = guest?.items ?? []
+  if (items.length === 0) return null
+  const base = String(siteUrl || '').replace(/\/$/, '')
+  const label = (i) => (i.option ? `${i.name} (${i.option})` : i.name)
+  const first = String(guest.name || '').trim().split(/\s+/)[0]
+  const subject =
+    items.length === 1 ? `Back in stock: ${label(items[0])}` : `${items.length} items you wanted are back in stock`
+  const linkTable =
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border-top:1px solid #eee">' +
+    items
+      .map(
+        (i) =>
+          `<tr><td style="padding:8px 0;border-bottom:1px solid #eee;font-size:14px">${escapeHtml(label(i))}</td><td style="padding:8px 0;border-bottom:1px solid #eee;font-size:14px;text-align:right"><a href="${escapeHtml(`${base}/shop/${i.slug}`)}" style="color:#0f3d3e">View in the shop</a></td></tr>`,
+      )
+      .join('') +
+    '</table>'
+  const html = layout({
+    business,
+    heading: 'Good news, it\'s back',
+    siteUrl: siteUrl || '',
+    bodyHtml:
+      `<p style="margin:0 0 12px;font-size:15px;line-height:1.5">${first ? `Hello ${escapeHtml(first)}, ` : ''}${items.length === 1 ? 'something you asked about is' : 'things you asked about are'} back in the Nataka Holidays shop. Stock is limited, so order soon if you still want ${items.length === 1 ? 'it' : 'them'}.</p>` +
+      linkTable,
+  })
+  const text = [
+    `${first ? `Hello ${first}, ` : ''}${items.length === 1 ? 'something you asked about is' : 'things you asked about are'} back in the shop:`,
+    ...items.map((i) => `${label(i)}: ${base}/shop/${i.slug}`),
+  ].join('\n')
+  return { subject, html, text }
 }

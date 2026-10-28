@@ -5,6 +5,7 @@ import { SEO } from '@/components/shared/SEO'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useBusinessSettings } from '@/features/settings/queries'
+import { CartSuggestions } from '@/features/shop/CartSuggestions'
 import { useCheckDiscountCode, usePayForOrder, usePlaceOrder } from '@/features/shop/queries'
 import { useShopCart } from '@/features/shop/ShopCartContext'
 import { orderItems, previewTotal } from '@/features/shop/cart'
@@ -31,6 +32,8 @@ export default function ShopCheckout() {
   const checkCode = useCheckDiscountCode()
 
   const [fulfilment, setFulfilment] = useState<Fulfilment>('handover')
+  const [giftWrap, setGiftWrap] = useState(false)
+  const [giftMessage, setGiftMessage] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [handoverNote, setHandoverNote] = useState('')
@@ -49,7 +52,9 @@ export default function ShopCheckout() {
   }, [profile])
 
   const fee = settings?.shop_delivery_fee ?? 0
-  const total = previewTotal(cart.lines, fulfilment, fee, applied?.amount ?? 0)
+  const wrapFee = settings?.shop_gift_wrap_fee ?? 0
+  const wrapping = giftWrap && wrapFee > 0
+  const total = previewTotal(cart.lines, fulfilment, fee, applied?.amount ?? 0, wrapping ? wrapFee : 0)
   const busy = place.isPending || pay.isPending
 
   // If the items change after a code was applied, ask again so the preview stays honest.
@@ -109,6 +114,8 @@ export default function ShopCheckout() {
         handoverNote: handoverNote.trim(),
         address: address.trim(),
         discountCode: applied?.code,
+        giftWrap: wrapping,
+        giftMessage,
       })
       // The order now exists (and its stock is held), so the cart has done its job.
       cart.clear()
@@ -164,6 +171,8 @@ export default function ShopCheckout() {
         ))}
       </ul>
 
+      <CartSuggestions />
+
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-6" noValidate>
         <fieldset className="flex flex-col gap-3">
           <legend className="text-sm font-medium text-charcoal-700">How would you like to receive it?</legend>
@@ -204,6 +213,22 @@ export default function ShopCheckout() {
           </label>
         )}
 
+        {wrapFee > 0 && (
+          <div className="flex flex-col gap-2 rounded-lg border border-sand-300 p-4">
+            <label className="flex items-center gap-2 text-sm font-medium text-charcoal-700">
+              <input type="checkbox" checked={giftWrap} onChange={(e) => setGiftWrap(e.target.checked)} />
+              Gift wrap my order (+{formatKES(wrapFee)})
+            </label>
+            {giftWrap && (
+              <label className="flex flex-col gap-1.5 text-sm font-medium text-charcoal-700">
+                Gift message (optional)
+                <textarea className={inputClass} rows={2} maxLength={200} value={giftMessage} onChange={(e) => setGiftMessage(e.target.value)} placeholder="Happy birthday!" />
+                <span className="text-xs font-normal text-charcoal-500">{giftMessage.length}/200</span>
+              </label>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-col gap-1.5">
           <label htmlFor="discount-code" className="text-sm font-medium text-charcoal-700">Discount code</label>
           {applied ? (
@@ -233,6 +258,7 @@ export default function ShopCheckout() {
           <div className="flex justify-between py-1"><dt className="text-charcoal-500">Items</dt><dd className="font-figures">{formatKES(cart.subtotal)}</dd></div>
           {applied && <div className="flex justify-between py-1"><dt className="text-charcoal-500">Discount ({applied.code})</dt><dd className="font-figures">−{formatKES(applied.amount)}</dd></div>}
           {fulfilment === 'delivery' && <div className="flex justify-between py-1"><dt className="text-charcoal-500">Delivery</dt><dd className="font-figures">{formatKES(fee)}</dd></div>}
+          {wrapping && <div className="flex justify-between py-1"><dt className="text-charcoal-500">Gift wrap</dt><dd className="font-figures">{formatKES(wrapFee)}</dd></div>}
           <div className="flex justify-between border-t border-sand-300 pt-2 text-base font-medium text-teal-900"><dt>Total</dt><dd className="font-figures">{formatKES(total)}</dd></div>
         </dl>
 

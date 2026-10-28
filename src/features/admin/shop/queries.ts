@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  getSalesOrders,
   addProductVariant, deleteProductVariant, updateProductVariant,
   createProduct, deleteProduct, deleteProductImage, getAllOrdersForAdmin, getAllProductsForAdmin, markOrderPaid,
   reorderProductImages, setOrderStatus, updateProduct, uploadProductImage, type ProductInput,
@@ -88,5 +89,12 @@ export function useMarkOrderPaid() {
   return useMutation({
     mutationFn: ({ orderId, via }: { orderId: string; via: 'cash' | 'other' }) => markOrderPaid(orderId, via),
     onSuccess: invalidate,
+  })
+}
+
+export function useSalesOrders(fromIso: string, toIso: string) {
+  return useQuery({
+    queryKey: ['admin', 'shop', 'sales', fromIso, toIso],
+    queryFn: () => getSalesOrders(fromIso, toIso),
   })
 }

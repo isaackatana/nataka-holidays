@@ -81,3 +81,30 @@ items count as low (colours listed one by one, hidden products ignored),
 that the same list is not e-mailed twice but a change in stock makes a new
 e-mail due, that threshold 0 switches the e-mails off, that the two server
 functions refuse a wrong secret, and that guests cannot change the threshold.
+
+## Shop "back in stock" requests check
+
+`back_in_stock_rules.sql` (run after all migrations including 0032) checks that a
+guest can wait only for something that really is sold out (a colour counts on
+its own), cannot ask twice, sees only their own requests while the owner sees
+what is waiting, is due an e-mail only once the item is back (one entry per
+guest listing everything that is back), that requests are removed once
+e-mailed, the 20-request limit, and that the two server functions refuse a
+wrong secret.
+
+## Shop gift wrap check
+
+`gift_wrap_rules.sql` (run after all migrations including 0033) checks that gift
+wrapping can only be chosen while you have set a fee (so it cannot be switched
+on from the browser), that the fee is added once per order and never
+discounted, that the message is trimmed, dropped when not wrapping and limited
+to 200 characters, that the order e-mail data carries it, and that such
+orders can still be cancelled.
+
+## Shop related products check
+
+`related_products_rules.sql` (run after all migrations including 0034) checks the
+cart suggestions are ranked by how often products were bought together in PAID
+orders, then same category, then newest; that the cart's own items, sold-out and
+hidden products are never suggested; that unpaid orders do not count; the limit
+is capped at 8; and visitors who are not signed in can use it.

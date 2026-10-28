@@ -87,8 +87,14 @@ export function orderItems(lines: CartLine[]): { product_id: string; variant_id:
 }
 
 /** Total shown at checkout. The database computes the real one; this only previews it. */
-export function previewTotal(lines: CartLine[], fulfilment: 'handover' | 'delivery', deliveryFee: number, discount = 0): number {
-  return cartSubtotal(lines) - discount + (fulfilment === 'delivery' ? deliveryFee : 0)
+export function previewTotal(
+  lines: CartLine[],
+  fulfilment: 'handover' | 'delivery',
+  deliveryFee: number,
+  discount = 0,
+  giftWrapFee = 0,
+): number {
+  return cartSubtotal(lines) - discount + (fulfilment === 'delivery' ? deliveryFee : 0) + giftWrapFee
 }
 
 /** Reads a saved cart defensively: it lives in the browser, where it can be edited or out of date. */

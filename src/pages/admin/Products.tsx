@@ -3,6 +3,7 @@ import { Pencil, Plus, Trash2, Eye, EyeOff, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ProductVariantsEditor } from '@/components/admin/ProductVariantsEditor'
 import { ProductImageUploader } from '@/components/admin/ProductImageUploader'
+import { useBackInStockCounts } from '@/features/backInStock/queries'
 import { useBusinessSettings } from '@/features/settings/queries'
 import { useAdminProducts, useDeleteProduct, useSaveProduct } from '@/features/admin/shop/queries'
 import { slugify } from '@/features/admin/shop/slug'
@@ -29,6 +30,7 @@ const inputClass =
 export default function AdminProducts() {
   const { data: products, isLoading } = useAdminProducts()
   const { data: settings } = useBusinessSettings()
+  const { data: waiting } = useBackInStockCounts()
   const lowAt = settings?.shop_low_stock_threshold ?? 2
   const save = useSaveProduct()
   const remove = useDeleteProduct()
@@ -187,6 +189,7 @@ export default function AdminProducts() {
                     <div>
                       {p.name}
                       <span className="block text-xs font-normal text-charcoal-500">{p.product_images.length} photo{p.product_images.length === 1 ? '' : 's'}</span>
+                      {(waiting?.[p.id] ?? 0) > 0 && <span className="block text-xs font-normal text-teal-800">{waiting?.[p.id]} guest{waiting?.[p.id] === 1 ? '' : 's'} waiting for it to come back</span>}
                     </div>
                   </div>
                 </td>

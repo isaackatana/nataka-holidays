@@ -17,7 +17,7 @@
 // configured the endpoint refuses to run rather than being open to anyone.
 import { createClient } from '@supabase/supabase-js'
 import { reminderWindow, reviewRequestWindow } from './_emails.js'
-import { sendBookingNotification, sendLowStockDigest } from './_notify.js'
+import { sendBackInStockEmails, sendBookingNotification, sendLowStockDigest } from './_notify.js'
 
 const MAX_PER_RUN = 20 // stays inside the function time limit; leftovers go out next run
 const PAUSE_MS = 500 // email providers rate-limit bursts
@@ -95,12 +95,22 @@ export default async function handler(req, res) {
     lowStock = { sent: false, reason: 'error' }
   }
 
+  // Guests waiting for a sold-out item to return (best effort as well).
+  let backInStock
+  try {
+    backInStock = await sendBackInStockEmails()
+  } catch (err) {
+    console.error('[send-reminders] back-in-stock emails failed:', err)
+    backInStock = { sent: 0, failed: 0, reason: 'error' }
+  }
+
   const tally = {
     due: reminders.due, sent: reminders.sent, skipped: reminders.skipped, failed: reminders.failed,
     reviewRequests: reviews.error
       ? { error: true }
       : { due: reviews.due, sent: reviews.sent, skipped: reviews.skipped, failed: reviews.failed },
     lowStock,
+    backInStock,
   }
 
   console.log('[send-reminders]', JSON.stringify(tally))

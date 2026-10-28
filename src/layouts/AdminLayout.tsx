@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { LayoutDashboard, Home, CalendarCheck, Users, Star, Compass, Settings, LogOut, Mail, Menu, X, ListChecks, BarChart3, ShoppingBag, Package, CalendarClock, Ticket } from 'lucide-react'
+import { LayoutDashboard, Home, CalendarCheck, Users, Star, Compass, Settings, LogOut, Mail, Menu, X, ListChecks, BarChart3, ShoppingBag, Package, CalendarClock, Ticket, TrendingUp } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useAdminContactMessages } from '@/features/admin/contactMessages/queries'
 import { usePendingReviewCount } from '@/features/admin/reviews/queries'
@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { label: 'Experience requests', to: '/admin/experience-requests', icon: CalendarClock },
   { label: 'Products', to: '/admin/products', icon: ShoppingBag },
   { label: 'Shop orders', to: '/admin/orders', icon: Package },
+  { label: 'Shop sales', to: '/admin/shop-sales', icon: TrendingUp },
   { label: 'Discounts', to: '/admin/discounts', icon: Ticket },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
 ]

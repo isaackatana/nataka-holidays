@@ -10,7 +10,7 @@ const items = (n: number) => [
 const orders = [
   {
     id: 'aaaaaaaa-0000-0000-0000-000000000001', customer_name: 'Amina Hassan', customer_phone: '254712345678', fulfilment: 'delivery',
-    delivery_address: '12 Beach Road, Diani', handover_note: null, status: 'paid', total: 3800, discount_amount: 0, admin_note: 'Gift wrap please',
+    delivery_address: '12 Beach Road, Diani', handover_note: null, status: 'paid', total: 3800, discount_amount: 0, admin_note: 'Fragile', gift_wrap: true, gift_wrap_fee: 250, gift_message: 'Happy birthday, Mama!',
     created_at: '2026-10-01T08:00:00Z', order_items: items(1),
   },
   {
@@ -42,7 +42,9 @@ describe('Packing slips page', () => {
     expect(screen.getByText('Beach Villa, 12-16 Nov')).toBeTruthy()
     expect(screen.getByText('Deliver to')).toBeTruthy()
     expect(screen.getByText('Hand over at')).toBeTruthy()
-    expect(screen.getByText(/Gift wrap please/)).toBeTruthy()
+    expect(screen.getByText(/Fragile/)).toBeTruthy()
+    expect(screen.getAllByLabelText('Gift wrap')).toHaveLength(1)
+    expect(screen.getByText(/Happy birthday, Mama!/)).toBeTruthy()
     expect(screen.getByText(/includes .*200 discount/)).toBeTruthy()
     expect(screen.getByRole('button', { name: /print 2 slips/i })).toBeTruthy()
   })
