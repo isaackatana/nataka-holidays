@@ -7,12 +7,18 @@ import ShopProduct from '@/pages/public/ShopProduct'
 import { ShopCartProvider, useShopCart } from '@/features/shop/ShopCartContext'
 import { getShopProduct, getShopProducts } from '@/services/shop.service'
 import { cancelBackInStock, getMyBackInStock, requestBackInStock } from '@/services/backInStock.service'
+import { addProductFavorite, getProductFavoriteIds } from '@/services/productFavorites.service'
 import type { ProductWithImages } from '@/types/domain'
 
 vi.mock('@/lib/supabase', () => ({
   supabase: { storage: { from: () => ({ getPublicUrl: (p: string) => ({ data: { publicUrl: `https://img.test/${p}` } }) }) } },
 }))
 vi.mock('@/services/shop.service', () => ({ getShopProduct: vi.fn(), getShopProducts: vi.fn() }))
+vi.mock('@/services/productFavorites.service', () => ({
+  getProductFavoriteIds: vi.fn().mockResolvedValue([]),
+  addProductFavorite: vi.fn().mockResolvedValue(undefined),
+  removeProductFavorite: vi.fn().mockResolvedValue(undefined),
+}))
 vi.mock('@/services/backInStock.service', () => ({ getMyBackInStock: vi.fn(), requestBackInStock: vi.fn(), cancelBackInStock: vi.fn() }))
 
 let signedIn: { id: string } | null = null
@@ -198,5 +204,19 @@ describe('Shop product page', () => {
       fireEvent.click(await screen.findByRole('button', { name: /email me when it's back/i }))
       await vi.waitFor(() => expect(requestBackInStock).toHaveBeenCalledWith('u1', 'p1', 'v2'))
     })
+  })
+
+  it('can save the product from its page', async () => {
+    signedIn = { id: 'u1' }
+    vi.mocked(getProductFavoriteIds).mockResolvedValue([])
+    renderPage(product())
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Kikoy cloth to favorites' }))
+    await vi.waitFor(() => expect(addProductFavorite).toHaveBeenCalledWith('u1', 'p1'))
+  })
+
+  it('shows the sale: real price, crossed-out original and the percent off', async () => {
+    renderPage(product({ price: 1200, compare_at_price: 1500 }))
+    expect(await screen.findByText('Sale −20%')).toBeTruthy()
+    expect(screen.getByText(/1,500/).closest('del')).toBeTruthy()
   })
 })

@@ -102,6 +102,8 @@ export interface Product {
   image_path: string | null
   /** What the shop filter groups by, e.g. "Textiles". */
   category: string
+  /** Original price shown crossed out (display only; always higher than price). Null = not on sale. */
+  compare_at_price?: number | null
   is_active: boolean
   created_at: string
   updated_at: string

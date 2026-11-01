@@ -23,6 +23,7 @@ export interface ProductInput {
   slug: string
   description: string
   price: number
+  compare_at_price: number | null
   stock: number
   category: string
   is_active: boolean

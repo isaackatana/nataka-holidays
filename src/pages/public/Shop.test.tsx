@@ -6,16 +6,27 @@ import { HelmetProvider } from 'react-helmet-async'
 import Shop from '@/pages/public/Shop'
 import { ShopCartProvider, useShopCart } from '@/features/shop/ShopCartContext'
 import { getShopProducts } from '@/services/shop.service'
+import { addProductFavorite, getProductFavoriteIds, removeProductFavorite } from '@/services/productFavorites.service'
 import type { Product } from '@/types/domain'
 
 vi.mock('@/lib/supabase', () => ({
   supabase: { storage: { from: () => ({ getPublicUrl: () => ({ data: { publicUrl: 'https://img.test/p.webp' } }) }) } },
 }))
 vi.mock('@/services/shop.service', () => ({ getShopProducts: vi.fn() }))
+vi.mock('@/services/productFavorites.service', () => ({
+  getProductFavoriteIds: vi.fn().mockResolvedValue([]),
+  addProductFavorite: vi.fn().mockResolvedValue(undefined),
+  removeProductFavorite: vi.fn().mockResolvedValue(undefined),
+}))
+
+let signedIn: { id: string } | null = null
+vi.mock('@/features/auth/AuthContext', () => ({ useAuth: () => ({ user: signedIn, profile: null }) }))
 
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  signedIn = null
+  vi.clearAllMocks()
 })
 
 const product = (over: Partial<Product>): Product => ({
@@ -112,5 +123,68 @@ describe('Shop page', () => {
     const link = await screen.findByRole('link', { name: /choose colour/i })
     expect(link.getAttribute('href')).toBe('/shop/kikoy')
     expect(screen.queryByRole('button', { name: /add to cart/i })).toBeNull()
+  })
+
+  describe('saving products (hearts)', () => {
+    it('saves a product for a signed-in guest', async () => {
+      signedIn = { id: 'u1' }
+      vi.mocked(getProductFavoriteIds).mockResolvedValue([])
+      renderShop([product({})])
+      fireEvent.click(await screen.findByRole('button', { name: 'Save Kikoy cloth to favorites' }))
+      await vi.waitFor(() => expect(addProductFavorite).toHaveBeenCalledWith('u1', 'p1'))
+    })
+
+    it('shows a saved product as saved and removes it on the next tap', async () => {
+      signedIn = { id: 'u1' }
+      vi.mocked(getProductFavoriteIds).mockResolvedValue(['p1'])
+      renderShop([product({})])
+      const heart = await screen.findByRole('button', { name: 'Remove Kikoy cloth from favorites' })
+      expect(heart.getAttribute('aria-pressed')).toBe('true')
+      fireEvent.click(heart)
+      await vi.waitFor(() => expect(removeProductFavorite).toHaveBeenCalledWith('u1', 'p1'))
+    })
+
+    it('sends a visitor who is not signed in to sign in, saving nothing', async () => {
+      renderShop([product({})])
+      fireEvent.click(await screen.findByRole('button', { name: 'Save Kikoy cloth to favorites' }))
+      expect(addProductFavorite).not.toHaveBeenCalled()
+    })
+
+    it('keeps the heart outside the product link, so tapping it never opens the product page', async () => {
+      renderShop([product({})])
+      const heart = await screen.findByRole('button', { name: 'Save Kikoy cloth to favorites' })
+      expect(heart.closest('a')).toBeNull()
+    })
+  })
+
+  describe('sale prices', () => {
+    it('shows the original price crossed out and a sale tag, with the real price first', async () => {
+      renderShop([product({ price: 800, compare_at_price: 1000 })])
+      expect(await screen.findByText('Sale −20%')).toBeTruthy()
+      const was = screen.getByText(/1,000/)
+      expect(was.closest('del')).toBeTruthy()
+      expect(screen.getByText(/Was/)).toBeTruthy()
+    })
+
+    it('shows nothing special for a product that is not on sale', async () => {
+      renderShop([product({})])
+      await screen.findByText('Kikoy cloth')
+      expect(screen.queryByText(/Sale/)).toBeNull()
+      expect(document.querySelector('del')).toBeNull()
+    })
+
+    it('can show only the products on sale', async () => {
+      renderShop([product({}), product({ id: 'p2', name: 'Sisal basket', slug: 'basket', price: 600, compare_at_price: 800 })])
+      await screen.findByText('Sisal basket')
+      fireEvent.click(screen.getByLabelText('On sale'))
+      expect(screen.queryByText('Kikoy cloth')).toBeNull()
+      expect(screen.getByText('Sisal basket')).toBeTruthy()
+    })
+
+    it('adds the real price to the cart, not the crossed-out one', async () => {
+      renderShop([product({ price: 800, compare_at_price: 1000 })])
+      fireEvent.click(await screen.findByRole('button', { name: /add to cart/i }))
+      expect(screen.getByTestId('cart').textContent).toBe('1/800')
+    })
   })
 })

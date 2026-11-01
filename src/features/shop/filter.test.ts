@@ -10,7 +10,7 @@ const p = (over: Partial<Product>): Product => ({
 const catalogue = [
   p({ id: '1', name: 'Kikoy cloth', category: 'Textiles', price: 1500, created_at: '2026-03-01' }),
   p({ id: '2', name: 'Sisal basket', category: 'Baskets', price: 800, stock: 0, created_at: '2026-02-01' }),
-  p({ id: '3', name: 'Coconut bowl', category: 'Kitchen', description: 'Hand carved', price: 600, created_at: '2026-04-01' }),
+  p({ id: '3', name: 'Coconut bowl', category: 'Kitchen', description: 'Hand carved', price: 600, compare_at_price: 800, created_at: '2026-04-01' }),
 ]
 const ids = (list: Product[]) => list.map((x) => x.id)
 
@@ -28,6 +28,9 @@ describe('filterProducts', () => {
     expect(ids(filterProducts(catalogue, { ...DEFAULT_FILTERS, search: 'carved' }))).toEqual(['3'])
     expect(ids(filterProducts(catalogue, { ...DEFAULT_FILTERS, search: 'BASKETS sisal' }))).toEqual(['2'])
     expect(ids(filterProducts(catalogue, { ...DEFAULT_FILTERS, search: 'sisal cloth' }))).toEqual([])
+  })
+  it('shows only products on sale when asked', () => {
+    expect(ids(filterProducts(catalogue, { ...DEFAULT_FILTERS, onSaleOnly: true }))).toEqual(['3'])
   })
   it('sorts by price and by name', () => {
     expect(ids(filterProducts(catalogue, { ...DEFAULT_FILTERS, sort: 'price-asc' }))).toEqual(['3', '2', '1'])
@@ -50,6 +53,7 @@ describe('categoryCounts / hasActiveFilters', () => {
   it('knows when a filter is on', () => {
     expect(hasActiveFilters(DEFAULT_FILTERS)).toBe(false)
     expect(hasActiveFilters({ ...DEFAULT_FILTERS, inStockOnly: true })).toBe(true)
+    expect(hasActiveFilters({ ...DEFAULT_FILTERS, onSaleOnly: true })).toBe(true)
     expect(hasActiveFilters({ ...DEFAULT_FILTERS, sort: 'price-asc' })).toBe(false)
   })
 })

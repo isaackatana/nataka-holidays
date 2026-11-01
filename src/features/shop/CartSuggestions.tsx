@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Plus, ShoppingBag } from 'lucide-react'
 import { useRelatedProducts, useShopProducts } from '@/features/shop/queries'
 import { useShopCart } from '@/features/shop/ShopCartContext'
-import { formatKES } from '@/utils/currency'
+import { Price } from '@/components/shop/Price'
 import { getResizedImageUrl } from '@/utils/storage'
 
 /** "You might also like": products often bought with what is in the cart, then similar ones. One tap to add. */
@@ -37,7 +37,7 @@ export function CartSuggestions() {
               <div className="flex flex-1 flex-col gap-1 p-3">
                 {together > 0 && <p className="text-[11px] font-medium uppercase tracking-wide text-teal-800">Often bought together</p>}
                 <Link to={`/shop/${product.slug}`} className="line-clamp-2 text-sm font-medium text-teal-900 hover:underline">{product.name}</Link>
-                <p className="font-figures text-sm text-charcoal-700">{formatKES(product.price)}</p>
+                <p className="text-sm text-charcoal-700"><Price price={product.price} compareAt={product.compare_at_price} /></p>
                 {hasOptions ? (
                   <Link to={`/shop/${product.slug}`} className="mt-auto inline-flex items-center justify-center rounded-full border border-teal-900 px-3 py-2 text-xs font-medium text-teal-900 hover:bg-teal-900 hover:text-sand-50">
                     Choose colour

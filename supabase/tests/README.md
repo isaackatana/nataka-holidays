@@ -108,3 +108,18 @@ cart suggestions are ranked by how often products were bought together in PAID
 orders, then same category, then newest; that the cart's own items, sold-out and
 hidden products are never suggested; that unpaid orders do not count; the limit
 is capped at 8; and visitors who are not signed in can use it.
+
+## Shop wishlist check
+
+`product_favorites_rules.sql` (run after all migrations including 0035) checks that
+a guest can save shop products and sees only their own list, cannot save the
+same product twice, cannot see, add to or remove anyone else's list, that
+visitors who are not signed in can save nothing, the 100-item limit, and that a
+product removed from the shop leaves everyone's list.
+
+## Shop sale prices check
+
+`sale_price_rules.sql` (run after all migrations including 0036) checks that an
+"original price" must be higher than the real price (including when the price is
+raised later), and that orders are always charged the real price, never the
+crossed-out one.

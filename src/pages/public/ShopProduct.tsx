@@ -9,9 +9,11 @@ import { useShopCart } from '@/features/shop/ShopCartContext'
 import { NotifyMe } from '@/features/backInStock/NotifyMe'
 import { useProductRatings } from '@/features/productReviews/queries'
 import { RatingBadge } from '@/components/shop/RatingBadge'
+import { HeartButton } from '@/components/shop/HeartButton'
+import { Price, SaleBadge } from '@/components/shop/Price'
+import { useProductFavoriteActions } from '@/features/productFavorites/useProductFavoriteActions'
 import { ProductReviewsSection } from '@/components/shop/ProductReviewsSection'
 import { MAX_PER_LINE } from '@/features/shop/cart'
-import { formatKES } from '@/utils/currency'
 import { getPublicImageUrl, getResizedImageUrl } from '@/utils/storage'
 import { SITE_ORIGIN } from '@/utils/siteUrl'
 import { buildProductEnquiryMessage, buildWhatsAppLink, buildWhatsAppShareLink } from '@/utils/whatsapp'
@@ -188,7 +190,7 @@ function RelatedProducts({ product }: { product: Product }) {
             </div>
             <div className="p-3">
               <p className="line-clamp-2 text-sm font-medium text-teal-900">{p.name}</p>
-              <p className="mt-1 font-figures text-sm text-charcoal-700">{formatKES(p.price)}</p>
+              <p className="mt-1 text-sm text-charcoal-700"><Price price={p.price} compareAt={p.compare_at_price} /></p>
             </div>
           </Link>
         ))}
@@ -201,6 +203,7 @@ export default function ShopProduct() {
   const { slug } = useParams()
   const { data: product, isLoading, isError } = useShopProduct(slug)
   const { data: ratings } = useProductRatings()
+  const favorites = useProductFavoriteActions()
 
   if (isLoading) {
     return <div className="mx-auto max-w-6xl px-6 py-24 text-charcoal-500">Loading...</div>
@@ -271,9 +274,15 @@ export default function ShopProduct() {
 
         <div>
           <p className="text-xs uppercase tracking-wide text-charcoal-500">{product.category}</p>
-          <h1 className="mt-1 font-display text-3xl font-medium text-teal-900 md:text-4xl">{product.name}</h1>
+          <div className="mt-1 flex items-start justify-between gap-3">
+            <h1 className="font-display text-3xl font-medium text-teal-900 md:text-4xl">{product.name}</h1>
+            <HeartButton saved={favorites.isSaved(product.id)} onToggle={() => favorites.toggle(product.id)} name={product.name} className="mt-1 shrink-0 border border-sand-300" />
+          </div>
           <div className="mt-2"><RatingBadge rating={ratings?.[product.id]} /></div>
-          <p className="mt-3 font-figures text-2xl text-teal-900">{formatKES(product.price)}</p>
+          <p className="mt-3 flex flex-wrap items-center gap-3 text-2xl text-teal-900">
+            <Price price={product.price} compareAt={product.compare_at_price} />
+            <SaleBadge price={product.price} compareAt={product.compare_at_price} />
+          </p>
           <p className={`mt-1 text-sm ${product.stock < 1 ? 'text-coral-500' : 'text-charcoal-500'}`}>{stockLabel(product.stock)}</p>
 
           {product.description.trim() && (

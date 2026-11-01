@@ -3,6 +3,7 @@
 // the page already loaded.
 
 import type { Product } from '@/types/domain'
+import { isOnSale } from '@/features/shop/sale'
 
 export type ShopSort = 'newest' | 'price-asc' | 'price-desc' | 'name'
 
@@ -11,10 +12,11 @@ export interface ShopFilters {
   /** '' means every category. */
   category: string
   inStockOnly: boolean
+  onSaleOnly: boolean
   sort: ShopSort
 }
 
-export const DEFAULT_FILTERS: ShopFilters = { search: '', category: '', inStockOnly: false, sort: 'newest' }
+export const DEFAULT_FILTERS: ShopFilters = { search: '', category: '', inStockOnly: false, onSaleOnly: false, sort: 'newest' }
 
 export const SORT_LABELS: Record<ShopSort, string> = {
   newest: 'Newest',
@@ -37,6 +39,7 @@ export function filterProducts(products: Product[], f: ShopFilters): Product[] {
   const matched = products.filter((p) => {
     if (f.category && p.category !== f.category) return false
     if (f.inStockOnly && p.stock < 1) return false
+    if (f.onSaleOnly && !isOnSale(p)) return false
     if (words.length === 0) return true
     const haystack = `${p.name} ${p.description} ${p.category}`.toLowerCase()
     return words.every((w) => haystack.includes(w))
@@ -60,5 +63,5 @@ export function filterProducts(products: Product[], f: ShopFilters): Product[] {
 }
 
 export function hasActiveFilters(f: ShopFilters): boolean {
-  return f.search.trim() !== '' || f.category !== '' || f.inStockOnly
+  return f.search.trim() !== '' || f.category !== '' || f.inStockOnly || f.onSaleOnly
 }

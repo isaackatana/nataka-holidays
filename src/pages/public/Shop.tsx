@@ -6,6 +6,9 @@ import { useShopProducts } from '@/features/shop/queries'
 import { useShopCart } from '@/features/shop/ShopCartContext'
 import { useProductRatings } from '@/features/productReviews/queries'
 import { RatingBadge } from '@/components/shop/RatingBadge'
+import { HeartButton } from '@/components/shop/HeartButton'
+import { Price, SaleBadge } from '@/components/shop/Price'
+import { useProductFavoriteActions } from '@/features/productFavorites/useProductFavoriteActions'
 import type { ProductRating } from '@/services/shopReviews.service'
 import {
   categoryCounts, DEFAULT_FILTERS, filterProducts, hasActiveFilters, SORT_LABELS, type ShopFilters, type ShopSort,
@@ -14,7 +17,7 @@ import { formatKES } from '@/utils/currency'
 import { getResizedImageUrl } from '@/utils/storage'
 import type { Product } from '@/types/domain'
 
-function ProductCard({ product, rating }: { product: Product; rating?: ProductRating }) {
+function ProductCard({ product, rating, saved, onToggleSaved }: { product: Product; rating?: ProductRating; saved: boolean; onToggleSaved: () => void }) {
   const cart = useShopCart()
   const inCart = cart.lines.find((l) => l.productId === product.id)?.quantity ?? 0
   const soldOut = product.stock < 1
@@ -22,7 +25,9 @@ function ProductCard({ product, rating }: { product: Product; rating?: ProductRa
   const maxed = inCart >= Math.min(product.stock, 20)
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-card bg-sand-50 shadow-card">
+    <article className="relative flex flex-col overflow-hidden rounded-card bg-sand-50 shadow-card">
+      <HeartButton saved={saved} onToggle={onToggleSaved} name={product.name} className="absolute right-3 top-3 z-10" />
+      <SaleBadge price={product.price} compareAt={product.compare_at_price} className="absolute left-3 top-3 z-10" />
       <Link to={`/shop/${product.slug}`} aria-label={`View ${product.name}`} className="block aspect-square bg-sand-200">
         {product.image_path ? (
           <img
@@ -44,7 +49,7 @@ function ProductCard({ product, rating }: { product: Product; rating?: ProductRa
         </h2>
         <RatingBadge rating={rating} />
         {product.description && <p className="line-clamp-3 text-sm text-charcoal-500">{product.description}</p>}
-        <p className="mt-auto pt-2 font-figures text-lg text-teal-900">{formatKES(product.price)}</p>
+        <p className="mt-auto pt-2 text-lg text-teal-900"><Price price={product.price} compareAt={product.compare_at_price} /></p>
         <p className="text-xs text-charcoal-500">
           {soldOut ? 'Sold out' : product.stock <= 3 ? `Only ${product.stock} left` : 'In stock'}
         </p>
@@ -78,6 +83,7 @@ export default function Shop() {
   const { data: products, isLoading, isError } = useShopProducts()
   const cart = useShopCart()
   const { data: ratings } = useProductRatings()
+  const favorites = useProductFavoriteActions()
   const [filters, setFilters] = useState<ShopFilters>(DEFAULT_FILTERS)
 
   const categories = useMemo(() => categoryCounts(products ?? []), [products])
@@ -169,6 +175,14 @@ export default function Shop() {
               />
               In stock only
             </label>
+            <label className="flex items-center gap-2 text-sm text-charcoal-700">
+              <input
+                type="checkbox"
+                checked={filters.onSaleOnly}
+                onChange={(e) => setFilters({ ...filters, onSaleOnly: e.target.checked })}
+              />
+              On sale
+            </label>
           </div>
 
           {filtering && (
@@ -185,7 +199,7 @@ export default function Shop() {
       {!isError && (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {isLoading && Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-80 animate-pulse rounded-card bg-sand-200" />)}
-          {visible.map((p) => <ProductCard key={p.id} product={p} rating={ratings?.[p.id]} />)}
+          {visible.map((p) => <ProductCard key={p.id} product={p} rating={ratings?.[p.id]} saved={favorites.isSaved(p.id)} onToggleSaved={() => favorites.toggle(p.id)} />)}
         </div>
       )}
 

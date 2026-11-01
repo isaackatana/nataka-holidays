@@ -3,11 +3,12 @@ import { Pencil, Plus, Trash2, Eye, EyeOff, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ProductVariantsEditor } from '@/components/admin/ProductVariantsEditor'
 import { ProductImageUploader } from '@/components/admin/ProductImageUploader'
+import { Price } from '@/components/shop/Price'
+import { salePercent } from '@/features/shop/sale'
 import { useBackInStockCounts } from '@/features/backInStock/queries'
 import { useBusinessSettings } from '@/features/settings/queries'
 import { useAdminProducts, useDeleteProduct, useSaveProduct } from '@/features/admin/shop/queries'
 import { slugify } from '@/features/admin/shop/slug'
-import { formatKES } from '@/utils/currency'
 import { getResizedImageUrl } from '@/utils/storage'
 import type { ProductWithImages } from '@/types/domain'
 
@@ -17,12 +18,13 @@ interface FormState {
   slug: string
   description: string
   price: string
+  compareAt: string
   stock: string
   category: string
   is_active: boolean
 }
 
-const EMPTY: FormState = { name: '', slug: '', description: '', price: '', stock: '', category: '', is_active: true }
+const EMPTY: FormState = { name: '', slug: '', description: '', price: '', compareAt: '', stock: '', category: '', is_active: true }
 
 const inputClass =
   'w-full rounded-lg border border-sand-400 bg-sand-50 px-4 py-2.5 text-base text-charcoal-900 outline-none placeholder:text-charcoal-500 focus:border-teal-700 sm:text-sm'
@@ -42,7 +44,7 @@ export default function AdminProducts() {
   function edit(p: ProductWithImages, message: string | null = null) {
     setError(null)
     setNotice(message)
-    setForm({ id: p.id, name: p.name, slug: p.slug, description: p.description, price: String(p.price), stock: String(p.stock), category: p.category, is_active: p.is_active })
+    setForm({ id: p.id, name: p.name, slug: p.slug, description: p.description, price: String(p.price), compareAt: p.compare_at_price ? String(p.compare_at_price) : '', stock: String(p.stock), category: p.category, is_active: p.is_active })
   }
 
   const categoryOptions = [...new Set((products ?? []).map((p) => p.category))].sort()
@@ -60,6 +62,10 @@ export default function AdminProducts() {
     if (form.name.trim().length < 2) return setError('Enter a product name.')
     if (!slug) return setError('The name needs some letters or numbers.')
     if (!Number.isInteger(price) || price < 1 || price > 250000) return setError('Price must be a whole number of shillings, from 1 to 250,000.')
+    const compareAt = form.compareAt.trim() === '' ? null : Number(form.compareAt)
+    if (compareAt !== null && (!Number.isInteger(compareAt) || compareAt <= price || compareAt > 1000000)) {
+      return setError('The original price must be a whole number higher than the price, or empty if it is not on sale.')
+    }
     if (!Number.isInteger(stock) || stock < 0) return setError('Stock must be 0 or more.')
     const category = form.category.trim() || 'Other'
     if (category.length < 2 || category.length > 40) return setError('Category must be 2 to 40 characters.')
@@ -67,7 +73,7 @@ export default function AdminProducts() {
     try {
       const saved = await save.mutateAsync({
         id: form.id,
-        input: { name: form.name.trim(), slug, description: form.description.trim(), price, stock, category, is_active: form.is_active },
+        input: { name: form.name.trim(), slug, description: form.description.trim(), price, compare_at_price: compareAt, stock, category, is_active: form.is_active },
       })
       if (form.id) {
         setForm(null)
@@ -125,6 +131,13 @@ export default function AdminProducts() {
             <label className="flex flex-col gap-1.5 text-sm font-medium text-charcoal-700">
               Price (KSh)
               <input className={inputClass} type="number" inputMode="numeric" min={1} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+            </label>
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-charcoal-700">
+              Original price (KSh, optional)
+              <input className={inputClass} type="number" inputMode="numeric" min={1} value={form.compareAt} onChange={(e) => setForm({ ...form, compareAt: e.target.value })} placeholder="Leave empty if not on sale" />
+              <span className="text-xs font-normal text-charcoal-500">
+                To run a sale, put the old, higher price here and the new price above. The shop shows the old one crossed out with a "Sale" tag. Clear it to end the sale.
+              </span>
             </label>
             <label className="flex flex-col gap-1.5 text-sm font-medium text-charcoal-700">
               In stock
@@ -194,7 +207,10 @@ export default function AdminProducts() {
                   </div>
                 </td>
                 <td className="px-4 py-3 text-charcoal-700">{p.category}</td>
-                <td className="px-4 py-3 font-figures text-charcoal-700">{formatKES(p.price)}</td>
+                <td className="px-4 py-3 text-charcoal-700">
+                  <Price price={p.price} compareAt={p.compare_at_price} />
+                  {salePercent(p.price, p.compare_at_price) !== null && <span className="ml-2 rounded-full bg-coral-500/15 px-2 py-0.5 font-sans text-[11px] text-coral-500">Sale</span>}
+                </td>
                 <td className={`px-4 py-3 font-figures ${p.stock === 0 ? 'text-coral-500' : 'text-charcoal-700'}`}>
                   {p.stock === 0 ? 'Sold out' : p.stock}
                   {p.stock > 0 && lowAt > 0 && p.stock <= lowAt && <span className="ml-2 rounded-full bg-gold-500/20 px-2 py-0.5 font-sans text-[11px] text-charcoal-900">Low</span>}
